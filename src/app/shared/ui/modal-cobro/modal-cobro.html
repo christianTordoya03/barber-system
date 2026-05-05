@@ -1,0 +1,51 @@
+@if (isOpen()) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" (click)="!isProcessing() && onClose.emit()"></div>
+
+    <div class="relative bg-[#111111] rounded-3xl border border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
+      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+
+      <div class="p-6">
+        <h3 class="text-xl font-bold text-white mb-1">Confirmar Pago</h3>
+        <p class="text-sm text-zinc-400">Cierra el ticket y registra el ingreso a caja.</p>
+
+        <div class="mt-6 p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm text-zinc-400">Servicio</span>
+            <span class="text-sm font-bold text-white">{{ cobro()?.servicio }}</span>
+          </div>
+          <div class="flex justify-between items-center mb-4">
+            <span class="text-sm text-zinc-400">Barbero</span>
+            <span class="text-sm font-medium text-white">{{ cobro()?.barbero }}</span>
+          </div>
+          <div class="flex justify-between items-center pt-3 border-t border-zinc-800">
+            <span class="text-sm font-medium text-zinc-300">Total a cobrar</span>
+            <span class="text-2xl font-black text-blue-400">S/ {{ cobro()?.monto | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <label class="block text-sm font-bold text-zinc-300 mb-3">Método de Pago</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button (click)="metodoPagoSeleccionado.set('Yape')" class="py-3 px-4 rounded-xl border-2 flex items-center justify-center font-bold transition-all duration-200" [ngClass]="metodoPagoSeleccionado() === 'Yape' ? 'bg-[#742384]/10 border-[#742384] text-[#D05CFA] shadow-[0_0_15px_rgba(116,35,132,0.3)]' : 'bg-zinc-900 border-transparent text-zinc-500 hover:border-zinc-700'">Yape</button>
+            <button (click)="metodoPagoSeleccionado.set('Plin')" class="py-3 px-4 rounded-xl border-2 flex items-center justify-center font-bold transition-all duration-200" [ngClass]="metodoPagoSeleccionado() === 'Plin' ? 'bg-[#00D9C5]/10 border-[#00D9C5] text-[#00D9C5] shadow-[0_0_15px_rgba(0,217,197,0.2)]' : 'bg-zinc-900 border-transparent text-zinc-500 hover:border-zinc-700'">Plin</button>
+            <button (click)="metodoPagoSeleccionado.set('Efectivo')" class="py-3 px-4 rounded-xl border-2 flex items-center justify-center font-bold transition-all duration-200" [ngClass]="metodoPagoSeleccionado() === 'Efectivo' ? 'bg-green-500/10 border-green-500 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]' : 'bg-zinc-900 border-transparent text-zinc-500 hover:border-zinc-700'">Efectivo</button>
+            <button (click)="metodoPagoSeleccionado.set('Tarjeta')" class="py-3 px-4 rounded-xl border-2 flex items-center justify-center font-bold transition-all duration-200" [ngClass]="metodoPagoSeleccionado() === 'Tarjeta' ? 'bg-blue-500/10 border-blue-500 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-zinc-900 border-transparent text-zinc-500 hover:border-zinc-700'">Tarjeta</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-zinc-800 bg-[#0a0a0a] flex space-x-3">
+        <button (click)="onClose.emit()" [disabled]="isProcessing()" class="flex-1 py-3.5 text-sm font-bold text-zinc-400 bg-zinc-900 hover:bg-zinc-800 hover:text-white rounded-xl transition-colors">Cancelar</button>
+        <button (click)="confirmar()" [disabled]="isProcessing()" class="flex-1 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-xl transition-all shadow-lg shadow-blue-500/30 flex justify-center items-center disabled:opacity-70 disabled:scale-100 transform active:scale-95">
+          @if (isProcessing()) {
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Procesando...
+          } @else {
+            Confirmar S/ {{ cobro()?.monto }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

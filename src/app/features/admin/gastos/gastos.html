@@ -1,0 +1,163 @@
+<div class="max-w-6xl mx-auto animate-fade-in-up">
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Gastos y Pagos</h1>
+      <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Registra pagos a barberos, servicios, limpieza, etc.</p>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 shadow-sm relative overflow-hidden mb-10 transition-colors duration-300">
+    <div class="absolute top-0 inset-x-0 h-1 bg-red-500"></div>
+    <h2 class="text-base font-bold text-red-600 dark:text-red-400 mb-6 border-b border-zinc-100 dark:border-zinc-800/80 pb-3">Agregar Nuevo Gasto</h2>
+    
+    <form [formGroup]="gastoForm" (ngSubmit)="registrarGasto()" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <div class="lg:col-span-2">
+          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Descripción</label>
+          <input type="text" formControlName="descripcion" placeholder="Ej. Pago comisión, Insumos..." class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-red-500 sm:text-sm transition-colors">
+        </div>
+        
+        <div class="lg:col-span-1">
+          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Monto S/.</label>
+          <input type="number" formControlName="monto" placeholder="0.00" class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-red-500 sm:text-sm font-bold transition-colors">
+        </div>
+
+        <div class="lg:col-span-1">
+          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Forma de Pago</label>
+          <select formControlName="metodoPago" class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-red-500 sm:text-sm transition-colors cursor-pointer appearance-none">
+            <option value="" disabled selected>Seleccione...</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Yape">Yape</option>
+            <option value="Plin">Plin</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Tarjeta">Tarjeta</option>
+          </select>
+        </div>
+
+        <div class="lg:col-span-2">
+          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Empleado (Opcional)</label>
+          <select formControlName="empleado_id" class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-red-500 sm:text-sm transition-colors cursor-pointer appearance-none">
+            <option value="" selected>Ninguno (Gasto general)</option>
+            @for (emp of empleadosActivos(); track emp.id) {
+              <option [value]="emp.id">{{ emp.nombre }} ({{ emp.rol }})</option>
+            }
+          </select>
+        </div>
+      </div>
+      
+      <div class="pt-2">
+        <button type="submit" class="bg-red-600 hover:bg-red-500 text-white text-sm font-bold py-2.5 px-6 rounded-lg shadow-md shadow-red-500/30 transform active:scale-95 transition-all">
+          Agregar Gasto
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla Historial -->
+  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm transition-colors duration-300">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-left text-sm">
+        <thead class="bg-zinc-50 dark:bg-zinc-900/50">
+          <tr>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Fecha</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Descripción</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Forma de Pago</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Monto</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 text-right">Acción</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+          @for (gasto of gastos(); track gasto.id) {
+            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors" [ngClass]="{'opacity-50 grayscale bg-zinc-50/50 dark:bg-zinc-900/20': gasto.estado === 'anulado'}">
+              <td class="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400" [class.line-through]="gasto.estado === 'anulado'">{{ gasto.fecha }}</td>
+              <td class="px-6 py-4 font-medium text-zinc-900 dark:text-white" [class.line-through]="gasto.estado === 'anulado'">
+                {{ gasto.descripcion }} 
+                <span class="text-blue-500 font-bold ml-1 text-xs" [class.line-through]="gasto.estado === 'anulado'">{{ getNombreEmpleado(gasto.empleado_id) }}</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400" [class.line-through]="gasto.estado === 'anulado'">{{ gasto.metodoPago }}</td>
+              <td class="px-6 py-4 whitespace-nowrap font-bold" [ngClass]="gasto.estado === 'anulado' ? 'text-zinc-500 line-through' : 'text-red-500'">- S/ {{ gasto.monto | number:'1.2-2' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                @if (gasto.estado !== 'anulado') {
+                  <div class="flex justify-end space-x-2">
+                    <button (click)="abrirModalEditar(gasto.id)" class="px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-lg transition-colors">
+                      Editar
+                    </button>
+                    <button (click)="anularGasto(gasto.id)" class="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-lg transition-colors">
+                      Anular
+                    </button>
+                  </div>
+                } @else {
+                  <div class="flex justify-end items-center space-x-2">
+                    <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500 bg-zinc-200 dark:bg-zinc-800 rounded-md">Anulado</span>
+                    <!-- Botón para restaurar -->
+                    <button (click)="restaurarGasto(gasto.id)" class="p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors" title="Restaurar gasto">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                  </div>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="px-6 py-12 text-center text-zinc-500">No hay gastos registrados.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-modal-confirm 
+  [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title" [message]="confirmConfig().message"
+  [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText"
+  (onConfirm)="confirmConfig().action()" (onCancel)="cerrarConfirmacion()">
+</app-modal-confirm>
+
+<!-- NUEVO MODAL DE EDICIÓN -->
+@if (isEditModalOpen()) {
+  <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
+    <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" (click)="isEditModalOpen.set(false)"></div>
+    <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-lg shadow-2xl overflow-hidden animate-fade-in-up">
+      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+      <div class="p-6 sm:p-8">
+        <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-6">Editar Gasto</h3>
+        <form [formGroup]="editForm" (ngSubmit)="guardarEdicion()" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Descripción</label>
+              <input type="text" formControlName="descripcion" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto (S/)</label>
+              <input type="number" formControlName="monto" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Forma de Pago</label>
+              <select formControlName="metodoPago" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none cursor-pointer">
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Yape">Yape</option>
+                <option value="Plin">Plin</option>
+                <option value="Transferencia">Transferencia</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Empleado (Opcional)</label>
+              <select formControlName="empleado_id" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none cursor-pointer">
+                <option value="">Ninguno (Gasto general)</option>
+                @for (emp of empleadosActivos(); track emp.id) {
+                  <option [value]="emp.id">{{ emp.nombre }} ({{ emp.rol }})</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="flex space-x-3 pt-2">
+            <button type="button" (click)="isEditModalOpen.set(false)" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
+            <button type="submit" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

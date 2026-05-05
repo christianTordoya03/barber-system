@@ -1,0 +1,74 @@
+<div class="max-w-4xl mx-auto animate-fade-in-up">
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Categorías de Servicios</h1>
+      <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Administra las agrupaciones para organizar tus servicios.</p>
+    </div>
+    <div class="mt-4 sm:mt-0">
+      <button (click)="abrirModalAgregar()" class="w-full sm:w-auto flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-sm rounded-xl hover:from-blue-500 hover:to-blue-400 transition-all shadow-lg transform active:scale-95">
+        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+        Agregar Categoría
+      </button>
+    </div>
+  </div>
+  <div class="bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm dark:shadow-2xl relative transition-colors duration-300">
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-zinc-200 dark:from-zinc-800 via-zinc-300 dark:via-zinc-700 to-zinc-200 dark:to-zinc-800"></div>
+    <div class="overflow-x-auto mt-1">
+      <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-left text-sm">
+        <thead class="bg-zinc-50 dark:bg-zinc-900/50">
+          <tr>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider w-16">ID</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Nombre de Categoría</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">Gestionar</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-[#111111]">
+          @for (categoria of categorias(); track categoria.id) {
+            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap font-medium text-zinc-500">#{{ categoria.id }}</td>
+              <td class="px-6 py-4 whitespace-nowrap font-bold text-zinc-900 dark:text-white">{{ categoria.nombre }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div class="flex justify-end space-x-2">
+                  <button (click)="abrirModalEditar(categoria)" class="p-2 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-500 hover:text-green-800 dark:hover:text-white transition-all"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+                  <button (click)="eliminarCategoria(categoria.id, categoria.nombre)" class="p-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-500 hover:text-red-800 dark:hover:text-white transition-all"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@if (isModalOpen()) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+    <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" (click)="cerrarModal()"></div>
+    <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-sm shadow-2xl overflow-hidden animate-fade-in-up">
+      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+      <div class="p-6">
+        <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-6">{{ isEditing() ? 'Editar Categoría' : 'Nueva Categoría' }}</h3>
+        <form [formGroup]="categoriaForm" (ngSubmit)="guardarCategoria()">
+          <div class="mb-5">
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Nombre</label>
+            <input type="text" formControlName="nombre" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+          </div>
+          <div class="flex space-x-3">
+            <button type="button" (click)="cerrarModal()" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white transition-colors">Cancelar</button>
+            <button type="submit" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<app-modal-confirm 
+  [isOpen]="confirmConfig().isOpen"
+  [title]="confirmConfig().title"
+  [message]="confirmConfig().message"
+  [type]="confirmConfig().type"
+  [confirmText]="confirmConfig().confirmText"
+  (onConfirm)="confirmConfig().action()"
+  (onCancel)="cerrarConfirmacion()">
+</app-modal-confirm>

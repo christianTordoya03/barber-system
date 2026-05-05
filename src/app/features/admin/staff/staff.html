@@ -1,0 +1,299 @@
+<div class="max-w-6xl mx-auto animate-fade-in-up">
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Equipo de Trabajo</h1>
+      <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Gestiona los administradores y barberos de Marina 305.
+      </p>
+    </div>
+    <div class="mt-4 sm:mt-0">
+      <button (click)="abrirModalAgregar()"
+        class="w-full sm:w-auto flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-sm rounded-xl hover:from-blue-500 hover:to-blue-400 transition-all shadow-md transform active:scale-95">
+        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+        </svg>
+        Agregar Personal
+      </button>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm dark:shadow-2xl relative transition-colors duration-300">
+    <div
+      class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-zinc-200 dark:from-zinc-800 via-zinc-300 dark:via-zinc-700 to-zinc-200 dark:to-zinc-800">
+    </div>
+    <div class="overflow-x-auto mt-1">
+      <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-left text-sm">
+        <thead class="bg-zinc-50 dark:bg-zinc-900/50">
+          <tr>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Nombre
+              Completo</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+              Contacto</th>
+            <th scope="col"
+              class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-center">Rol</th>
+            <th scope="col"
+              class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-center">Comisión
+            </th>
+            <th scope="col"
+              class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-[#111111]">
+          @for (miembro of miembrosStaff(); track miembro.id) {
+          <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors"
+            [ngClass]="{'opacity-50 grayscale': !miembro.activo}">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <!-- NUEVO: LÓGICA DE AVATAR EN LA TABLA -->
+                <div
+                  class="h-10 w-10 flex-shrink-0 rounded-full flex items-center justify-center font-bold text-white shadow-inner overflow-hidden"
+                  [ngClass]="miembro.rol === 'admin' ? 'bg-purple-600' : 'bg-blue-600'">
+                  @if (miembro.avatar_url) {
+                  <img [src]="miembro.avatar_url" class="h-full w-full object-cover" alt="Foto perfil">
+                  } @else {
+                  {{ miembro.nombre.charAt(0).toUpperCase() }}
+                  }
+                </div>
+                <div class="ml-4">
+                  <div class="font-bold text-zinc-900 dark:text-white" [class.line-through]="!miembro.activo">{{
+                    miembro.nombre }}</div>
+                  <div class="text-xs font-medium mt-0.5"
+                    [ngClass]="miembro.activo ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
+                    {{ miembro.activo ? 'Activo' : 'Inactivo' }}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-zinc-900 dark:text-white">{{ miembro.email }}</div>
+              <div class="text-zinc-500 dark:text-zinc-500 text-xs mt-0.5">{{ miembro.telefono || 'Sin teléfono' }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold ring-1 ring-inset"
+                [ngClass]="miembro.rol === 'admin' ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 ring-purple-600/20 dark:ring-purple-500/20' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-600/20 dark:ring-blue-500/20'">
+                {{ miembro.rol === 'admin' ? 'Administrador' : 'Barbero' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center font-bold">
+              @if (miembro.rol === 'admin') {
+              <span class="text-zinc-400 dark:text-zinc-600">-</span>
+              } @else {
+              <span class="text-emerald-600 dark:text-emerald-400">{{ miembro.comision }}%</span>
+              }
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="flex justify-end space-x-2">
+                <button (click)="abrirModalEditar(miembro)"
+                  class="p-2 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-500 hover:text-green-800 dark:hover:text-white transition-all cursor-pointer"
+                  title="Editar">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button (click)="abrirHistorialPagos(miembro)"
+                  class="p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500 hover:text-blue-800 dark:hover:text-white transition-all cursor-pointer"
+                  title="Ver Historial de Pagos">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+
+                @if (miembro.activo) {
+                <button (click)="toggleEstadoMiembro(miembro.id, miembro.nombre, miembro.activo)"
+                  class="p-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-500 hover:text-red-800 dark:hover:text-white transition-all cursor-pointer"
+                  title="Desactivar Acceso">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                </button>
+                } @else {
+                <button (click)="toggleEstadoMiembro(miembro.id, miembro.nombre, miembro.activo)"
+                  class="p-2 bg-zinc-100 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white transition-all cursor-pointer"
+                  title="Reactivar Acceso">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+                }
+              </div>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="5" class="px-6 py-12 text-center text-zinc-500">No hay personal registrado en el sistema.</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@if (isModalOpen()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+  <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity"
+    (click)="cerrarModal()"></div>
+  <div
+    class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-lg shadow-2xl overflow-hidden animate-fade-in-up">
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+
+    <div class="p-6 sm:p-8">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-zinc-900 dark:text-white">{{ isEditing() ? 'Editar Perfil' : 'Nuevo
+          Integrante' }}</h3>
+        <button (click)="cerrarModal()"
+          class="text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="staffForm" (ngSubmit)="guardarMiembro()" class="space-y-5">
+        <!-- ÁREA PARA SUBIR FOTO (Se mantiene igual) -->
+        <div class="flex justify-center mb-4">
+          <div class="relative group">
+            <div
+              class="h-24 w-24 rounded-full bg-zinc-100 dark:bg-zinc-800 border-2 border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center overflow-hidden cursor-pointer hover:border-blue-500 transition-colors"
+              (click)="fileInput.click()">
+              @if (avatarPreview()) {
+              <img [src]="avatarPreview()" class="h-full w-full object-cover">
+              <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center">
+                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              } @else {
+              <svg class="h-8 w-8 text-zinc-400 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              }
+            </div>
+            <input #fileInput type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
+            <p class="text-[10px] text-center text-zinc-500 mt-2 font-medium uppercase tracking-wider">Subir Foto</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Nombre Completo</label>
+            <input type="text" formControlName="nombre" placeholder="Ej. Carlos G."
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors">
+            <!-- MENSAJE DE ERROR -->
+            @if (staffForm.get('nombre')?.touched && staffForm.get('nombre')?.invalid) {
+              <p class="text-[11px] text-red-500 mt-1.5">El nombre es obligatorio.</p>
+            }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Teléfono</label>
+            <input type="text" formControlName="telefono" placeholder="Opcional"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Correo Electrónico</label>
+          <input type="email" formControlName="email" placeholder="correo@marina305.com"
+            class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors">
+          <!-- MENSAJE DE ERROR -->
+          @if (staffForm.get('email')?.touched && staffForm.get('email')?.invalid) {
+            <p class="text-[11px] text-red-500 mt-1.5">Ingrese un correo válido.</p>
+          }
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 border-t border-zinc-200 dark:border-zinc-800/80">
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Rol de Acceso</label>
+            <select formControlName="rol"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer transition-colors">
+              <option value="barbero">Barbero</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Comisión por corte (%)</label>
+            <div class="relative">
+              <input type="number" formControlName="comision"
+                class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+                <span class="text-zinc-500 font-bold">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 mt-2">
+          <button type="submit" [disabled]="isUploading()"
+            class="flex w-full justify-center items-center rounded-xl bg-blue-600 px-3 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all duration-200 transform active:scale-95 disabled:opacity-70 disabled:cursor-wait">
+            @if (isUploading()) {
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Subiendo foto...
+            } @else {
+            {{ isEditing() ? 'Guardar Cambios' : 'Registrar Miembro' }}
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+}
+
+@if (isHistorialModalOpen()) {
+  <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
+    <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" (click)="isHistorialModalOpen.set(false)"></div>
+    <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-2xl shadow-2xl overflow-hidden animate-fade-in-up">
+      <div class="absolute top-0 inset-x-0 h-1 bg-blue-500"></div>
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-zinc-900 dark:text-white">Historial de Pagos: <span class="text-blue-500">{{ nombreEmpleadoHistorial() }}</span></h3>
+          <button (click)="isHistorialModalOpen.set(false)" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        
+        <div class="max-h-[60vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800 rounded-xl">
+          <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-left text-sm">
+            <thead class="bg-zinc-50 dark:bg-zinc-900/50 sticky top-0">
+              <tr>
+                <th scope="col" class="px-4 py-3 font-bold text-zinc-500 dark:text-zinc-400">Fecha</th>
+                <th scope="col" class="px-4 py-3 font-bold text-zinc-500 dark:text-zinc-400">Descripción</th>
+                <th scope="col" class="px-4 py-3 font-bold text-zinc-500 dark:text-zinc-400">Método</th>
+                <th scope="col" class="px-4 py-3 font-bold text-zinc-500 dark:text-zinc-400 text-right">Monto</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+              @for (pago of pagosDelEmpleado(); track pago.id) {
+                <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30">
+                  <td class="px-4 py-3 text-zinc-500 dark:text-zinc-400">{{ pago.fecha }}</td>
+                  <td class="px-4 py-3 font-medium text-zinc-900 dark:text-white">{{ pago.descripcion }}</td>
+                  <td class="px-4 py-3 text-zinc-500 dark:text-zinc-400">{{ pago.metodoPago }}</td>
+                  <td class="px-4 py-3 font-bold text-green-500 text-right">S/ {{ pago.monto | number:'1.2-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="4" class="px-4 py-8 text-center text-zinc-500">No hay pagos registrados para este empleado.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<app-modal-confirm [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title" [message]="confirmConfig().message"
+  [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText" (onConfirm)="confirmConfig().action()"
+  (onCancel)="cerrarConfirmacion()">
+</app-modal-confirm>

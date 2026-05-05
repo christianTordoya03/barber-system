@@ -1,0 +1,23 @@
+<!-- Contenedor fijo en la esquina inferior derecha -->
+<div class="fixed bottom-5 right-5 sm:bottom-8 sm:right-8 z-[9999] flex flex-col gap-3 pointer-events-none">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div class="flex items-center p-4 bg-white dark:bg-[#111111] rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 animate-fade-in-up min-w-[250px] sm:min-w-[300px] pointer-events-auto transition-colors duration-300">
+      
+      @if (toast.type === 'success') {
+        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-green-50 dark:bg-green-500/20 flex items-center justify-center mr-3">
+          <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+        </div>
+      } @else {
+        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-red-50 dark:bg-red-500/20 flex items-center justify-center mr-3">
+          <svg class="h-5 w-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </div>
+      }
+      
+      <p class="text-sm font-bold text-zinc-900 dark:text-white">{{ toast.message }}</p>
+      
+      <button (click)="toastService.remove(toast.id)" class="ml-auto pl-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+  }
+</div>

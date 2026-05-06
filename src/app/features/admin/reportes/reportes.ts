@@ -31,15 +31,20 @@ export class ReportesComponent {
   ];
   anios = ['2024', '2025', '2026'];
 
-  fechaInicio = signal<string>(new Date().toISOString().split('T')[0]);
-  fechaFin = signal<string>(new Date().toISOString().split('T')[0]);
+  hoyStrHtml = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+  })();
 
+  fechaInicio = signal<string>(this.hoyStrHtml);
+  fechaFin = signal<string>(this.hoyStrHtml);
+  
   filtroAplicado = signal({
     tipo: 'mes',
     mes: (new Date().getMonth() + 1).toString().padStart(2, '0'),
     anio: new Date().getFullYear().toString(),
-    inicio: new Date().toISOString().split('T')[0],
-    fin: new Date().toISOString().split('T')[0]
+    inicio: this.hoyStrHtml,
+    fin: this.hoyStrHtml
   });
 
   // NUEVA VARIABLE: Para saber si ya le dio al botón Buscar
@@ -114,7 +119,7 @@ export class ReportesComponent {
 
   // --- CÁLCULOS REACTIVOS (INGRESOS MEJORADOS) ---
   totalYape = computed(() => this.sumarMetodo('Yape'));
-  totalPlin = computed(() => this.sumarMetodo('Plin'));
+  totalYapeJk = computed(() => this.sumarMetodo('Yape JK'));
   totalTarjeta = computed(() => this.sumarMetodo('Tarjeta'));
   totalTransferencia = computed(() => this.sumarMetodo('Transferencia'));
   totalEfectivo = computed(() => this.sumarMetodo('Efectivo'));
@@ -166,6 +171,11 @@ export class ReportesComponent {
   // --- GENERACIÓN DEL PDF ---
   generarPDF() {
     const doc = new jsPDF();
+    doc.setProperties({
+      title: 'Reporte General de Ingresos y Gastos',
+      subject: 'Marina 305 Barber Shop',
+      author: 'Marina 305'
+    });
     let subtitulo = '';
     const filtro = this.filtroAplicado();
 
@@ -198,7 +208,7 @@ export class ReportesComponent {
       body: [
         ['Total Tarjeta', `S/ ${this.totalTarjeta().toFixed(2)}`],
         ['Total Yape', `S/ ${this.totalYape().toFixed(2)}`],
-        ['Total Plin', `S/ ${this.totalPlin().toFixed(2)}`],
+        ['Total Yape JK', `S/ ${this.totalYapeJk().toFixed(2)}`],
         ['Total Efectivo', `S/ ${this.totalEfectivo().toFixed(2)}`],
         ['Total Transferencia', `S/ ${this.totalTransferencia().toFixed(2)}`],
         ['Total de Ingresos', `S/ ${this.totalIngresos().toFixed(2)}`],

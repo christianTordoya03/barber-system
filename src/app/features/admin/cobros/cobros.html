@@ -1,85 +1,85 @@
 <div class="max-w-7xl mx-auto animate-fade-in-up">
-
-  <!-- Título Superior -->
   <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
     <div>
       <h1 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Caja y Cobros</h1>
-      <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Gestiona los servicios en curso y el historial de pagos.
-      </p>
+      <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Gestiona los servicios en curso y el historial de pagos.</p>
     </div>
   </div>
 
   <!-- ========================================== -->
   <!-- FORMULARIO: REALIZAR COBRO RÁPIDO          -->
   <!-- ========================================== -->
-  <div
-    class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 shadow-sm relative overflow-hidden transition-colors duration-300 mb-12">
-    <!-- Línea decorativa estilo CWEB -->
+  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 shadow-sm relative overflow-hidden transition-colors duration-300 mb-12">
     <div class="absolute top-0 inset-x-0 h-1 bg-blue-500"></div>
-
-    <h2
-      class="text-base font-bold text-blue-600 dark:text-blue-400 mb-6 border-b border-zinc-100 dark:border-zinc-800/80 pb-3">
-      Realizar Cobro de Servicios del Día</h2>
-
+    <h2 class="text-base font-bold text-blue-600 dark:text-blue-400 mb-6 border-b border-zinc-100 dark:border-zinc-800/80 pb-3">Realizar Cobro de Servicios del Día</h2>
+    
     <form [formGroup]="cobroForm" (ngSubmit)="realizarCobro()" class="space-y-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!-- Dropdown: Cliente / Turno -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- 1. Buscador Limpio de Barbero -->
         <div>
-          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Cliente</label>
-          <select formControlName="turnoId"
-            class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors cursor-pointer appearance-none">
-            <option value="" disabled selected>Seleccione un Cliente pendiente...</option>
-            @for (turno of turnosPendientes(); track turno.id) {
-            <option [value]="turno.id">{{ turno.cliente }} (Atendido por {{ turno.barbero }})</option>
+          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Filtrar por Barbero</label>
+          <select formControlName="barberoFiltro" class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer transition-colors appearance-none">
+            <!-- AQUÍ ELIMINAMOS EL (Opcional) -->
+            <option value="" disabled selected>Selecciona un barbero...</option>
+            
+            @for (b of barberos(); track b.id) {
+              <option [value]="b.nombre">{{ b.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- 2. Dropdown: Cliente / Turno -->
+        <div>
+          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Cliente a Cobrar</label>
+          <select formControlName="turnoId" class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors cursor-pointer appearance-none">
+            <option value="" disabled selected>Seleccione un Cliente...</option>
+            @for (turno of turnosParaCobrarFiltrados(); track turno.id) {
+              <option [value]="turno.id">{{ turno.cliente }} ({{ turno.estado === 'finished' ? 'Cobrar' : 'Silla' }}) - {{ turno.barbero }}</option>
             }
           </select>
           @if (cobroForm.get('turnoId')?.touched && cobroForm.get('turnoId')?.invalid) {
-          <p class="text-[11px] text-red-500 mt-1.5">Debe seleccionar un ticket pendiente.</p>
+            <p class="text-[11px] text-red-500 mt-1.5">Debe seleccionar un ticket pendiente.</p>
           }
         </div>
 
-        <!-- Input Bloqueado: Servicio -->
+        <!-- 3. Dropdown: Forma de Pago -->
         <div>
-          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Servicio</label>
-          <input type="text" [value]="servicioSeleccionado() || 'Primero seleccione cliente'" disabled
-            class="block w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50 py-3 px-4 text-zinc-500 dark:text-zinc-400 sm:text-sm cursor-not-allowed transition-colors">
+          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Forma de pago</label>
+          <select formControlName="formaPago" class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors cursor-pointer appearance-none">
+            <option value="" disabled selected>Seleccione...</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Tarjeta">Tarjeta</option>
+            <option value="Yape">Yape</option>
+            <option value="Yape JK">Yape JK</option>
+            <option value="Transferencia">Transferencia</option>
+          </select>
+          @if (cobroForm.get('formaPago')?.touched && cobroForm.get('formaPago')?.invalid) {
+            <p class="text-[11px] text-red-500 mt-1.5">Indique el método de pago.</p>
+          }
         </div>
 
-        <!-- Input Bloqueado: Precio -->
+        <!-- 4. Input Bloqueado: Servicio -->
         <div>
-          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Precio de Servicio</label>
+          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Servicio</label>
+          <input type="text" [value]="servicioSeleccionado() || 'Primero seleccione cliente'" disabled class="block w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50 py-3 px-4 text-zinc-500 dark:text-zinc-400 sm:text-sm cursor-not-allowed transition-colors">
+        </div>
+        
+        <!-- 5. Input Bloqueado: Precio -->
+        <div>
+          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Precio Total</label>
           <div class="relative">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
               <span class="text-zinc-400 sm:text-sm">S/</span>
             </div>
-            <input type="text" [value]="precioSeleccionado() ? (precioSeleccionado() | number:'1.2-2') : ''" disabled
-              class="block w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50 py-3 pl-10 px-4 text-zinc-500 dark:text-zinc-400 sm:text-sm cursor-not-allowed font-medium transition-colors">
+            <input type="text" [value]="precioSeleccionado() ? (precioSeleccionado() | number:'1.2-2') : ''" disabled class="block w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50 py-3 pl-10 px-4 text-zinc-500 dark:text-zinc-400 sm:text-sm cursor-not-allowed font-medium transition-colors">
           </div>
         </div>
 
-        <!-- Dropdown: Forma de Pago -->
-        <div>
-          <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Forma de pago</label>
-          <select formControlName="formaPago"
-            class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors cursor-pointer appearance-none">
-            <option value="" disabled selected>Seleccione una forma de pago</option>
-            <option value="Efectivo">Efectivo</option>
-            <option value="Tarjeta">Tarjeta</option>
-            <option value="Yape">Yape</option>
-            <option value="Plin">Plin</option>
-            <option value="Transferencia">Transferencia</option>
-          </select>
-          @if (cobroForm.get('formaPago')?.touched && cobroForm.get('formaPago')?.invalid) {
-          <p class="text-[11px] text-red-500 mt-1.5">Indique el método de pago.</p>
-          }
-        </div>
-
       </div>
-
+      
       <div class="pt-2">
-        <button type="submit"
-          class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium py-2.5 px-6 rounded-lg shadow-sm transition-colors transform active:scale-95">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium py-2.5 px-6 rounded-lg shadow-sm transition-colors transform active:scale-95">
           Cobrar Servicio
         </button>
       </div>
@@ -87,13 +87,33 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- TABLA: HISTORIAL DE HOY                    -->
+  <!-- TABLA: HISTORIAL Y BÚSQUEDA                -->
   <!-- ========================================== -->
-  <div
-    class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm relative transition-colors duration-300">
+  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm relative transition-colors duration-300">
+    
+    <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col sm:flex-row gap-3">
+      
+      <div class="w-full sm:w-1/3 md:max-w-xs">
+        <select [value]="searchBarbero()" (change)="onSearchBarbero($event)" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#151515] py-2 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer transition-colors appearance-none">
+          <option value="">-- Todos los barberos --</option>
+          @for (b of barberos(); track b.id) {
+            <option [value]="b.nombre">{{ b.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="relative w-full sm:w-2/3 md:max-w-xs">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <input type="text" [value]="searchTerm()" (input)="onSearchChange($event)" placeholder="Buscar cliente, servicio..." class="block w-full pl-10 pr-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-[#151515] text-zinc-900 dark:text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors shadow-sm">
+      </div>
+
+    </div>
+
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-left text-sm">
-        <thead class="bg-white dark:bg-zinc-900/50">
+        <thead class="bg-white dark:bg-[#111111]">
           <tr>
             <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Fecha</th>
             <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Barbero</th>
@@ -104,129 +124,103 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50 bg-white dark:bg-[#111111]">
-          @for (cobro of turnosLista(); track cobro.id) {
-          <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors"
-            [ngClass]="{'opacity-60 grayscale-[50%]': cobro.estado === 'annulled'}">
-
-            <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400 font-medium">
-              {{ cobro.fecha }}
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400">
-              {{ cobro.barbero }}
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400"
-              [class.line-through]="cobro.estado === 'annulled'">
-              <span class="uppercase">{{ cobro.servicio }}</span>
-              <span class="text-xs ml-1 text-zinc-400">({{ cobro.cliente }})</span>
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap text-zinc-900 dark:text-white"
-              [class.line-through]="cobro.estado === 'annulled'">
-              S/ {{ cobro.monto | number:'1.2-2' }}
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400">
-              @if (cobro.estado === 'completed') {
-              {{ cobro.metodoPago }}
-              } @else if (cobro.estado === 'pending') {
-              <span
-                class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-600/20 dark:ring-blue-500/20">EN
-                CURSO</span>
-              } @else {
-              <span class="text-red-500 font-medium text-xs">ANULADO</span>
-              }
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap text-right">
-              <div class="flex justify-end space-x-1">
-                <!-- Botón Ver (Ojo) -->
-                <button (click)="verDetalle(cobro.id)"
-                  class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                  title="Ver Detalle">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
-
+          @for (cobro of paginatedTurnos(); track cobro.id) {
+            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors" [ngClass]="{'opacity-60 grayscale-[50%]': cobro.estado === 'annulled'}">
+              
+              <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400 font-medium">{{ cobro.fecha }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400">{{ cobro.barbero }}</td>
+              
+              <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400" [class.line-through]="cobro.estado === 'annulled'">
+                <div class="flex flex-col">
+                  <div>
+                    <span class="uppercase font-bold">{{ cobro.servicio }}</span>
+                    <span class="text-xs ml-1 text-zinc-400">({{ cobro.cliente }})</span>
+                  </div>
+                  @if (cobro.estado === 'in_progress') {
+                    <div class="mt-2.5 w-full max-w-[220px]">
+                      <div class="flex justify-between items-center mb-1">
+                        <span class="text-[10px] font-bold" [ngClass]="calcularProgreso(cobro) >= 100 ? 'text-red-500' : 'text-zinc-500'">{{ getTiempoRestante(cobro) }}</span>
+                        <span class="text-[10px] text-zinc-400 font-bold">{{ calcularProgreso(cobro) | number:'1.0-0' }}%</span>
+                      </div>
+                      <div class="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-gradient-to-r from-emerald-500 to-emerald-400 h-1.5 rounded-full transition-all duration-1000 ease-linear" [style.width.%]="calcularProgreso(cobro)"></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap text-zinc-900 dark:text-white font-medium" [class.line-through]="cobro.estado === 'annulled'">
+                S/ {{ cobro.monto | number:'1.2-2' }}
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400">
                 @if (cobro.estado === 'completed') {
-                <!-- Botón Editar (Lápiz) -->
-                <button (click)="abrirModalEditar(cobro.id)"
-                  class="p-1.5 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                  title="Editar">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <!-- Botón Anular (Papelera/Tacho) -->
-                <button (click)="anularCobro(cobro.id)"
-                  class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                  title="Anular">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                  <span class="font-bold">{{ cobro.metodoPago }}</span>
                 } @else if (cobro.estado === 'pending') {
-                <!-- Botón Editar Pendiente (Lápiz) -->
-                <button (click)="abrirModalEditarPendiente(cobro.id)"
-                  class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                  title="Cambiar Barbero o Cliente">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <!-- Botón Cancelar Pendiente (Papelera) -->
-                <button (click)="anularCobro(cobro.id)"
-                  class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                  title="Cancelar Turno">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-                } @else if (cobro.estado === 'annulled') {
-                <!-- Botón Restaurar -->
-                <button (click)="restaurarCobro(cobro.id)"
-                  class="p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-                  title="Restaurar cobro">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </button>
+                  <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-600/20 dark:ring-blue-500/20">PENDIENTE</span>
+                } @else if (cobro.estado === 'in_progress') {
+                  <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-600/20 dark:ring-emerald-500/20 animate-pulse">EN CURSO</span>
+                } @else if (cobro.estado === 'finished') {
+                  <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 ring-purple-600/20 dark:ring-purple-500/20">POR COBRAR</span>
+                } @else {
+                  <span class="text-red-500 font-bold text-[10px] uppercase">Anulado</span>
                 }
-              </div>
-            </td>
-          </tr>
+              </td>
+
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="flex justify-end space-x-1">
+                  <button (click)="verDetalle(cobro.id)" class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors" title="Ver Detalle"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" /></svg></button>
+                  
+                  @if (cobro.estado === 'completed') {
+                    <button (click)="abrirModalEditar(cobro.id)" class="p-1.5 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors" title="Editar"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                    <button (click)="anularCobro(cobro.id)" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Anular"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                  } @else if (cobro.estado === 'pending' || cobro.estado === 'in_progress' || cobro.estado === 'finished') {
+                    <button (click)="abrirModalEditarPendiente(cobro.id)" class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors" title="Cambiar Barbero o Cliente"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                    <button (click)="anularCobro(cobro.id)" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Cancelar Turno"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                  } @else if (cobro.estado === 'annulled') {
+                    <button (click)="restaurarCobro(cobro.id)" class="p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors" title="Restaurar cobro"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
+                  }
+                </div>
+              </td>
+            </tr>
           } @empty {
-          <tr>
-            <td colspan="6"
-              class="px-6 py-12 text-center text-zinc-500 border-t border-zinc-100 dark:border-zinc-800/50">
-              No hay historial de cobros el día de hoy.
-            </td>
-          </tr>
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-zinc-500 border-t border-zinc-100 dark:border-zinc-800/50">
+                @if (searchTerm()) {
+                  No se encontraron resultados para "{{ searchTerm() }}".
+                } @else {
+                  No hay historial de cobros.
+                }
+              </td>
+            </tr>
           }
         </tbody>
       </table>
     </div>
+
+    @if (turnosFiltradosBusqueda().length > 0) {
+      <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex items-center justify-between">
+        <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          Página <span class="font-bold text-zinc-900 dark:text-white">{{ currentPage() }}</span> de <span class="font-bold text-zinc-900 dark:text-white">{{ totalPages() }}</span>
+        </p>
+        <div class="flex space-x-2">
+          <button (click)="prevPage()" [disabled]="currentPage() === 1" class="px-4 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            Anterior
+          </button>
+          <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="px-4 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            Siguiente
+          </button>
+        </div>
+      </div>
+    }
+
   </div>
 </div>
 
-<!-- MODALES RESTANTES -->
-<app-modal-detalle [isOpen]="isDetalleModalOpen()" [data]="detalleSeleccionado()"
-  (onClose)="cerrarDetalle()"></app-modal-detalle>
-
-<app-modal-confirm [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title" [message]="confirmConfig().message"
-  [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText" (onConfirm)="confirmConfig().action()"
-  (onCancel)="cerrarConfirmacion()">
-</app-modal-confirm>
+<!-- MODALES (Se mantienen igual) -->
+<app-modal-detalle [isOpen]="isDetalleModalOpen()" [data]="detalleSeleccionado()" (onClose)="cerrarDetalle()"></app-modal-detalle>
+<app-modal-confirm [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title" [message]="confirmConfig().message" [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText" (onConfirm)="confirmConfig().action()" (onCancel)="cerrarConfirmacion()"></app-modal-confirm>
 
 @if (isEditModalOpen()) {
   <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
@@ -261,7 +255,7 @@
               <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Método de Pago</label>
               <select formControlName="metodoPago" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
                 <option value="Yape">Yape</option>
-                <option value="Plin">Plin</option>
+                <option value="Yape JK">Yape JK</option>
                 <option value="Efectivo">Efectivo</option>
                 <option value="Tarjeta">Tarjeta</option>
                 <option value="Transferencia">Transferencia</option>

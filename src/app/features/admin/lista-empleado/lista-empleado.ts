@@ -18,18 +18,21 @@ export class ListaEmpleadoComponent {
   private staffService = inject(StaffService);
   private gastosService = inject(GastosService); // <-- INYECTAMOS GASTOS
 
-  fechaInicio = signal<string>(new Date().toISOString().split('T')[0]);
-  fechaFin = signal<string>(new Date().toISOString().split('T')[0]);
+  hoyStrHtml = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+  })();
+
+  fechaInicio = signal<string>(this.hoyStrHtml);
+  fechaFin = signal<string>(this.hoyStrHtml);
   nombreEmpleadoReporte = signal<string>('');
-
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero'));
-
+  
   filtroAplicado = signal({
     empleado: '',
-    inicio: new Date().toISOString().split('T')[0],
-    fin: new Date().toISOString().split('T')[0]
+    inicio: this.hoyStrHtml,
+    fin: this.hoyStrHtml
   });
-
   // 1. CÁLCULO DE SERVICIOS
   turnosEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
@@ -106,6 +109,11 @@ export class ListaEmpleadoComponent {
   generarPDF() {
     const doc = new jsPDF();
     const filtro = this.filtroAplicado();
+    doc.setProperties({
+      title: `Reporte de Comisiones - ${filtro.empleado}`,
+      subject: 'Marina 305 Barber Shop',
+      author: 'Marina 305'
+    });
     const [y1, m1, d1] = filtro.inicio.split('-');
     const [y2, m2, d2] = filtro.fin.split('-');
     const subtitulo = `Barbero: ${filtro.empleado} | Del ${d1}/${m1}/${y1} al ${d2}/${m2}/${y2}`;

@@ -5,20 +5,29 @@
       <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Un vistazo rápido a los números de tu barbería.</p>
     </div>
     <div class="mt-5 sm:mt-0 flex space-x-3">
-      <a routerLink="/admin/cobros" class="flex items-center px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-white font-bold text-sm rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors shadow-sm">
+      <a routerLink="/admin/cobros"
+        class="flex items-center px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-white font-bold text-sm rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors shadow-sm">
         Ver Caja
       </a>
-      <a routerLink="/admin/realizar-servicio" class="flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-sm rounded-xl hover:from-blue-500 hover:to-blue-400 transition-all shadow-lg shadow-blue-500/30 transform active:scale-95">
-        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+      <a routerLink="/admin/realizar-servicio"
+        class="flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-sm rounded-xl hover:from-blue-500 hover:to-blue-400 transition-all shadow-lg shadow-blue-500/30 transform active:scale-95">
+        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
         Asignar Servicio
       </a>
     </div>
   </div>
 
+  <!-- TARJETAS DE RESUMEN -->
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-    <div class="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-zinc-200 dark:border-green-900/30 relative overflow-hidden group hover:border-green-300 dark:hover:border-green-500/50 shadow-sm dark:shadow-none transition-colors">
+    <div
+      class="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-zinc-200 dark:border-green-900/30 relative overflow-hidden group hover:border-green-300 dark:hover:border-green-500/50 shadow-sm dark:shadow-none transition-colors">
       <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <svg class="h-24 w-24 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-1h-1c-.55 0-1-.45-1-1v-3c0-.55.45-1 1-1h3v-1h-3V9h2V8h2v1h1c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-3v1h3v1h-2v1z"/></svg>
+        <svg class="h-24 w-24 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-1h-1c-.55 0-1-.45-1-1v-3c0-.55.45-1 1-1h3v-1h-3V9h2V8h2v1h1c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-3v1h3v1h-2v1z" />
+        </svg>
       </div>
       <p class="text-sm font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">Dinero Ingresado</p>
       <div class="mt-2 flex items-baseline">
@@ -26,9 +35,14 @@
       </div>
       <p class="text-xs text-zinc-500 mt-2 font-medium">Total cobrado el día de hoy.</p>
     </div>
-    <div class="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-zinc-200 dark:border-blue-900/30 relative overflow-hidden group hover:border-blue-300 dark:hover:border-blue-500/50 shadow-sm dark:shadow-none transition-colors">
+
+    <div
+      class="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-zinc-200 dark:border-blue-900/30 relative overflow-hidden group hover:border-blue-300 dark:hover:border-blue-500/50 shadow-sm dark:shadow-none transition-colors">
       <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <svg class="h-24 w-24 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+        <svg class="h-24 w-24 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+        </svg>
       </div>
       <p class="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Cortes Terminados</p>
       <div class="mt-2 flex items-baseline">
@@ -37,32 +51,62 @@
       </div>
       <p class="text-xs text-zinc-500 mt-2 font-medium">Atenciones completadas hoy.</p>
     </div>
-    <div class="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-zinc-200 dark:border-orange-900/30 relative overflow-hidden group hover:border-orange-300 dark:hover:border-orange-500/50 shadow-sm dark:shadow-none transition-colors">
+
+    <div
+      class="bg-white dark:bg-[#111111] rounded-3xl p-6 border border-zinc-200 dark:border-orange-900/30 relative overflow-hidden group hover:border-orange-300 dark:hover:border-orange-500/50 shadow-sm dark:shadow-none transition-colors">
       <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <svg class="h-24 w-24 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <svg class="h-24 w-24 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
       </div>
-      <p class="text-sm font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">Comisiones de Barberos</p>
+      <p class="text-sm font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">Comisiones de Barberos
+      </p>
       <div class="mt-2 flex items-baseline">
-        <span class="text-4xl font-black text-zinc-900 dark:text-white">S/ {{ comisionesAPagar() | number:'1.2-2' }}</span>
+        <span class="text-4xl font-black text-zinc-900 dark:text-white">S/ {{ comisionesAPagar() | number:'1.2-2'
+          }}</span>
       </div>
       <p class="text-xs text-zinc-500 mt-2 font-medium">Dinero que pertenece a los barberos.</p>
     </div>
   </div>
 
+  <app-orden-atencion></app-orden-atencion>
+
+  <!-- ÚLTIMOS MOVIMIENTOS -->
   <div>
     <div class="flex items-center justify-between mb-4 px-2">
       <h2 class="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Últimos Movimientos</h2>
-      <a routerLink="/admin/cobros" class="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors cursor-pointer">Ver todo</a>
+      <a routerLink="/admin/cobros"
+        class="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors cursor-pointer">Ver
+        todo</a>
     </div>
-    
-    <div class="bg-white dark:bg-[#111111]/50 rounded-3xl p-2 sm:p-4 border border-zinc-200 dark:border-zinc-800/50 shadow-sm dark:shadow-none">
-      @for (movimiento of ultimosMovimientos(); track movimiento.id) {
+    <div
+      class="bg-white dark:bg-[#111111]/50 rounded-3xl p-2 sm:p-4 border border-zinc-200 dark:border-zinc-800/50 shadow-sm dark:shadow-none">
+      
+      <!-- BARRA DE BÚSQUEDA DEL DASHBOARD MEJORADA -->
+      <div class="mb-6 px-2 flex flex-col sm:flex-row gap-3">
+        
+        <!-- Select de Barberos -->
+        <div class="w-full sm:w-1/3">
+          <select [value]="searchBarbero()" (change)="onSearchBarbero($event)" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#151515] py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer transition-colors appearance-none">
+            <option value="">-- Todos (Opcional) --</option>
+            @for (b of barberos(); track b.id) {
+              <option [value]="b.nombre">{{ b.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- LISTA PAGINADA -->
+      @for (movimiento of paginatedTurnos(); track movimiento.id) {
         <app-transaction-card
           [title]="movimiento.servicio + ' - ' + movimiento.barbero"
           [subtitle]="movimiento.fecha"
           [amount]="movimiento.monto"
           [status]="movimiento.estado"
           [paymentMethod]="movimiento.metodoPago"
+          [progress]="calcularProgreso(movimiento)"
+          [timeText]="getTiempoRestante(movimiento)"
           type="income"
           (onPay)="abrirModalCobro(movimiento.id)"
           (onView)="verDetalle(movimiento.id)"
@@ -70,110 +114,159 @@
           (onAnnul)="anularCobro(movimiento.id)"
           (onRestore)="restaurarCobro(movimiento.id)">
         </app-transaction-card>
+      } @empty {
+      <div class="text-center py-6 text-zinc-500 dark:text-zinc-400 text-sm">
+        No se encontraron movimientos.
+      </div>
+      }
+
+      <!-- CONTROLES DE PAGINACIÓN -->
+      @if (turnosFiltradosBusqueda().length > 0) {
+      <div class="px-2 mt-2 flex items-center justify-between">
+        <p class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+          Pág <span class="font-bold text-zinc-900 dark:text-white">{{ currentPage() }}</span> de <span
+            class="font-bold text-zinc-900 dark:text-white">{{ totalPages() }}</span>
+        </p>
+        <div class="flex space-x-2">
+          <button (click)="prevPage()" [disabled]="currentPage() === 1"
+            class="px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            Ant
+          </button>
+          <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+            class="px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            Sig
+          </button>
+        </div>
+      </div>
       }
     </div>
   </div>
 </div>
 
-<app-modal-detalle [isOpen]="isDetalleModalOpen()" [data]="detalleSeleccionado()" (onClose)="cerrarDetalle()"></app-modal-detalle>
-<app-modal-cobro [isOpen]="isModalCobroOpen()" [cobro]="cobroSeleccionado()" (onClose)="cerrarModalCobro()" (onConfirm)="confirmarCobro($event)"></app-modal-cobro>
+<app-modal-detalle [isOpen]="isDetalleModalOpen()" [data]="detalleSeleccionado()"
+  (onClose)="cerrarDetalle()"></app-modal-detalle>
 
-<app-modal-confirm 
-  [isOpen]="confirmConfig().isOpen"
-  [title]="confirmConfig().title"
-  [message]="confirmConfig().message"
-  [type]="confirmConfig().type"
-  [confirmText]="confirmConfig().confirmText"
-  (onConfirm)="confirmConfig().action()"
+<app-modal-cobro [isOpen]="isModalCobroOpen()" [cobro]="cobroSeleccionado()" (onClose)="cerrarModalCobro()"
+  (onConfirm)="confirmarCobro($event)"></app-modal-cobro>
+
+<app-modal-confirm [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title" [message]="confirmConfig().message"
+  [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText" (onConfirm)="confirmConfig().action()"
   (onCancel)="cerrarConfirmacion()">
 </app-modal-confirm>
 
 @if (isEditModalOpen()) {
-  <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
-    <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" (click)="isEditModalOpen.set(false)"></div>
-    <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
-      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
-      <div class="p-6 sm:p-8">
-        <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-6">Editar Cobro Completado</h3>
-        <form [formGroup]="editForm" (ngSubmit)="guardarEdicion()">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div class="col-span-1 sm:col-span-2">
-              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Cliente</label>
-              <input type="text" formControlName="cliente" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
-            </div>
-            <div class="col-span-1 sm:col-span-2">
-              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Servicio</label>
-              <select formControlName="servicio" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
-                @for (s of servicios(); track s.id) { <option [value]="s.nombre">{{ s.nombre }}</option> }
-              </select>
-            </div>
-            <div class="col-span-1 sm:col-span-2">
-              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Barbero Asignado</label>
-              <select formControlName="barbero" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
-                @for (b of barberos(); track b.id) { <option [value]="b.nombre">{{ b.nombre }}</option> }
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto Final (S/)</label>
-              <input type="number" formControlName="monto" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Método de Pago</label>
-              <select formControlName="metodoPago" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
-                <option value="Yape">Yape</option>
-                <option value="Plin">Plin</option>
-                <option value="Efectivo">Efectivo</option>
-                <option value="Tarjeta">Tarjeta</option>
-                <option value="Transferencia">Transferencia</option>
-              </select>
-            </div>
+<div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
+  <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity"
+    (click)="isEditModalOpen.set(false)"></div>
+  <div
+    class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+    <div class="p-6 sm:p-8">
+      <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-6">Editar Cobro Completado</h3>
+      <form [formGroup]="editForm" (ngSubmit)="guardarEdicion()">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          
+          <div class="col-span-1 sm:col-span-2">
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Cliente</label>
+            <input type="text" formControlName="cliente"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
           </div>
-          <div class="flex space-x-3">
-            <button type="button" (click)="isEditModalOpen.set(false)" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
-            <button type="submit" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
+          
+          <div class="col-span-1 sm:col-span-2">
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Servicio</label>
+            <select formControlName="servicio"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+              @for (s of servicios(); track s.id) { <option [value]="s.nombre">{{ s.nombre }}</option> }
+            </select>
           </div>
-        </form>
-      </div>
+          
+          <div class="col-span-1 sm:col-span-2">
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Barbero Asignado</label>
+            <select formControlName="barbero"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+              @for (b of barberos(); track b.id) { <option [value]="b.nombre">{{ b.nombre }}</option> }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto Final (S/)</label>
+            <input type="number" formControlName="monto"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Método de Pago</label>
+            <select formControlName="metodoPago"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+              <option value="Yape">Yape</option>
+              <option value="Yape JK">Yape JK</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Tarjeta">Tarjeta</option>
+              <option value="Transferencia">Transferencia</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex space-x-3">
+          <button type="button" (click)="isEditModalOpen.set(false)"
+            class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
+          <button type="submit"
+            class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 }
 
 @if (isEditPendienteModalOpen()) {
-  <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
-    <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" (click)="isEditPendienteModalOpen.set(false)"></div>
-    <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
-      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
-      <div class="p-6 sm:p-8">
-        <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-6">Modificar Turno en Curso</h3>
-        <form [formGroup]="editPendienteForm" (ngSubmit)="guardarEdicionPendiente()">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div class="col-span-1 sm:col-span-2">
-              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Cliente</label>
-              <input type="text" formControlName="cliente" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
-            </div>
-            <div class="col-span-1 sm:col-span-2">
-              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Servicio</label>
-              <select formControlName="servicio" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
-                @for (s of servicios(); track s.id) { <option [value]="s.nombre">{{ s.nombre }}</option> }
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Barbero Asignado</label>
-              <select formControlName="barbero" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
-                @for (b of barberos(); track b.id) { <option [value]="b.nombre">{{ b.nombre }}</option> }
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto (S/)</label>
-              <input type="number" formControlName="monto" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
-            </div>
+<div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
+  <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity"
+    (click)="isEditPendienteModalOpen.set(false)"></div>
+  <div
+    class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+    <div class="p-6 sm:p-8">
+      <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-6">Modificar Turno en Curso</h3>
+      <form [formGroup]="editPendienteForm" (ngSubmit)="guardarEdicionPendiente()">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          
+          <div class="col-span-1 sm:col-span-2">
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Cliente</label>
+            <input type="text" formControlName="cliente"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
           </div>
-          <div class="flex space-x-3">
-            <button type="button" (click)="isEditPendienteModalOpen.set(false)" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
-            <button type="submit" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
+          
+          <div class="col-span-1 sm:col-span-2">
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Servicio</label>
+            <select formControlName="servicio"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+              @for (s of servicios(); track s.id) { <option [value]="s.nombre">{{ s.nombre }}</option> }
+            </select>
           </div>
-        </form>
-      </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Barbero Asignado</label>
+            <select formControlName="barbero"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+              @for (b of barberos(); track b.id) { <option [value]="b.nombre">{{ b.nombre }}</option> }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto (S/)</label>
+            <input type="number" formControlName="monto"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
+          </div>
+        </div>
+        
+        <div class="flex space-x-3">
+          <button type="button" (click)="isEditPendienteModalOpen.set(false)"
+            class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
+          <button type="submit"
+            class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 }

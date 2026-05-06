@@ -6,6 +6,10 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./features/auth/login/login').then(m => m.LoginComponent)
   },
+  // {
+  //   path: 'instalar', // <-- NUEVA RUTA AQUÍ
+  //   loadComponent: () => import('./features/clientes/instalar/instalar').then(m => m.InstalarComponent)
+  // },
   {
     path: 'register',
     loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterComponent)
@@ -60,10 +64,37 @@ export const routes: Routes = [
          path: 'lista-empleado', 
          loadComponent: () => import('./features/admin/lista-empleado/lista-empleado').then(m => m.ListaEmpleadoComponent) 
       },
+      {
+          path: 'agenda',
+          loadComponent: () => import('./features/admin/agenda/agenda').then(m => m.AgendaComponent)
+      },
       // Por ahora, si entra a /admin, lo mandamos a realizar-servicio para que no vea la pantalla negra
       { path: '', redirectTo: 'realizar-servicio', pathMatch: 'full' }
     ]
   },
+
+  // --- RUTAS DEL BARBERO ---
+  {
+    path: 'barbero',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/barbero/barbero-layout/barbero-layout').then(m => m.BarberoLayoutComponent),
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/barbero/dashboard/dashboard').then(m => m.BarberoDashboardComponent)
+      },
+      {
+        path: 'perfil',
+        loadComponent: () => import('./features/barbero/perfil/perfil').then(m => m.BarberoPerfilComponent)
+      },
+      {
+        path: 'historial',
+        loadComponent: () => import('./features/barbero/historial/historial').then(m => m.BarberoHistorialComponent)
+      },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+    ]
+  },
+  
   {
     path: '',
     redirectTo: 'login',

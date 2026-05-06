@@ -1,0 +1,51 @@
+<div class="mb-8">
+  <div class="flex items-center justify-between mb-4 px-2">
+    <h2 class="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Orden de Atención y Asistencia</h2>
+  </div>
+  <div class="bg-white dark:bg-[#111111] rounded-3xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-x-auto flex gap-4 snap-x">
+    @for (b of barberosOrdenados(); track b.id; let i = $index) {
+      <div class="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-800 flex flex-col items-center min-w-[140px] snap-center shrink-0 relative transition-transform">
+         
+         @if (b.estado_asistencia === 'disponible') {
+           <div class="absolute -top-3 -right-3 bg-gradient-to-tr from-green-600 to-green-400 text-white h-7 w-7 rounded-full flex items-center justify-center font-black text-xs shadow-lg shadow-green-500/30 ring-4 ring-zinc-50 dark:ring-zinc-900/50 z-10">
+             {{ i + 1 }}
+           </div>
+         }
+
+         <div class="relative mb-3">
+           <div class="h-12 w-12 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center font-bold text-lg overflow-hidden ring-2 ring-offset-2 ring-offset-zinc-50 dark:ring-offset-[#18181b]"
+                [ngClass]="{
+                  'ring-green-500': b.estado_asistencia === 'disponible',
+                  'ring-blue-500': b.estado_asistencia === 'ocupado',
+                  'ring-amber-500': b.estado_asistencia === 'pausa',
+                  'ring-zinc-300 dark:ring-zinc-700': !b.estado_asistencia || b.estado_asistencia === 'descanso'
+                }">
+              @if (b.avatar_url) {
+                <img [src]="b.avatar_url" class="h-full w-full object-cover">
+              } @else {
+                {{ b.nombre.charAt(0).toUpperCase() }}
+              }
+           </div>
+         </div>
+         <p class="text-sm font-bold text-zinc-900 dark:text-white truncate w-full text-center">{{ b.nombre.split(' ')[0] }}</p>
+
+         <select [value]="b.estado_asistencia || 'descanso'" (change)="cambiarEstadoBarbero(b.id!, $event)"
+                 class="mt-3 block w-full rounded-lg border-0 bg-white dark:bg-zinc-800 py-1.5 px-1 text-[11px] font-bold text-zinc-700 dark:text-zinc-300 shadow-sm ring-1 ring-inset ring-zinc-200 dark:ring-zinc-700 focus:ring-2 focus:ring-blue-500 text-center appearance-none cursor-pointer">
+           <option value="disponible">🟢 Disponible</option>
+           <option value="ocupado" disabled>🔵 Ocupado</option>
+           <option value="pausa">🟡 Pausa</option>
+           <option value="descanso">⚪️ Descanso</option>
+         </select>
+      </div>
+    }
+  </div>
+</div>
+<app-modal-confirm 
+  [isOpen]="confirmConfig().isOpen" 
+  [title]="confirmConfig().title" 
+  [message]="confirmConfig().message"
+  [type]="confirmConfig().type" 
+  [confirmText]="confirmConfig().confirmText" 
+  (onConfirm)="confirmConfig().action()"
+  (onCancel)="cancelarCambio()">
+</app-modal-confirm>

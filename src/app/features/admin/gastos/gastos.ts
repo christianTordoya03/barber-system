@@ -117,6 +117,20 @@ export class GastosComponent {
     });
   }
 
+  liquidarAdelanto(id: number) {
+    this.confirmConfig.set({
+      isOpen: true,
+      title: 'Liquidar Adelanto',
+      message: '¿Confirmas que ya descontaste este adelanto del pago del barbero? Una vez liquidado, dejará de restar de su saldo pendiente.',
+      type: 'info',
+      confirmText: 'Sí, Liquidar',
+      action: () => {
+        this.gastosService.liquidarGasto(id);
+        this.cerrarConfirmacion();
+      }
+    });
+  }
+
   restaurarGasto(id: number) {
     this.confirmConfig.set({
       isOpen: true,

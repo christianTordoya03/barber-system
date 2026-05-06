@@ -9,66 +9,69 @@ import { Turno } from '../models/marina';
 export class TurnosService {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
-  
+
   turnos = signal<Turno[]>([]);
 
   constructor() {
     this.cargarTurnos();
+    this.escucharTurnosRealTime(); // <-- ¡NUEVA LÍNEA MÁGICA!
   }
 
-  // 1. LEER DE LA NUBE
   async cargarTurnos() {
     const { data, error } = await this.supabase.client
       .from('turnos')
       .select('*')
-      .order('id', { ascending: false }); // Trae los últimos primero
-    
+      .order('id', { ascending: false });
+
     if (error) {
-       console.error('Error cargando la base de datos', error);
-       return;
+      console.error('Error cargando turnos', error);
+      return;
     }
     if (data) this.turnos.set(data as Turno[]);
   }
 
-  // 2. CREAR EN LA NUBE
-  async agregarTurno(nuevoTurno: Turno) {
-    // Optimistic UI: Lo mostramos al instante en pantalla con su ID temporal
-    this.turnos.update(lista => [nuevoTurno, ...lista]);
-
-    // Usamos magia de JavaScript para separar el "id" del resto de datos
-    const { id, ...turnoParaBD } = nuevoTurno;
-
-    const { data, error } = await this.supabase.client
-      .from('turnos')
-      .insert(turnoParaBD) // Enviamos todo MENOS el id temporal
-      .select()
-      .single();
-    
-    if (error) {
-      this.toast.show('Error al guardar en la nube', 'error');
-      this.cargarTurnos(); // Si falla el internet, recargamos la info real
-    } else if (data) {
-      // Reemplazamos el turno temporal con el turno real (que ya tiene el ID oficial de Supabase)
-      this.turnos.update(lista => lista.map(t => t.id === nuevoTurno.id ? (data as Turno) : t));
-    }
+  // --- ESCUCHA EN TIEMPO REAL ---
+  private escucharTurnosRealTime() {
+    this.supabase.client
+      .channel('cambios-en-turnos') // Nombre del canal
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'turnos' }, 
+        (payload) => {
+          // Si hay un cambio, recargamos la lista automáticamente
+          this.cargarTurnos();
+          
+          // Opcional: Mostrar un aviso si es un corte nuevo
+          if (payload.eventType === 'INSERT') {
+             // Esto se disparará en el celular del barbero
+          }
+        }
+      )
+      .subscribe();
   }
 
-  // 3. ACTUALIZAR EN LA NUBE (Cobrar, Anular, Editar)
-  async actualizarTurno(id: number, cambios: Partial<Turno>) {
-    // Optimistic UI: Actualizamos pantalla instantáneamente
-    this.turnos.update(lista => 
-      lista.map(turno => turno.id === id ? { ...turno, ...cambios } : turno)
-    );
+  async agregarTurno(nuevoTurno: Turno) {
+    const { id, ...turnoParaBD } = nuevoTurno;
+    const { data, error } = await this.supabase.client
+      .from('turnos')
+      .insert(turnoParaBD)
+      .select()
+      .single();
 
-    // Mandamos el cambio a la nube
+    if (error) {
+      this.toast.show('Error al guardar en la nube', 'error');
+    }
+    // No necesitamos actualizar el signal manualmente porque el Real-time lo hará por nosotros
+  }
+
+  async actualizarTurno(id: number, cambios: Partial<Turno>) {
     const { error } = await this.supabase.client
       .from('turnos')
       .update(cambios)
       .eq('id', id);
-    
+
     if (error) {
-      this.toast.show('Error de sincronización con la nube', 'error');
-      this.cargarTurnos(); // Si falla, recargamos
+      this.toast.show('Error de sincronización', 'error');
     }
+    // El Real-time se encarga de refrescar la pantalla de todos
   }
 }

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,36 +10,181 @@ import { TurnosService } from '../../../core/services/turnos';
 import { ToastService } from '../../../core/services/toast';
 import { StaffService } from '../../../core/services/staff';
 import { CatalogoService } from '../../../core/services/catalogo';
+import { OrdenAtencionComponent } from '../../../shared/ui/orden-atencion/orden-atencion';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, TransactionCardComponent, ModalDetalleComponent, ModalCobroComponent, ModalConfirmComponent, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, TransactionCardComponent, ModalDetalleComponent, ModalCobroComponent, ModalConfirmComponent, ReactiveFormsModule, OrdenAtencionComponent],
   templateUrl: './dashboard.html',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private turnosService = inject(TurnosService);
   private toastService = inject(ToastService);
   private staffService = inject(StaffService);
   private catalogoService = inject(CatalogoService);
 
+  now = signal(Date.now());
+  intervalId: any;
+
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
 
+  // CONVERTIDO A SEÑAL PARA LA MEDIANOCHE
+  hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
+
+  searchTerm = signal<string>('');
+  searchBarbero = signal<string>(''); 
+  currentPage = signal<number>(1);
+  pageSize = 5; 
+
+  ngOnInit() {
+    this.intervalId = setInterval(() => {
+      this.now.set(Date.now());
+      // Magia nocturna
+      const fechaActualReal = this.formatDateToDDMMYYYY(new Date());
+      if (this.hoyStr() !== fechaActualReal) {
+        this.hoyStr.set(fechaActualReal);
+        this.staffService.cargarEmpleados();
+      }
+    }, 10000);
+  }
+
+  ngOnDestroy() {
+    if (this.intervalId) clearInterval(this.intervalId);
+  }
+
+  getDuracionServicio(nombreServicio: string): number {
+    const srv = this.servicios().find(s => s.nombre === nombreServicio);
+    return srv?.duracion || 30;
+  }
+
+  calcularProgreso(turno: any): number {
+    if (turno.estado !== 'in_progress' || !turno.horaInicio) return 0;
+    const duracionMinutos = this.getDuracionServicio(turno.servicio);
+    const inicioMs = new Date(turno.horaInicio).getTime();
+    const transcurridoMin = (this.now() - inicioMs) / 60000;
+    let prog = (transcurridoMin / duracionMinutos) * 100;
+    return Math.min(Math.max(prog, 0), 100);
+  }
+
+  getTiempoRestante(turno: any): string {
+    if (turno.estado !== 'in_progress' || !turno.horaInicio) return '';
+    const duracionMinutos = this.getDuracionServicio(turno.servicio);
+    const inicioMs = new Date(turno.horaInicio).getTime();
+    const transcurridoMin = (this.now() - inicioMs) / 60000;
+    const restante = duracionMinutos - transcurridoMin;
+    if (restante > 0) return `Faltan ~${Math.ceil(restante)} min`;
+    return `Retrasado ~${Math.ceil(Math.abs(restante))} min`;
+  }
+
+  formatDateToDDMMYYYY(date: Date): string {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  private parseDateStr(fechaStr: string) {
+    const match = fechaStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (match) return { day: match[1].padStart(2, '0'), month: match[2].padStart(2, '0'), year: match[3] };
+    return null;
+  }
+
+  private getValorFecha(fechaStr: string): number {
+    const d = this.parseDateStr(fechaStr);
+    if (!d) return 0;
+    return parseInt(`${d.year}${d.month}${d.day}`);
+  }
+
   ultimosMovimientos = computed(() => {
-    return [...this.turnosService.turnos()].sort((a, b) => {
-      if (a.estado === 'pending' && b.estado !== 'pending') return -1;
-      if (a.estado !== 'pending' && b.estado === 'pending') return 1;
-      if (a.estado === 'annulled' && b.estado !== 'annulled') return 1;
-      if (a.estado !== 'annulled' && b.estado === 'annulled') return -1;
-      return b.id - a.id;
+    const hoyVal = this.getValorFecha(this.hoyStr());
+    const filtrados = this.turnosService.turnos().filter(t => {
+      if (t.estado === 'annulled') return false; 
+
+      const turnoVal = this.getValorFecha(t.fecha);
+      if (turnoVal > hoyVal) return false; 
+      if (turnoVal === hoyVal) return true; 
+      return (t.estado === 'pending' || t.estado === 'in_progress' || t.estado === 'finished');
+    });
+
+    const getPriority = (estado: string) => {
+      if (estado === 'in_progress') return 1;
+      if (estado === 'pending') return 2;  
+      if (estado === 'finished') return 3;
+      if (estado === 'completed') return 4;
+      return 5;
+    };
+
+    return filtrados.sort((a, b) => {
+      const pA = getPriority(a.estado);
+      const pB = getPriority(b.estado);
+      if (pA !== pB) return pA - pB;
+      
+      // DESEMPATE: Cambiamos b.id - a.id por a.id - b.id
+      // Así el cliente que registraste primero (A) aparece arriba.
+      return a.id - b.id; 
     });
   });
 
-  dineroEnCaja = computed(() => this.ultimosMovimientos().filter(t => t.estado === 'completed').reduce((total, turno) => total + (turno.monto || 0), 0));
-  cortesRealizados = computed(() => this.ultimosMovimientos().filter(t => t.estado === 'completed').length);
-  comisionesAPagar = computed(() => this.dineroEnCaja() * 0.50);
+  onSearchChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.searchTerm.set(target.value);
+    this.currentPage.set(1);
+  }
+
+  onSearchBarbero(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    this.searchBarbero.set(target.value);
+    this.currentPage.set(1);
+  }
+
+  limpiarBusqueda() {
+    this.searchTerm.set('');
+    this.currentPage.set(1);
+  }
+
+  turnosFiltradosBusqueda = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+    const barberoFiltro = this.searchBarbero();
+    let lista = this.ultimosMovimientos();
+    
+    if (barberoFiltro) lista = lista.filter(t => t.barbero === barberoFiltro);
+    if (term) lista = lista.filter(t => t.cliente?.toLowerCase().includes(term) || t.servicio?.toLowerCase().includes(term));
+    return lista;
+  });
+
+  paginatedTurnos = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.pageSize;
+    return this.turnosFiltradosBusqueda().slice(startIndex, startIndex + this.pageSize);
+  });
+
+  totalPages = computed(() => Math.ceil(this.turnosFiltradosBusqueda().length / this.pageSize) || 1);
+
+  nextPage() { if (this.currentPage() < this.totalPages()) this.currentPage.update(p => p + 1); }
+  prevPage() { if (this.currentPage() > 1) this.currentPage.update(p => p - 1); }
+
+  turnosParaMetricas = computed(() => {
+    const barberoFiltro = this.searchBarbero();
+    if (!barberoFiltro) return this.ultimosMovimientos();
+    return this.ultimosMovimientos().filter(t => t.barbero === barberoFiltro);
+  });
+
+  // 2. Las métricas ahora reaccionan a esa lista filtrada
+  dineroEnCaja = computed(() => this.turnosParaMetricas().filter(t => t.estado === 'completed').reduce((total, turno) => total + (turno.monto || 0), 0));
+  
+  cortesRealizados = computed(() => this.turnosParaMetricas().filter(t => t.estado === 'completed').length);
+  
+  // 3. Plus: Calcula la comisión exacta leyendo el % de comisión de cada barbero individualmente
+  comisionesAPagar = computed(() => {
+    const completados = this.turnosParaMetricas().filter(t => t.estado === 'completed');
+    return completados.reduce((total, turno) => {
+      const b = this.barberos().find(x => x.nombre === turno.barbero);
+      const porcentaje = b?.comision || 50; // Usa 50% por defecto si no lo encuentra
+      return total + ((turno.monto || 0) * (porcentaje / 100));
+    }, 0);
+  });
 
   isDetalleModalOpen = signal<boolean>(false);
   detalleSeleccionado = signal<any>(null);
@@ -49,51 +194,30 @@ export class DashboardComponent {
 
   confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });
 
-  // Modal para Completados
   isEditModalOpen = signal<boolean>(false);
   editForm = this.fb.nonNullable.group({
-    id: [0],
-    cliente: ['', Validators.required],
-    servicio: ['', Validators.required],
-    barbero: ['', Validators.required],
-    monto: [0, [Validators.required, Validators.min(0)]],
-    metodoPago: ['Yape', Validators.required]
+    id: [0], cliente: ['', Validators.required], servicio: ['', Validators.required], barbero: ['', Validators.required], monto: [0, [Validators.required, Validators.min(0)]], metodoPago: ['Yape', Validators.required]
   });
 
-  // Modal para Pendientes
   isEditPendienteModalOpen = signal<boolean>(false);
   editPendienteForm = this.fb.nonNullable.group({
-    id: [0],
-    cliente: ['', Validators.required],
-    servicio: ['', Validators.required],
-    barbero: ['', Validators.required],
-    monto: [0, [Validators.required, Validators.min(0)]]
+    id: [0], cliente: ['', Validators.required], servicio: ['', Validators.required], barbero: ['', Validators.required], monto: [0, [Validators.required, Validators.min(0)]]
   });
 
   constructor() {
-    // Escuchar cuando cambian el servicio en el modal de completados
     this.editForm.get('servicio')?.valueChanges.subscribe(nombreServicio => {
       const servicioObj = this.servicios().find(s => s.nombre === nombreServicio);
-      if (servicioObj) {
-        this.editForm.patchValue({ monto: servicioObj.precio }, { emitEvent: false });
-      }
+      if (servicioObj) { this.editForm.patchValue({ monto: servicioObj.precio }, { emitEvent: false }); }
     });
-
-    // Escuchar cuando cambian el servicio en el modal de pendientes
     this.editPendienteForm.get('servicio')?.valueChanges.subscribe(nombreServicio => {
       const servicioObj = this.servicios().find(s => s.nombre === nombreServicio);
-      if (servicioObj) {
-        this.editPendienteForm.patchValue({ monto: servicioObj.precio }, { emitEvent: false });
-      }
+      if (servicioObj) { this.editPendienteForm.patchValue({ monto: servicioObj.precio }, { emitEvent: false }); }
     });
   }
 
   abrirModalCobro(id: number) {
     const cobro = this.ultimosMovimientos().find(c => c.id === id);
-    if (cobro) {
-      this.cobroSeleccionado.set(cobro);
-      this.isModalCobroOpen.set(true);
-    }
+    if (cobro) { this.cobroSeleccionado.set(cobro); this.isModalCobroOpen.set(true); }
   }
 
   cerrarModalCobro() {
@@ -115,24 +239,16 @@ export class DashboardComponent {
     if (mov) { this.detalleSeleccionado.set(mov); this.isDetalleModalOpen.set(true); }
   }
   
-  cerrarDetalle() { 
-    this.isDetalleModalOpen.set(false); 
-  }
+  cerrarDetalle() { this.isDetalleModalOpen.set(false); }
 
   abrirModalEditar(id: number) {
     const mov = this.ultimosMovimientos().find(m => m.id === id);
     if (mov) {
-      if (mov.estado === 'pending') {
-        this.editPendienteForm.patchValue(
-          { id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto }, 
-          { emitEvent: false }
-        );
+      if (mov.estado === 'pending' || mov.estado === 'in_progress' || mov.estado === 'finished') {
+        this.editPendienteForm.patchValue({ id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto }, { emitEvent: false });
         this.isEditPendienteModalOpen.set(true);
       } else {
-        this.editForm.patchValue(
-          { id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto, metodoPago: mov.metodoPago || 'Efectivo' }, 
-          { emitEvent: false }
-        );
+        this.editForm.patchValue({ id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto, metodoPago: mov.metodoPago || 'Efectivo' }, { emitEvent: false });
         this.isEditModalOpen.set(true);
       }
     }
@@ -156,14 +272,12 @@ export class DashboardComponent {
 
   anularCobro(id: number) {
     const turno = this.ultimosMovimientos().find(t => t.id === id);
-    const esPendiente = turno?.estado === 'pending';
-
+    const esPendiente = turno?.estado === 'pending' || turno?.estado === 'in_progress' || turno?.estado === 'finished';
     this.confirmConfig.set({
       isOpen: true,
       title: esPendiente ? 'Cancelar Turno' : 'Anular Cobro',
-      message: esPendiente ? '¿Estás seguro de cancelar este servicio en curso?' : '¿Estás seguro de anular este registro? Se restará de tu caja.',
-      type: 'danger',
-      confirmText: esPendiente ? 'Sí, Cancelar' : 'Sí, Anular',
+      message: esPendiente ? '¿Es seguro de cancelar este servicio en curso?' : '¿Es seguro de anular este registro? Se restará de tu caja.',
+      type: 'danger', confirmText: esPendiente ? 'Sí, Cancelar' : 'Sí, Anular',
       action: () => {
         this.turnosService.actualizarTurno(id, { estado: 'annulled' });
         this.toastService.show(esPendiente ? 'Turno cancelado exitosamente' : 'Cobro anulado exitosamente');
@@ -174,11 +288,7 @@ export class DashboardComponent {
 
   restaurarCobro(id: number) {
     this.confirmConfig.set({
-      isOpen: true, 
-      title: 'Restaurar Cobro', 
-      message: '¿Deseas deshacer la anulación y devolver el registro a la caja?', 
-      type: 'info', 
-      confirmText: 'Sí, Restaurar',
+      isOpen: true, title: 'Restaurar Cobro', message: '¿Deseas deshacer la anulación y devolver el registro a la caja?', type: 'info', confirmText: 'Sí, Restaurar',
       action: () => {
         this.turnosService.actualizarTurno(id, { estado: 'completed' });
         this.toastService.show('Cobro restaurado exitosamente');
@@ -186,8 +296,6 @@ export class DashboardComponent {
       }
     });
   }
-  
-  cerrarConfirmacion() { 
-    this.confirmConfig.update(c => ({ ...c, isOpen: false })); 
-  }
+
+  cerrarConfirmacion() { this.confirmConfig.update(c => ({ ...c, isOpen: false })); }
 }

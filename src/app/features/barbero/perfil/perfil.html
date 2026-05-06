@@ -1,0 +1,197 @@
+<div class="max-w-7xl mx-auto animate-fade-in-up mt-4 sm:mt-8 px-4 sm:px-6 lg:px-8">
+  
+  <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
+    
+    <!-- ============================================== -->
+    <!-- COLUMNA IZQ: TARJETA DE PERFIL (Sticky en PC)  -->
+    <!-- ============================================== -->
+    <div class="w-full lg:w-[400px] shrink-0">
+      <div class="bg-white dark:bg-[#111111] rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-xl text-center relative overflow-hidden lg:sticky lg:top-8">
+        
+        <div class="absolute top-0 inset-x-0 h-36 bg-zinc-900 dark:bg-black overflow-hidden">
+           <div class="absolute inset-0 opacity-[0.06] bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#ffffff_10px,#ffffff_20px)]"></div>
+           <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 dark:from-black to-transparent opacity-80"></div>
+        </div>
+        
+        <div class="relative inline-block mt-14 group z-10">
+          <div class="h-36 w-36 rounded-full border-[6px] border-white dark:border-[#111111] shadow-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center transition-transform active:scale-95 mx-auto cursor-pointer" (click)="abrirFoto()">
+            @if (avatarUrl()) {
+              <img [src]="avatarUrl()" class="h-full w-full object-cover">
+            } @else {
+              <span class="text-5xl font-bold text-zinc-400">{{ nombre().charAt(0) }}</span>
+            }
+            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" /></svg>
+            </div>
+          </div>
+          
+          <button (click)="fileInput.click()" class="absolute bottom-0 right-2 bg-blue-600 text-white p-3 rounded-full shadow-lg border-4 border-white dark:border-[#111111] hover:bg-blue-500 transition-colors z-20">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+          </button>
+        </div>
+        
+        <input #fileInput type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
+        
+        <div class="px-8 pb-10 pt-5">
+          <h2 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{{ nombre() }}</h2>
+          <p class="text-xs text-zinc-400 dark:text-zinc-500 font-bold mt-1.5 uppercase tracking-widest">Barbero Profesional</p>
+          
+          <div class="mt-8 relative">
+            @if (bio()) {
+              <p class="text-base text-zinc-700 dark:text-zinc-300 italic px-2 leading-relaxed">"{{ bio() }}"</p>
+              <div class="flex justify-center space-x-3 mt-6">
+                <button (click)="abrirModalBio()" class="flex items-center text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-5 py-2.5 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all transform active:scale-95">
+                  <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg> Editar
+                </button>
+                <button (click)="confirmarEliminarBio()" class="flex items-center text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-5 py-2.5 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-all transform active:scale-95">
+                  <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Eliminar
+                </button>
+              </div>
+            } @else {
+              <p class="text-sm text-zinc-400 dark:text-zinc-500 px-4">Añade una descripción para que tus clientes te conozcan mejor.</p>
+              <button (click)="abrirModalBio()" class="mt-6 text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-6 py-3 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all transform active:scale-95">
+                Añadir Descripción
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- COLUMNA DER: GALERÍA DE TRABAJOS EXPANSIVA     -->
+    <!-- ============================================== -->
+    <div class="flex-1">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-zinc-200 dark:border-zinc-800 pb-4 gap-4">
+        <div>
+          <h3 class="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">Mi Portafolio</h3>
+          <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Galería de trabajos y estilos.</p>
+        </div>
+        
+        <button (click)="portafolioInput.click()" [disabled]="isUploadingPortafolio()" class="w-full sm:w-auto text-sm font-bold text-white bg-blue-600 px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-blue-500/30 hover:bg-blue-500 flex items-center justify-center cursor-pointer transform active:scale-95">
+          @if (isUploadingPortafolio()) {
+            <svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Subiendo...
+          } @else {
+            <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            Subir Nuevo
+          }
+        </button>
+      </div>
+
+      <input #portafolioInput type="file" class="hidden" accept="image/*, video/mp4, video/quicktime, video/webm" (change)="onPortafolioSelected($event)">
+
+      @if (portafolio().length === 0) {
+        <!-- EMPTY STATE DE PANTALLA AMPLIA -->
+        <div class="relative bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#151515] dark:to-black rounded-3xl p-12 text-center border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-inner mt-4">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.1)_0,transparent_100%)] dark:bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05)_0,transparent_100%)]"></div>
+          <div class="relative z-10 max-w-md mx-auto">
+            <div class="mx-auto w-20 h-20 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl flex items-center justify-center mb-6 transform -rotate-6">
+              <svg class="h-10 w-10 text-zinc-400 dark:text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v14" /></svg>
+            </div>
+            <h4 class="text-2xl font-black text-zinc-900 dark:text-white mb-3">Tu lienzo está en blanco</h4>
+            <p class="text-base text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">Sube fotos o videos cortos de tus mejores cortes. Un portafolio lleno atrae más reservas.</p>
+            
+            <button (click)="portafolioInput.click()" [disabled]="isUploadingPortafolio()" class="bg-zinc-900 dark:bg-white text-white dark:text-black font-bold text-base px-8 py-4 rounded-2xl shadow-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 active:scale-95 transition-all w-full flex justify-center items-center disabled:opacity-50">
+              Subir mi primer trabajo
+            </button>
+          </div>
+        </div>
+      } @else {
+        <!-- CUADRÍCULA EXPANSIVA Y ELEGANTE (Diseño 4:5 estilo Portrait) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mt-4 pb-10">
+          @for (trabajo of portafolio(); track trabajo.id) {
+            <div class="aspect-[4/5] relative group bg-zinc-200 dark:bg-zinc-900 overflow-hidden cursor-pointer rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300" (click)="verTrabajo(trabajo)">
+              
+              @if (isVideo(trabajo.url_imagen)) {
+                <video [src]="trabajo.url_imagen" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>
+                <div class="absolute top-3 left-3 bg-black/50 backdrop-blur-md rounded-full p-1.5 shadow-sm">
+                  <svg class="h-4 w-4 text-white ml-[1px]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+              } @else {
+                <img [src]="trabajo.url_imagen" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+              }
+              
+              <!-- Gradiente inferior oscuro -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <!-- Botón Eliminar Directo (Visible en móvil por defecto o en PC al pasar el mouse) -->
+              <button (click)="$event.stopPropagation(); confirmarEliminarDirecto(trabajo)" class="absolute top-3 right-3 bg-red-500/90 text-white p-2 rounded-full backdrop-blur-md opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 hover:scale-110 shadow-lg" title="Eliminar este trabajo">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </button>
+
+              <div class="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span class="text-xs font-bold text-white drop-shadow-md">{{ trabajo.fecha }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================== -->
+<!-- VISORES Y MODALES (MISMOS QUE ANTES)           -->
+<!-- ============================================== -->
+
+<!-- VISOR FOTO DE PERFIL -->
+@if (isPhotoModalOpen() && avatarUrl()) {
+  <div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 backdrop-blur-sm transition-opacity cursor-pointer" (click)="cerrarFoto()">
+    <div class="absolute top-0 inset-x-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-10 cursor-default" (click)="$event.stopPropagation()">
+      <button (click)="cerrarFoto()" class="text-white p-2 hover:bg-white/20 rounded-full transition-colors active:scale-95 cursor-pointer">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+      </button>
+      <span class="text-white font-medium text-sm">Foto de perfil</span>
+      <button (click)="fileInput.click(); cerrarFoto()" class="text-white p-2 hover:bg-white/20 rounded-full transition-colors active:scale-95 cursor-pointer" title="Cambiar foto">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+      </button>
+    </div>
+    <div class="w-full h-full p-4 flex items-center justify-center">
+      <img [src]="avatarUrl()" class="max-w-full max-h-full object-contain drop-shadow-2xl cursor-default" (click)="$event.stopPropagation()">
+    </div>
+  </div>
+}
+
+<!-- VISOR DEL PORTAFOLIO -->
+@if (isTrabajoModalOpen() && trabajoSeleccionado()) {
+  <div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 backdrop-blur-sm transition-opacity cursor-pointer" (click)="isTrabajoModalOpen.set(false)">
+    <div class="absolute top-0 inset-x-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-20 cursor-default" (click)="$event.stopPropagation()">
+      <button (click)="isTrabajoModalOpen.set(false)" class="text-white p-2 hover:bg-white/20 rounded-full transition-colors active:scale-95 cursor-pointer">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+      </button>
+      <span class="text-white font-medium text-sm drop-shadow-md">{{ trabajoSeleccionado()?.fecha }}</span>
+      <button (click)="confirmarEliminarTrabajo()" class="text-red-400 p-2 hover:bg-red-500/20 rounded-full transition-colors active:scale-95 cursor-pointer" title="Eliminar Archivo">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+      </button>
+    </div>
+    <div class="w-full h-full p-0 flex items-center justify-center relative z-10">
+      @if (isVideo(trabajoSeleccionado()?.url_imagen)) {
+        <video [src]="trabajoSeleccionado()?.url_imagen" class="max-w-full max-h-full drop-shadow-2xl cursor-default" controls autoplay loop playsinline (click)="$event.stopPropagation()"></video>
+      } @else {
+        <img [src]="trabajoSeleccionado()?.url_imagen" class="max-w-full max-h-full object-contain drop-shadow-2xl cursor-default" (click)="$event.stopPropagation()">
+      }
+    </div>
+  </div>
+}
+
+<!-- MODAL PARA EDITAR BIO -->
+@if (isBioModalOpen()) {
+  <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
+    <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" (click)="isBioModalOpen.set(false)"></div>
+    <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-sm shadow-2xl overflow-hidden animate-fade-in-up">
+      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+      <div class="p-6">
+        <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-4">Sobre ti</h3>
+        <textarea [(ngModel)]="tempBio" rows="4" placeholder="Ej: Especialista en cortes fade y perfilado de barba clásica..." class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm resize-none mb-6 transition-colors"></textarea>
+        <div class="flex space-x-3">
+          <button (click)="isBioModalOpen.set(false)" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
+          <button (click)="guardarBio()" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<app-modal-confirm [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title" [message]="confirmConfig().message" [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText" (onConfirm)="confirmConfig().action()" (onCancel)="cerrarConfirmacion()">
+</app-modal-confirm>

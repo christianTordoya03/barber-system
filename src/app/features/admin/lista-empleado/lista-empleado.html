@@ -11,7 +11,7 @@
       <div class="w-full sm:w-1/3">
         <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Selecciona un empleado</label>
         <select [(ngModel)]="nombreEmpleadoReporte" class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-emerald-500 sm:text-sm cursor-pointer appearance-none">
-          <option value="" disabled selected>-- Selecciona un empleado --</option>
+          <option value="" disabled selected>Seleccionar Persona</option>
           @for (emp of barberos(); track emp.id) { <option [value]="emp.nombre">{{ emp.nombre }}</option> }
         </select>
       </div>

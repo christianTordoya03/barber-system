@@ -1,68 +1,78 @@
 @if (isOpen() && data()) {
-  <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" (click)="onClose.emit()"></div>
-    <div class="relative bg-[#111111] rounded-3xl border border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
-      
-      <!-- Línea superior dinámica según los 3 estados -->
-      <div class="absolute top-0 inset-x-0 h-1" [ngClass]="{
+<div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" (click)="onClose.emit()"></div>
+  <div class="relative bg-[#111111] rounded-3xl border border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
+    
+    <!-- Línea superior dinámica según los 5 estados -->
+    <div class="absolute top-0 inset-x-0 h-1" [ngClass]="{
         'bg-gradient-to-r from-red-600 to-red-400': data().estado === 'annulled',
         'bg-gradient-to-r from-blue-600 to-blue-400': data().estado === 'pending',
+        'bg-gradient-to-r from-emerald-500 to-emerald-400': data().estado === 'in_progress',
+        'bg-gradient-to-r from-purple-600 to-purple-400': data().estado === 'finished',
         'bg-gradient-to-r from-green-500 to-emerald-400': data().estado === 'completed'
       }"></div>
+    
+    <div class="p-6">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h3 class="text-xl font-bold text-white mb-1">Detalle del Registro</h3>
+          <p class="text-xs text-zinc-500">ID: #{{ data().id.toString().padStart(6, '0') }}</p>
+        </div>
+        <button (click)="onClose.emit()"
+          class="text-zinc-500 hover:text-white bg-zinc-900 rounded-full p-2 transition-colors">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
       
-      <div class="p-6">
-        <div class="flex justify-between items-start mb-6">
-          <div>
-            <h3 class="text-xl font-bold text-white mb-1">Detalle del Registro</h3>
-            <p class="text-xs text-zinc-500">ID: #{{ data().id.toString().padStart(6, '0') }}</p>
-          </div>
-          <button (click)="onClose.emit()" class="text-zinc-500 hover:text-white bg-zinc-900 rounded-full p-2 transition-colors">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
+      <!-- Estado Badge dinámico actualizado -->
+      <div class="flex justify-center mb-6 mt-6">
+        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset" [ngClass]="{
+                'bg-red-500/10 text-red-400 ring-red-500/20': data().estado === 'annulled',
+                'bg-blue-500/10 text-blue-400 ring-blue-500/20': data().estado === 'pending',
+                'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20 animate-pulse': data().estado === 'in_progress',
+                'bg-purple-500/10 text-purple-400 ring-purple-500/20': data().estado === 'finished',
+                'bg-green-500/10 text-green-400 ring-green-500/20': data().estado === 'completed'
+              }">
+          {{ data().estado === 'completed' ? 'PAGADO COMPLETADO' : 
+             data().estado === 'finished' ? 'TICKET POR COBRAR' : 
+             data().estado === 'in_progress' ? 'SERVICIO EN CURSO' : 
+             data().estado === 'pending' ? 'TICKET PENDIENTE' : 'TICKET ANULADO' }}
+        </span>
+      </div>
+      
+      <!-- Info del Ticket -->
+      <div class="space-y-4">
+        <div class="flex justify-between border-b border-zinc-800/50 pb-3">
+          <span class="text-sm text-zinc-400">Servicio</span>
+          <span class="text-sm font-medium text-white">{{ data().servicio }}</span>
         </div>
-        
-        <!-- Estado Badge dinámico -->
-        <div class="flex justify-center mb-6">
-          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset"
-                [ngClass]="{
-                  'bg-red-500/10 text-red-400 ring-red-500/20': data().estado === 'annulled',
-                  'bg-blue-500/10 text-blue-400 ring-blue-500/20': data().estado === 'pending',
-                  'bg-green-500/10 text-green-400 ring-green-500/20': data().estado === 'completed'
-                }">
-            {{ data().estado === 'completed' ? 'PAGADO COMPLETADO' : (data().estado === 'pending' ? 'TICKET EN CURSO' : 'TICKET ANULADO') }}
-          </span>
+        <div class="flex justify-between border-b border-zinc-800/50 pb-3">
+          <span class="text-sm text-zinc-400">Barbero Asignado</span>
+          <span class="text-sm font-medium text-white">{{ data().barbero }}</span>
         </div>
-        
-        <!-- Info del Ticket -->
-        <div class="space-y-4">
-          <div class="flex justify-between border-b border-zinc-800/50 pb-3">
-            <span class="text-sm text-zinc-400">Servicio</span>
-            <span class="text-sm font-medium text-white">{{ data().servicio }}</span>
-          </div>
-          <div class="flex justify-between border-b border-zinc-800/50 pb-3">
-            <span class="text-sm text-zinc-400">Barbero Asignado</span>
-            <span class="text-sm font-medium text-white">{{ data().barbero }}</span>
-          </div>
-          <div class="flex justify-between border-b border-zinc-800/50 pb-3">
-            <span class="text-sm text-zinc-400">Cliente</span>
-            <span class="text-sm font-medium text-white">{{ data().cliente || 'Cliente de paso' }}</span>
-          </div>
-          <div class="flex justify-between border-b border-zinc-800/50 pb-3">
-            <span class="text-sm text-zinc-400">Fecha y Hora</span>
-            <span class="text-sm font-medium text-white">{{ data().fecha }}</span>
-          </div>
-          <div class="flex justify-between border-b border-zinc-800/50 pb-3">
-            <span class="text-sm text-zinc-400">Método de Pago</span>
-            <span class="text-sm font-medium text-white">{{ data().metodoPago || 'Pendiente' }}</span>
-          </div>
+        <div class="flex justify-between border-b border-zinc-800/50 pb-3">
+          <span class="text-sm text-zinc-400">Cliente</span>
+          <span class="text-sm font-medium text-white">{{ data().cliente || 'Cliente de paso' }}</span>
         </div>
-        
-        <!-- Total -->
-        <div class="mt-6 p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex justify-between items-center">
-          <span class="text-sm font-bold text-zinc-300">Total Registrado</span>
-          <span class="text-2xl font-black text-white" [class.line-through]="data().estado === 'annulled'">S/ {{ data().monto | number:'1.2-2' }}</span>
+        <div class="flex justify-between border-b border-zinc-800/50 pb-3">
+          <span class="text-sm text-zinc-400">Fecha y Hora</span>
+          <span class="text-sm font-medium text-white">{{ data().fecha }}</span>
         </div>
+        <div class="flex justify-between border-b border-zinc-800/50 pb-3">
+          <span class="text-sm text-zinc-400">Método de Pago</span>
+          <span class="text-sm font-medium text-white">{{ data().metodoPago || 'Pendiente' }}</span>
+        </div>
+      </div>
+      
+      <!-- Total -->
+      <div class="mt-6 p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex justify-between items-center">
+        <span class="text-sm font-bold text-zinc-300">Total Registrado</span>
+        <span class="text-2xl font-black text-white" [class.line-through]="data().estado === 'annulled'">S/ {{
+          data().monto | number:'1.2-2' }}</span>
       </div>
     </div>
   </div>
+</div>
 }

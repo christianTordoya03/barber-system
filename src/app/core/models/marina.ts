@@ -4,9 +4,10 @@ export interface Turno {
   barbero: string;
   cliente: string;
   monto: number;
-  estado: 'pending' | 'completed' | 'annulled';
+  estado: 'pending' | 'in_progress' | 'finished' | 'completed' | 'annulled';
   fecha: string;
   metodoPago?: string | null;
+  horaInicio?: string | null;
 }
 
 export interface Empleado {
@@ -18,6 +19,9 @@ export interface Empleado {
   comision?: number | null;
   activo: boolean;
   avatar_url?: string | null;
+  bio?: string | null;
+  estado_asistencia?: 'disponible' | 'ocupado' | 'pausa' | 'descanso';
+  ultima_vez_disponible?: string | null;
 }
 
 export interface Categoria {
@@ -42,5 +46,12 @@ export interface Gasto {
   metodoPago: string;
   fecha: string;
   empleado_id?: number | null;
-  estado?: 'activo' | 'anulado';
+  estado?: 'activo' | 'anulado' | 'liquidado';
+}
+
+export interface TrabajoPortafolio {
+  id: number;
+  empleado_id: number;
+  url_imagen: string;
+  fecha: string;
 }

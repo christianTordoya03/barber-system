@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,7 +15,7 @@ import { CatalogoService } from '../../../core/services/catalogo';
   imports: [CommonModule, RouterModule, ModalDetalleComponent, ModalConfirmComponent, ReactiveFormsModule],
   templateUrl: './cobros.html',
 })
-export class CobrosComponent {
+export class CobrosComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private turnosService = inject(TurnosService);
   private toastService = inject(ToastService);
@@ -25,19 +25,165 @@ export class CobrosComponent {
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
 
-  turnosPendientes = computed(() => this.turnosService.turnos().filter(t => t.estado === 'pending'));
+  // CONVERTIDO A SEÑAL PARA LA MEDIANOCHE
+  hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
+
+  searchTerm = signal<string>('');
+  searchBarbero = signal<string>(''); 
+  currentPage = signal<number>(1);
+  pageSize = 10;
+
+  now = signal(Date.now());
+  intervalId: any;
+
+  ngOnInit() {
+    this.intervalId = setInterval(() => {
+      this.now.set(Date.now());
+      // Magia nocturna
+      const fechaActualReal = this.formatDateToDDMMYYYY(new Date());
+      if (this.hoyStr() !== fechaActualReal) {
+        this.hoyStr.set(fechaActualReal);
+      }
+    }, 10000);
+  }
+
+  ngOnDestroy() {
+    if (this.intervalId) clearInterval(this.intervalId);
+  }
+
+  formatDateToDDMMYYYY(date: Date): string {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  private parseDateStr(fechaStr: string) {
+    const match = fechaStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (match) return { day: match[1].padStart(2, '0'), month: match[2].padStart(2, '0'), year: match[3] };
+    return null;
+  }
+
+  private esFechaIgual(fechaBD: string, fechaFormateada: string): boolean {
+    const d = this.parseDateStr(fechaBD);
+    if (!d) return false;
+    return `${d.day}/${d.month}/${d.year}` === fechaFormateada;
+  }
+
+  private getValorFecha(fechaStr: string): number {
+    const d = this.parseDateStr(fechaStr);
+    if (!d) return 0;
+    return parseInt(`${d.year}${d.month}${d.day}`);
+  }
+
+  barberoSeleccionadoParaCobro = signal<string>('');
+
+  turnosParaCobrar = computed(() => {
+    const hoyVal = this.getValorFecha(this.hoyStr());
+    return this.turnosService.turnos().filter(t => {
+      const turnoVal = this.getValorFecha(t.fecha);
+      if (turnoVal > hoyVal) return false; 
+      return (t.estado === 'pending' || t.estado === 'in_progress' || t.estado === 'finished');
+    });
+  });
+
+  turnosParaCobrarFiltrados = computed(() => {
+    const filtro = this.barberoSeleccionadoParaCobro();
+    const todos = this.turnosParaCobrar();
+    if (!filtro) return todos;
+    return todos.filter(t => t.barbero === filtro);
+  });
 
   turnosLista = computed(() => {
-    return [...this.turnosService.turnos()].sort((a, b) => {
-      if (a.estado === 'pending' && b.estado !== 'pending') return -1;
-      if (a.estado !== 'pending' && b.estado === 'pending') return 1;
-      if (a.estado === 'annulled' && b.estado !== 'annulled') return 1;
-      if (a.estado !== 'annulled' && b.estado === 'annulled') return -1;
+    const hoyVal = this.getValorFecha(this.hoyStr());
+    const filtrados = this.turnosService.turnos().filter(t => {
+      const turnoVal = this.getValorFecha(t.fecha);
+      if (turnoVal > hoyVal) return false; 
+      if (turnoVal === hoyVal) return true; 
+      return (t.estado === 'pending' || t.estado === 'in_progress' || t.estado === 'finished');
+    });
+
+    return filtrados.sort((a, b) => {
+      const getPriority = (estado: string) => {
+        if (estado === 'in_progress') return 1;
+        if (estado === 'finished') return 2;
+        if (estado === 'pending') return 3;
+        if (estado === 'completed') return 4;
+        return 5;
+      };
+      const pA = getPriority(a.estado);
+      const pB = getPriority(b.estado);
+      if (pA !== pB) return pA - pB;
       return b.id - a.id;
     });
   });
 
+  turnosFiltradosBusqueda = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+    const barberoFiltro = this.searchBarbero();
+    let lista = this.turnosLista();
+
+    if (barberoFiltro) lista = lista.filter(t => t.barbero === barberoFiltro);
+    if (term) lista = lista.filter(t => t.cliente?.toLowerCase().includes(term) || t.servicio?.toLowerCase().includes(term));
+    return lista;
+  });
+
+  paginatedTurnos = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.pageSize;
+    return this.turnosFiltradosBusqueda().slice(startIndex, startIndex + this.pageSize);
+  });
+
+  totalPages = computed(() => Math.ceil(this.turnosFiltradosBusqueda().length / this.pageSize) || 1);
+
+  onSearchChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.searchTerm.set(target.value);
+    this.currentPage.set(1);
+  }
+
+  onSearchBarbero(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    this.searchBarbero.set(target.value);
+    this.currentPage.set(1);
+  }
+
+  limpiarBusqueda() {
+    this.searchTerm.set('');
+    this.currentPage.set(1);
+  }
+
+  limpiarFiltroRapido() {
+    this.cobroForm.patchValue({ barberoFiltro: '' });
+  }
+
+  nextPage() { if (this.currentPage() < this.totalPages()) this.currentPage.update(p => p + 1); }
+  prevPage() { if (this.currentPage() > 1) this.currentPage.update(p => p - 1); }
+
+  getDuracionServicio(nombreServicio: string): number {
+    const srv = this.servicios().find(s => s.nombre === nombreServicio);
+    return srv?.duracion || 30;
+  }
+
+  calcularProgreso(turno: any): number {
+    if (turno.estado !== 'in_progress' || !turno.horaInicio) return 0;
+    const duracionMinutos = this.getDuracionServicio(turno.servicio);
+    const inicioMs = new Date(turno.horaInicio).getTime();
+    const transcurridoMin = (this.now() - inicioMs) / 60000;
+    let prog = (transcurridoMin / duracionMinutos) * 100;
+    return Math.min(Math.max(prog, 0), 100);
+  }
+
+  getTiempoRestante(turno: any): string {
+    if (turno.estado !== 'in_progress' || !turno.horaInicio) return '';
+    const duracionMinutos = this.getDuracionServicio(turno.servicio);
+    const transcurridoMin = (this.now() - new Date(turno.horaInicio).getTime()) / 60000;
+    const restante = duracionMinutos - transcurridoMin;
+    if (restante > 0) return `Faltan ~${Math.ceil(restante)} min`;
+    return `Retrasado ~${Math.ceil(Math.abs(restante))} min`;
+  }
+
   cobroForm = this.fb.nonNullable.group({
+    barberoFiltro: [''], 
     turnoId: ['', Validators.required],
     formaPago: ['', Validators.required]
   });
@@ -48,41 +194,43 @@ export class CobrosComponent {
   isDetalleModalOpen = signal<boolean>(false);
   detalleSeleccionado = signal<any>(null);
 
-  // Modal de Edición Completados
   isEditModalOpen = signal<boolean>(false);
   editForm = this.fb.nonNullable.group({
-    id: [0], 
-    cliente: ['', Validators.required], 
-    servicio: ['', Validators.required], 
-    barbero: ['', Validators.required], 
-    monto: [0, [Validators.required, Validators.min(0)]], 
-    metodoPago: ['Yape', Validators.required]
+    id: [0], cliente: ['', Validators.required], servicio: ['', Validators.required], barbero: ['', Validators.required], monto: [0, [Validators.required, Validators.min(0)]], metodoPago: ['Yape', Validators.required]
   });
 
-  // Modal de Edición Pendientes
   isEditPendienteModalOpen = signal<boolean>(false);
   editPendienteForm = this.fb.nonNullable.group({
-    id: [0], 
-    cliente: ['', Validators.required], 
-    servicio: ['', Validators.required], 
-    barbero: ['', Validators.required], 
-    monto: [0, [Validators.required, Validators.min(0)]]
+    id: [0], cliente: ['', Validators.required], servicio: ['', Validators.required], barbero: ['', Validators.required], monto: [0, [Validators.required, Validators.min(0)]]
   });
 
   confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });
 
   constructor() {
+    this.cobroForm.get('barberoFiltro')?.valueChanges.subscribe(val => {
+      this.barberoSeleccionadoParaCobro.set(val);
+      const turnoSeleccionadoId = Number(this.cobroForm.get('turnoId')?.value);
+      if (turnoSeleccionadoId) {
+        const turnoValido = this.turnosParaCobrarFiltrados().find(t => t.id === turnoSeleccionadoId);
+        if (!turnoValido) {
+          this.cobroForm.patchValue({ turnoId: '' }, { emitEvent: false });
+          this.servicioSeleccionado.set('');
+          this.precioSeleccionado.set(null);
+        }
+      }
+    });
+
     this.cobroForm.get('turnoId')?.valueChanges.subscribe(id => {
-      const turno = this.turnosPendientes().find(t => t.id === Number(id));
+      const turno = this.turnosParaCobrar().find(t => t.id === Number(id));
       if (turno) { this.servicioSeleccionado.set(turno.servicio); this.precioSeleccionado.set(turno.monto); } 
       else { this.servicioSeleccionado.set(''); this.precioSeleccionado.set(null); }
     });
-
+    
     this.editForm.get('servicio')?.valueChanges.subscribe(nombreServicio => {
       const servicioObj = this.servicios().find(s => s.nombre === nombreServicio);
       if (servicioObj) this.editForm.patchValue({ monto: servicioObj.precio }, { emitEvent: false });
     });
-
+    
     this.editPendienteForm.get('servicio')?.valueChanges.subscribe(nombreServicio => {
       const servicioObj = this.servicios().find(s => s.nombre === nombreServicio);
       if (servicioObj) this.editPendienteForm.patchValue({ monto: servicioObj.precio }, { emitEvent: false });
@@ -94,7 +242,7 @@ export class CobrosComponent {
     const { turnoId, formaPago } = this.cobroForm.getRawValue();
     this.turnosService.actualizarTurno(Number(turnoId), { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: formaPago });
     this.toastService.show(`Servicio cobrado correctamente con ${formaPago}`);
-    this.cobroForm.reset({ turnoId: '', formaPago: '' });
+    this.cobroForm.reset({ barberoFiltro: '', turnoId: '', formaPago: '' });
     this.servicioSeleccionado.set(''); this.precioSeleccionado.set(null);
   }
 
@@ -102,26 +250,17 @@ export class CobrosComponent {
     const cobro = this.turnosLista().find(c => c.id === id);
     if (cobro) { this.detalleSeleccionado.set(cobro); this.isDetalleModalOpen.set(true); }
   }
-
-  cerrarDetalle() { 
-    this.isDetalleModalOpen.set(false); 
-    setTimeout(() => this.detalleSeleccionado.set(null), 300); 
-  }
+  
+  cerrarDetalle() { this.isDetalleModalOpen.set(false); setTimeout(() => this.detalleSeleccionado.set(null), 300); }
 
   abrirModalEditar(id: number) {
     const mov = this.turnosLista().find(m => m.id === id);
     if (mov) {
-      if (mov.estado === 'pending') {
-        this.editPendienteForm.patchValue(
-          { id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto }, 
-          { emitEvent: false }
-        );
+      if (mov.estado === 'pending' || mov.estado === 'in_progress' || mov.estado === 'finished') {
+        this.editPendienteForm.patchValue({ id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto }, { emitEvent: false });
         this.isEditPendienteModalOpen.set(true);
       } else {
-        this.editForm.patchValue(
-          { id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto, metodoPago: mov.metodoPago || 'Efectivo' }, 
-          { emitEvent: false }
-        );
+        this.editForm.patchValue({ id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto, metodoPago: mov.metodoPago || 'Efectivo' }, { emitEvent: false });
         this.isEditModalOpen.set(true);
       }
     }
@@ -130,10 +269,7 @@ export class CobrosComponent {
   abrirModalEditarPendiente(id: number) {
     const turno = this.turnosLista().find(t => t.id === id);
     if (turno) {
-      this.editPendienteForm.patchValue(
-        { id: turno.id, barbero: turno.barbero, cliente: turno.cliente, servicio: turno.servicio, monto: turno.monto }, 
-        { emitEvent: false }
-      );
+      this.editPendienteForm.patchValue({ id: turno.id, barbero: turno.barbero, cliente: turno.cliente, servicio: turno.servicio, monto: turno.monto }, { emitEvent: false });
       this.isEditPendienteModalOpen.set(true);
     }
   }
@@ -156,12 +292,11 @@ export class CobrosComponent {
 
   anularCobro(id: number) {
     const turno = this.turnosLista().find(t => t.id === id);
-    const esPendiente = turno?.estado === 'pending';
-
+    const esPendiente = turno?.estado === 'pending' || turno?.estado === 'in_progress' || turno?.estado === 'finished';
     this.confirmConfig.set({
       isOpen: true,
       title: esPendiente ? 'Cancelar Turno' : 'Anular Cobro',
-      message: esPendiente ? '¿Estás seguro de cancelar este servicio en curso?' : '¿Estás seguro de anular este registro? Se restará de la caja.',
+      message: esPendiente ? '¿Es seguro de cancelar este servicio?' : '¿Es seguro de anular este registro? Se restará de la caja.',
       type: 'danger', confirmText: esPendiente ? 'Sí, Cancelar' : 'Sí, Anular',
       action: () => {
         this.turnosService.actualizarTurno(id, { estado: 'annulled' });
@@ -181,8 +316,6 @@ export class CobrosComponent {
       }
     });
   }
-  
-  cerrarConfirmacion() { 
-    this.confirmConfig.update(c => ({ ...c, isOpen: false })); 
-  }
+
+  cerrarConfirmacion() { this.confirmConfig.update(c => ({ ...c, isOpen: false })); }
 }

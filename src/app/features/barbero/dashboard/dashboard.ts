@@ -327,15 +327,19 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
   }
 
   abrirModalReserva() {
-    const yyyy = this.diaSeleccionado().getFullYear();
-    const mm = (this.diaSeleccionado().getMonth() + 1).toString().padStart(2, '0');
-    const dd = this.diaSeleccionado().getDate().toString().padStart(2, '0');
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = (hoy.getMonth() + 1).toString().padStart(2, '0');
+    const dd = hoy.getDate().toString().padStart(2, '0');
+
+    const hh = hoy.getHours().toString().padStart(2, '0');
+    const min = hoy.getMinutes().toString().padStart(2, '0');
     
     this.reservaForm.reset({
       cliente: '',
       servicio: '',
-      fecha: `${yyyy}-${mm}-${dd}`,
-      hora: '10:00'
+      fecha: `${yyyy}-${mm}-${dd}`, // Pre-llena con la fecha real de hoy
+      hora: `${hh}:${min}`
     });
     this.isReservaModalOpen.set(true);
   }
@@ -346,10 +350,13 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
       return;
     }
     const formValues = this.reservaForm.getRawValue();
+    
+    // Separamos los valores del formulario
     const [year, month, day] = formValues.fecha.split('-');
     const [hour, minute] = formValues.hora.split(':');
-    const fechaObj = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
-    const fechaCompleta = fechaObj.toLocaleString('es-PE');
+    
+    // CONSTRUCCIÓN MANUAL: Este es el formato que la Agenda.ts entiende (DD/MM/YYYY)
+    const fechaFormateadaManual = `${day}/${month}/${year}, ${hour}:${minute}`;
     
     const servicioObj = this.serviciosDisponibles().find(s => s.nombre === formValues.servicio);
 
@@ -360,12 +367,12 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
       cliente: formValues.cliente.trim(),
       monto: servicioObj?.precio || 0,
       estado: 'pending',
-      fecha: fechaCompleta, 
+      fecha: fechaFormateadaManual, // <-- FORMATO CORREGIDO
       metodoPago: 'Pendiente'
     };
 
     this.turnosService.agregarTurno(nuevaReserva);
-    this.toast.show('¡Reserva agregada a tu agenda!');
+    this.toast.show('¡Reserva agregada correctamente!');
     this.isReservaModalOpen.set(false);
   }
 }

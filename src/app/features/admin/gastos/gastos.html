@@ -45,6 +45,8 @@
         <div class="lg:col-span-2">
           <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Empleado (Opcional)</label>
           <select formControlName="empleado_id"
+            (keydown.backspace)="gastoForm.get('empleado_id')?.setValue(''); $any($event.target).value=''; $event.preventDefault()"
+            (keydown.delete)="gastoForm.get('empleado_id')?.setValue(''); $any($event.target).value=''; $event.preventDefault()"
             class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-red-500 sm:text-sm transition-colors cursor-pointer appearance-none">
             <option value="" selected>Ninguno (Gasto general)</option>
             @for (emp of empleadosActivos(); track emp.id) {
@@ -197,8 +199,10 @@
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Empleado (Opcional)</label>
             <select formControlName="empleado_id"
-              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none cursor-pointer">
-              <option value="">Ninguno (Gasto general)</option>
+              (keydown.backspace)="gastoForm.get('empleado_id')?.setValue(''); $any($event.target).value=''; $event.preventDefault()"
+              (keydown.delete)="gastoForm.get('empleado_id')?.setValue(''); $any($event.target).value=''; $event.preventDefault()"
+              class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-red-500 sm:text-sm transition-colors cursor-pointer appearance-none">
+              <option value="" selected>Ninguno (Gasto general)</option>
               @for (emp of empleadosActivos(); track emp.id) {
               <option [value]="emp.id">{{ emp.nombre }} ({{ emp.rol }})</option>
               }

@@ -15,10 +15,10 @@ export class TransactionCardComponent {
   type = input<'income' | 'expense'>('income');
   paymentMethod = input<string | undefined | null>(); 
 
-  // --- NUEVOS INPUTS PARA LA BARRA DE PROGRESO ---
   progress = input<number>(0);
   timeText = input<string>('');
 
+  onStart = output<void>(); // <-- NUEVO EVENTO
   onPay = output<void>();
   onEdit = output<void>();
   onAnnul = output<void>();

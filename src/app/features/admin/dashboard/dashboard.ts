@@ -31,18 +31,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
 
-  // CONVERTIDO A SEÑAL PARA LA MEDIANOCHE
   hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
 
   searchTerm = signal<string>('');
   searchBarbero = signal<string>(''); 
   currentPage = signal<number>(1);
-  pageSize = 5; 
+  pageSize = 10; 
 
   ngOnInit() {
     this.intervalId = setInterval(() => {
       this.now.set(Date.now());
-      // Magia nocturna
       const fechaActualReal = this.formatDateToDDMMYYYY(new Date());
       if (this.hoyStr() !== fechaActualReal) {
         this.hoyStr.set(fechaActualReal);
@@ -98,6 +96,42 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return parseInt(`${d.year}${d.month}${d.day}`);
   }
 
+  private obtenerMinutosDesdeFecha(fechaStr: string): number {
+    if (!fechaStr) return 0;
+    const timePart = fechaStr.includes(',') ? fechaStr.split(',')[1].trim() : fechaStr.split(' ')[1]?.trim() || '';
+    const match = timePart.match(/(\d{1,2}):(\d{2})/);
+    if (!match) return 0;
+    
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    
+    if (timePart.toLowerCase().includes('p') && hours < 12) hours += 12;
+    if (timePart.toLowerCase().includes('a') && hours === 12) hours = 0;
+    
+    return (hours * 60) + minutes;
+  }
+
+  formatearFechaCard(fechaStr: string): string {
+    if (!fechaStr) return '';
+    const d = this.parseDateStr(fechaStr);
+    const timePart = fechaStr.includes(',') ? fechaStr.split(',')[1].trim() : fechaStr.split(' ')[1]?.trim() || '';
+    const match = timePart.match(/(\d{1,2}):(\d{2})/);
+    
+    if (!d || !match) return fechaStr; // Si algo falla, devuelve el original
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+
+    if (timePart.toLowerCase().includes('p') && hours < 12) hours += 12;
+    if (timePart.toLowerCase().includes('a') && hours === 12) hours = 0;
+
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    let h12 = hours % 12;
+    h12 = h12 ? h12 : 12;
+
+    return `${d.day}/${d.month}/${d.year} - ${h12}:${minutes} ${ampm}`;
+  }
+
   ultimosMovimientos = computed(() => {
     const hoyVal = this.getValorFecha(this.hoyStr());
     const filtrados = this.turnosService.turnos().filter(t => {
@@ -110,21 +144,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
     const getPriority = (estado: string) => {
-      if (estado === 'in_progress') return 1;
-      if (estado === 'pending') return 2;  
-      if (estado === 'finished') return 3;
-      if (estado === 'completed') return 4;
+      if (estado === 'finished') return 1;    
+      if (estado === 'in_progress') return 2; 
+      if (estado === 'pending') return 3;     
+      if (estado === 'completed') return 4;   
       return 5;
     };
 
     return filtrados.sort((a, b) => {
       const pA = getPriority(a.estado);
       const pB = getPriority(b.estado);
+      
+      // 1. Primero por Estado
       if (pA !== pB) return pA - pB;
       
-      // DESEMPATE: Cambiamos b.id - a.id por a.id - b.id
-      // Así el cliente que registraste primero (A) aparece arriba.
-      return a.id - b.id; 
+      // 2. Desempate
+      if (a.estado === 'completed') {
+        return b.id - a.id; // Los cobrados, el más reciente arriba
+      } else {
+        // <-- NUEVO: ORDEN CRONOLÓGICO REAL PARA LOS PENDIENTES
+        const minA = this.obtenerMinutosDesdeFecha(a.fecha);
+        const minB = this.obtenerMinutosDesdeFecha(b.fecha);
+        if (minA !== minB) return minA - minB;
+        
+        return a.id - b.id; 
+      }
     });
   });
 
@@ -171,17 +215,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return this.ultimosMovimientos().filter(t => t.barbero === barberoFiltro);
   });
 
-  // 2. Las métricas ahora reaccionan a esa lista filtrada
   dineroEnCaja = computed(() => this.turnosParaMetricas().filter(t => t.estado === 'completed').reduce((total, turno) => total + (turno.monto || 0), 0));
   
   cortesRealizados = computed(() => this.turnosParaMetricas().filter(t => t.estado === 'completed').length);
   
-  // 3. Plus: Calcula la comisión exacta leyendo el % de comisión de cada barbero individualmente
   comisionesAPagar = computed(() => {
     const completados = this.turnosParaMetricas().filter(t => t.estado === 'completed');
     return completados.reduce((total, turno) => {
       const b = this.barberos().find(x => x.nombre === turno.barbero);
-      const porcentaje = b?.comision || 50; // Usa 50% por defecto si no lo encuentra
+      const porcentaje = b?.comision || 50; 
       return total + ((turno.monto || 0) * (porcentaje / 100));
     }, 0);
   });
@@ -213,6 +255,49 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const servicioObj = this.servicios().find(s => s.nombre === nombreServicio);
       if (servicioObj) { this.editPendienteForm.patchValue({ monto: servicioObj.precio }, { emitEvent: false }); }
     });
+  }
+
+  // --- NUEVA FUNCIÓN PARA INICIAR DESDE LA TABLA ---
+  iniciarTurnoManual(id: number) {
+    const turno = this.turnosService.turnos().find(t => t.id === id);
+    if (!turno) return;
+
+    // 1. Verificamos si el barbero ya tiene otro turno en estado "in_progress"
+    const tieneEnCurso = this.turnosService.turnos().some(t => 
+      t.barbero === turno.barbero && 
+      t.estado === 'in_progress' && 
+      t.id !== id
+    );
+
+    // 2. Separamos la lógica de guardado en una función para llamarla después (o de inmediato)
+    const ejecutarInicio = () => {
+      this.turnosService.actualizarTurno(id, {
+        estado: 'in_progress',
+        horaInicio: new Date().toISOString()
+      });
+
+      const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
+      if (barberoObj) {
+        this.staffService.actualizarEmpleado(barberoObj.id, { estado_asistencia: 'ocupado' });
+      }
+
+      this.toastService.show(`Servicio de ${turno.barbero} iniciado.`);
+      this.cerrarConfirmacion(); // Por si venimos del modal
+    };
+
+    // 3. Evaluamos: ¿Lanzar alerta o iniciar de una vez?
+    if (tieneEnCurso) {
+      this.confirmConfig.set({
+        isOpen: true,
+        title: 'Barbero Ocupado',
+        message: `El barbero ${turno.barbero} ya tiene un servicio en curso. ¿Estás seguro de iniciar otro al mismo tiempo?`,
+        type: 'info', 
+        confirmText: 'Sí, Iniciar de todos modos',
+        action: ejecutarInicio
+      });
+    } else {
+      ejecutarInicio(); // Si está libre, iniciamos sin preguntar
+    }
   }
 
   abrirModalCobro(id: number) {

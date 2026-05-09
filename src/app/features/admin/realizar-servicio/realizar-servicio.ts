@@ -7,11 +7,12 @@ import { CatalogoService } from '../../../core/services/catalogo';
 import { StaffService } from '../../../core/services/staff';
 import { Turno } from '../../../core/models/marina';
 import { OrdenAtencionComponent } from '../../../shared/ui/orden-atencion/orden-atencion';
+import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-confirm';
 
 @Component({
   selector: 'app-realizar-servicio',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, OrdenAtencionComponent],
+  imports: [CommonModule, ReactiveFormsModule, OrdenAtencionComponent, ModalConfirmComponent],
   templateUrl: './realizar-servicio.html',
 })
 export class RealizarServicioComponent implements OnInit, OnDestroy {
@@ -22,6 +23,8 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
   private staffService = inject(StaffService);
 
   isLoading = signal<boolean>(false);
+  confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });
+  cerrarConfirmacion() { this.confirmConfig.update(c => ({ ...c, isOpen: false })); }
 
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
@@ -38,7 +41,8 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     clienteNombre: '',
     servicioId: ['', Validators.required],
     fecha: [this.hoyStrHtml, Validators.required],
-    hora: [this.horaActualStr, Validators.required]
+    hora: [this.horaActualStr, Validators.required],
+    iniciarInmediatamente: [false] // <-- NUEVO CHECKBOX
   });
 
   // Señales para reaccionar en la vista
@@ -93,7 +97,7 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     const barberoObj = this.barberos().find(b => b.id === Number(bId));
     if (!barberoObj) return [];
 
-    const fechaFiltro = this.fechaSeleccionada(); // Viene como YYYY-MM-DD
+    const fechaFiltro = this.fechaSeleccionada(); 
     if (!fechaFiltro) return [];
     
     const [year, month, day] = fechaFiltro.split('-');
@@ -160,34 +164,63 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     const servicio = this.servicios().find(s => s.id === Number(formValues.servicioId));
     const barbero = this.barberos().find(b => b.id === Number(formValues.barberoId));
 
-    // 1. Extraemos los valores
     const [year, month, day] = formValues.fecha.split('-');
     const [hour, minute] = formValues.hora.split(':');
-    
-    // 2. Creamos el objeto Date con la selección del Admin
     const fechaObj = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
-    
-    // 3. Formateamos al estándar peruano
     const fechaLlegada = fechaObj.toLocaleString('es-PE');
+    
+    const iniciarYa = formValues.iniciarInmediatamente;
 
-    const nuevoTurno: Turno = {
-      id: Date.now(),
-      servicio: servicio?.nombre || 'Servicio Estándar',
-      barbero: barbero?.nombre || 'Barbero',
-      cliente: formValues.clienteNombre?.trim() || 'Cliente de paso',
-      monto: servicio?.precio || 0,
-      estado: 'pending',
-      fecha: fechaLlegada, // <-- Usamos la fecha formateada
-      metodoPago: 'Pendiente'
+    // Lógica que realmente guarda el turno en la Base de Datos
+    const ejecutarGuardado = () => {
+      const nuevoTurno: Turno = {
+        id: Date.now(),
+        servicio: servicio?.nombre || 'Servicio Estándar',
+        barbero: barbero?.nombre || 'Barbero',
+        cliente: formValues.clienteNombre?.trim() || 'Cliente de paso',
+        monto: servicio?.precio || 0,
+        estado: iniciarYa ? 'in_progress' : 'pending',
+        horaInicio: iniciarYa ? new Date().toISOString() : undefined,
+        fecha: fechaLlegada, 
+        metodoPago: 'Pendiente'
+      };
+
+      this.turnosService.agregarTurno(nuevoTurno);
+
+      if (iniciarYa && barbero) {
+        this.staffService.actualizarEmpleado(barbero.id, { estado_asistencia: 'ocupado' });
+      }
+      
+      setTimeout(() => {
+        this.isLoading.set(false);
+        this.toastService.show(iniciarYa ? '¡Turno iniciado con éxito!' : '¡Turno agendado con éxito!');
+        this.servicioForm.patchValue({ clienteNombre: '', servicioId: '', barberoId: '', iniciarInmediatamente: false });
+        this.barberoSeleccionadoId.set(''); 
+        this.cerrarConfirmacion();
+      }, 800);
     };
 
-    this.turnosService.agregarTurno(nuevoTurno);
-    
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.toastService.show('¡Turno agendado con éxito!');
-      this.servicioForm.patchValue({ clienteNombre: '', servicioId: '', barberoId: '' });
-      this.barberoSeleccionadoId.set(''); 
-    }, 800);
+    // Validamos si marcó el checkbox Y el barbero ya está ocupado
+    if (iniciarYa && barbero) {
+      const tieneEnCurso = this.turnosService.turnos().some(t => t.barbero === barbero.nombre && t.estado === 'in_progress');
+      if (tieneEnCurso) {
+        this.isLoading.set(false); // Quitamos el spinner temporalmente
+        this.confirmConfig.set({
+          isOpen: true,
+          title: 'Barbero Ocupado',
+          message: `El barbero ${barbero.nombre} ya tiene un servicio en curso. ¿Estás seguro de asignarle e iniciar este nuevo servicio de inmediato?`,
+          type: 'info',
+          confirmText: 'Sí, Iniciar',
+          action: () => {
+            this.isLoading.set(true);
+            ejecutarGuardado(); // Guardamos si dice que sí
+          }
+        });
+        return; // Pausamos la ejecución aquí hasta que responda
+      }
+    }
+
+    // Si no está ocupado o no marcó el inicio rápido, se guarda normal
+    ejecutarGuardado();
   }
 }

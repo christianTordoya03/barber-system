@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TurnosService } from '../../../core/services/turnos';
 import { StaffService } from '../../../core/services/staff';
-import { GastosService } from '../../../core/services/gastos'; // <-- IMPORTAMOS GASTOS
+import { GastosService } from '../../../core/services/gastos';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -16,7 +16,7 @@ import autoTable from 'jspdf-autotable';
 export class ListaEmpleadoComponent {
   private turnosService = inject(TurnosService);
   private staffService = inject(StaffService);
-  private gastosService = inject(GastosService); // <-- INYECTAMOS GASTOS
+  private gastosService = inject(GastosService);
 
   hoyStrHtml = (() => {
     const d = new Date();
@@ -26,6 +26,7 @@ export class ListaEmpleadoComponent {
   fechaInicio = signal<string>(this.hoyStrHtml);
   fechaFin = signal<string>(this.hoyStrHtml);
   nombreEmpleadoReporte = signal<string>('');
+  
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero'));
   
   filtroAplicado = signal({
@@ -33,35 +34,47 @@ export class ListaEmpleadoComponent {
     inicio: this.hoyStrHtml,
     fin: this.hoyStrHtml
   });
-  // 1. CÁLCULO DE SERVICIOS
+
+  // 1. CÁLCULO DE SERVICIOS (Reactivo)
   turnosEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
     if (!filtro.empleado) return [];
     
+    // Convertimos YYYY-MM-DD a YYYYMMDD para comparar rangos exactos numéricamente
     const inicioStr = filtro.inicio.replace(/-/g, '');
     const finStr = filtro.fin.replace(/-/g, '');
 
     return this.turnosService.turnos().filter(t => {
       if (t.estado !== 'completed' || t.barbero !== filtro.empleado) return false;
+      if (!t.fecha) return false;
       
+      let itemStr = '';
+      
+      // Intentar leer el formato actual (DD/MM/YYYY)
       const match = t.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (match) {
-        const day = match[1].padStart(2, '0');
-        const month = match[2].padStart(2, '0');
-        const year = match[3];
-        const itemStr = `${year}${month}${day}`;
+        // Rellenamos con ceros por si el día o mes tiene 1 dígito
+        itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
+      } else {
+        // Respaldo para datos antiguos guardados como YYYY-MM-DD
+        const matchISO = t.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (matchISO) {
+          itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
+        }
+      }
+
+      if (itemStr) {
         return itemStr >= inicioStr && itemStr <= finStr;
       }
       return false;
     });
   });
 
-  // 2. CÁLCULO DE ADELANTOS (GASTOS ASIGNADOS A ÉL)
+  // 2. CÁLCULO DE ADELANTOS (Reactivo)
   adelantosEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
     if (!filtro.empleado) return [];
 
-    // Buscamos el ID del empleado seleccionado
     const empleadoObj = this.barberos().find(e => e.nombre === filtro.empleado);
     if (!empleadoObj) return [];
 
@@ -69,15 +82,21 @@ export class ListaEmpleadoComponent {
     const finStr = filtro.fin.replace(/-/g, '');
 
     return this.gastosService.gastos().filter(g => {
-      // Debe estar asignado a este empleado y NO estar anulado
       if (g.estado === 'anulado' || g.empleado_id !== empleadoObj.id) return false;
+      if (!g.fecha) return false;
 
+      let itemStr = '';
       const match = g.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (match) {
-        const day = match[1].padStart(2, '0');
-        const month = match[2].padStart(2, '0');
-        const year = match[3];
-        const itemStr = `${year}${month}${day}`;
+        itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
+      } else {
+        const matchISO = g.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (matchISO) {
+          itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
+        }
+      }
+
+      if (itemStr) {
         return itemStr >= inicioStr && itemStr <= finStr;
       }
       return false;
@@ -99,10 +118,15 @@ export class ListaEmpleadoComponent {
   pagoFinalEmpleado = computed(() => this.comisionNetaEmpleado() - this.totalAdelantosEmpleado());
 
   buscar() {
+    // Solución al error TS2322: Leemos las señales de forma segura asegurándonos de extraer su valor como string
+    const emp = typeof this.nombreEmpleadoReporte === 'function' ? this.nombreEmpleadoReporte() : this.nombreEmpleadoReporte;
+    const ini = typeof this.fechaInicio === 'function' ? this.fechaInicio() : this.fechaInicio;
+    const fin = typeof this.fechaFin === 'function' ? this.fechaFin() : this.fechaFin;
+
     this.filtroAplicado.set({
-      empleado: this.nombreEmpleadoReporte(),
-      inicio: this.fechaInicio(),
-      fin: this.fechaFin()
+      empleado: String(emp),
+      inicio: String(ini),
+      fin: String(fin)
     });
   }
 
@@ -160,10 +184,8 @@ export class ListaEmpleadoComponent {
       columnStyles: { 1: { halign: 'right' } }
     });
 
-    // Genera el archivo en la memoria del navegador
     const blob = doc.output('blob');
     const url = URL.createObjectURL(blob);
-    // Abre una nueva pestaña con el visualizador de PDF
     window.open(url, '_blank');
   }
 }

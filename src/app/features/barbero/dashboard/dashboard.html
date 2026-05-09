@@ -7,9 +7,6 @@
     </div>
   </div>
 
-  <!-- ============================================== -->
-  <!-- PANEL DE ESTADO DE ASISTENCIA                  -->
-  <!-- ============================================== -->
   <div
     class="mb-8 bg-white dark:bg-[#111111] rounded-3xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
     <div class="flex items-center gap-4">
@@ -57,12 +54,8 @@
 
   <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
 
-    <!-- ============================================== -->
-    <!-- COLUMNA IZQUIERDA: OPERACIONES EN VIVO         -->
-    <!-- ============================================== -->
     <div class="w-full lg:w-[400px] shrink-0 space-y-8">
 
-      <!-- BLOQUE 1: TURNO ACTUAL -->
       <div>
         <h2 class="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">En la Silla (Ahora)
         </h2>
@@ -82,7 +75,6 @@
               <p class="text-blue-400 text-sm font-bold">{{ turnoActual()?.servicio }}</p>
             </div>
 
-            <!-- BOTONES DINÁMICOS -->
             @if (turnoActual()?.estado === 'pending') {
             <button (click)="iniciarCorte(turnoActual()!)"
               class="mt-8 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg py-4 rounded-2xl shadow-lg shadow-emerald-500/30 transform active:scale-95 transition-all flex items-center justify-center">
@@ -96,7 +88,6 @@
             </button>
             } @else if (turnoActual()?.estado === 'in_progress') {
 
-            <!-- Barra de Progreso Local -->
             <div class="mt-6 text-left">
               <div class="flex justify-between text-xs font-bold text-zinc-400 mb-2 px-1">
                 <span class="uppercase tracking-wider">Progreso del corte</span>
@@ -121,7 +112,6 @@
           </div>
         </div>
         } @else {
-        <!-- EMPTY STATE DEL TURNO ACTUAL -->
         <div
           class="bg-white dark:bg-[#111111] rounded-[2rem] p-8 text-center border border-dashed border-zinc-300 dark:border-zinc-800 shadow-sm">
           <svg class="mx-auto h-12 w-12 text-zinc-300 dark:text-zinc-700 mb-4 transform -rotate-12" fill="none"
@@ -135,7 +125,6 @@
         }
       </div>
 
-      <!-- BLOQUE 2: COLA DE ESPERA RÁPIDA -->
       @if (turnosEnEspera().length > 0) {
       <div>
         <div class="flex justify-between items-center mb-3">
@@ -166,7 +155,6 @@
       </div>
       }
 
-      <!-- BLOQUE 3: MÉTRICAS FINANCIERAS -->
       <div class="pb-10 lg:pb-0">
         <h2 class="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Tu Resumen de Hoy
         </h2>
@@ -203,16 +191,12 @@
       </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- COLUMNA DERECHA: AGENDA Y CALENDARIO SAAAS     -->
-    <!-- ============================================== -->
     <div
       class="flex-1 bg-white dark:bg-[#111111] rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 lg:min-h-[700px] mb-8 lg:mb-0">
 
       <div class="flex justify-between items-center mb-8">
         <h2 class="text-xl font-black text-zinc-900 dark:text-white tracking-tight">Agenda Semanal</h2>
 
-        <!-- Botón de Nueva Reserva -->
         <button (click)="abrirModalReserva()"
           class="flex items-center text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-4 py-2 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all transform active:scale-95">
           <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -222,7 +206,6 @@
         </button>
       </div>
 
-      <!-- SELECTOR DE DÍAS HORIZONTAL -->
       <div class="flex gap-3 overflow-x-auto pb-6 scrollbar-hide snap-x">
         @for (dia of diasSemana(); track dia.fechaFormateada) {
         <button (click)="seleccionarDia(dia.fechaCompleta)"
@@ -236,7 +219,6 @@
             [ngClass]="dia.fechaFormateada === fechaSeleccionadaStr() ? 'text-white' : 'text-zinc-900 dark:text-white'">{{
             dia.diaNumero }}</span>
 
-          <!-- Indicador de punto si hay turnos -->
           @if (tieneTurnos(dia.fechaFormateada)) {
           <div class="w-1.5 h-1.5 rounded-full mt-2"
             [ngClass]="dia.fechaFormateada === fechaSeleccionadaStr() ? 'bg-white' : 'bg-blue-500'"></div>
@@ -249,7 +231,6 @@
 
       <div class="border-t border-zinc-200 dark:border-zinc-800/80 my-2"></div>
 
-      <!-- TIMELINE DE TURNOS PARA EL DÍA SELECCIONADO -->
       <div class="mt-6 space-y-4">
         <h3 class="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-6">
           {{ fechaSeleccionadaStr() === hoyStr() ? 'Citas de Hoy' : 'Citas Programadas' }}
@@ -258,55 +239,53 @@
         @if (turnosAgenda().length > 0) {
         @for (turno of turnosAgenda(); track turno.id) {
         <div class="flex group">
-          <!-- Timeline indicator -->
           <div class="w-20 shrink-0 flex flex-col items-center">
             <span class="text-sm font-bold text-zinc-900 dark:text-white">{{ extraerHora(turno.fecha) }}</span>
-            <!-- Línea vertical (excepto en el último elemento si quieres) -->
             <div class="w-px h-full bg-zinc-200 dark:bg-zinc-800 mt-2 group-hover:bg-blue-500/50 transition-colors">
             </div>
           </div>
 
-          <!-- Tarjeta de Agenda -->
-          <div class="flex-1 pb-6 pl-2">
-            <div
-              class="bg-zinc-50 dark:bg-[#151515] rounded-2xl p-4 sm:p-5 border border-zinc-200 dark:border-zinc-800 group-hover:border-blue-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="flex-1 pb-6 pl-2 min-w-0">
+            <div class="bg-zinc-50 dark:bg-[#151515] rounded-2xl p-4 sm:p-5 border border-zinc-200 dark:border-zinc-800 group-hover:border-blue-500/30 transition-all duration-300 relative overflow-hidden">
 
-              <!-- Etiqueta de estado en la agenda -->
-              <div class="absolute top-4 right-4">
+              <div class="absolute top-3 sm:top-4 right-3 sm:right-4 flex items-center space-x-2">
+                @if (turno.estado === 'pending' || turno.estado === 'in_progress') {
+                  <button (click)="abrirModalEditar(turno)" class="p-2 text-zinc-400 hover:text-blue-500 transition-colors" title="Editar cita">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                  <button (click)="anularTurno(turno.id)" class="p-2 text-zinc-400 hover:text-red-500 transition-colors" title="Anular cita">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                }
+
                 @if (turno.estado === 'completed') {
-                <span
-                  class="bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-green-200 dark:border-green-500/20">Pagado</span>
+                  <span class="bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-green-200 dark:border-green-500/20">Pagado</span>
                 } @else if (turno.estado === 'finished') {
-                <span
-                  class="bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-purple-200 dark:border-purple-500/20">Terminado</span>
+                  <span class="bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-purple-200 dark:border-purple-500/20">Terminado</span>
                 } @else if (turno.estado === 'in_progress') {
-                <span
-                  class="animate-pulse bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-500/20">En
-                  Curso</span>
+                  <span class="animate-pulse bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-500/20">En Curso</span>
                 } @else if (turno.estado === 'annulled') {
-                <span
-                  class="bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-red-200 dark:border-red-500/20">Cancelado</span>
+                  <span class="bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-red-200 dark:border-red-500/20">Cancelado</span>
                 } @else {
-                <span
-                  class="bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-500/20">Pendiente</span>
+                  <span class="bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-500/20">Pendiente</span>
                 }
               </div>
 
-              <h4 class="text-base font-bold text-zinc-900 dark:text-white"
-                [class.line-through]="turno.estado === 'annulled'">{{ turno.cliente || 'Cliente' }}</h4>
-              <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{{ turno.servicio }}</p>
+              <h4 class="text-base font-bold text-zinc-900 dark:text-white truncate pr-20 sm:pr-24" [class.line-through]="turno.estado === 'annulled'">{{ turno.cliente || 'Cliente' }}</h4>
+              <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1 truncate pr-20">{{ turno.servicio }}</p>
 
               <div class="flex items-center mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-800/80">
-                <span class="text-sm font-black"
-                  [ngClass]="turno.estado === 'annulled' ? 'text-zinc-400' : 'text-zinc-900 dark:text-white'">S/ {{
-                  turno.monto | number:'1.2-2' }}</span>
+                <span class="text-sm font-black" [ngClass]="turno.estado === 'annulled' ? 'text-zinc-400' : 'text-zinc-900 dark:text-white'">S/ {{ turno.monto | number:'1.2-2' }}</span>
               </div>
             </div>
           </div>
         </div>
         }
         } @else {
-        <!-- EMPTY STATE DE AGENDA -->
         <div class="text-center py-12 px-4">
           <div class="mx-auto w-16 h-16 bg-zinc-50 dark:bg-zinc-900 rounded-2xl flex items-center justify-center mb-4">
             <svg class="h-8 w-8 text-zinc-300 dark:text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -331,9 +310,6 @@
   (onCancel)="cerrarConfirmacion()">
 </app-modal-confirm>
 
-<!-- ============================================== -->
-<!-- MODAL PARA AGENDAR RESERVAS DE WHATSAPP        -->
-<!-- ============================================== -->
 @if (isReservaModalOpen()) {
 <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
   <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity"
@@ -383,6 +359,58 @@
           <button type="submit"
             class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Agendar
             Cita</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+}
+
+@if (isEditModalOpen()) {
+<div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
+  <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity"
+    (click)="isEditModalOpen.set(false)"></div>
+  <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+
+    <div class="p-6 sm:p-8">
+      <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-2">Editar Cita</h3>
+      <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Modifica los detalles del turno seleccionado.</p>
+
+      <form [formGroup]="editForm" (ngSubmit)="guardarEdicion()" class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Cliente</label>
+          <input type="text" formControlName="cliente" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Servicio</label>
+          <select formControlName="servicio" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none cursor-pointer">
+            @for (s of serviciosDisponibles(); track s.id) {
+              <option [value]="s.nombre">{{ s.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Fecha</label>
+            <input type="date" formControlName="fecha" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Hora</label>
+            <input type="time" formControlName="hora" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer">
+          </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto (S/)</label>
+            <input type="number" formControlName="monto" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
+        </div>
+
+        <div class="flex space-x-3 pt-4">
+          <button type="button" (click)="isEditModalOpen.set(false)" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
+          <button type="submit" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
         </div>
       </form>
     </div>

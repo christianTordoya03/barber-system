@@ -36,7 +36,6 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     if (!this.empleadoId()) return;
     const payload: any = { estado_asistencia: nuevoEstado };
     
-    // Si se pone disponible, guardamos el milisegundo exacto para la fila
     if (nuevoEstado === 'disponible') {
       payload.ultima_vez_disponible = new Date().toISOString();
     }
@@ -50,14 +49,12 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
 
   confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'info' as 'info'|'danger', confirmText: '', action: () => {} });
 
-  // CONVERTIDO A SEÑAL PARA REACCIONAR A LA MEDIANOCHE
   hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
   
   diasSemana = signal<any[]>([]);
   diaSeleccionado = signal<Date>(new Date());
   fechaSeleccionadaStr = computed(() => this.formatDateToDDMMYYYY(this.diaSeleccionado()));
 
-  // Cronómetro en vivo
   now = signal(Date.now());
   intervalId: any;
 
@@ -70,21 +67,37 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     hora: ['10:00', Validators.required]
   });
 
+  // --- MODAL DE EDICIÓN ---
+  isEditModalOpen = signal<boolean>(false);
+  editForm = this.fb.nonNullable.group({
+    id: [0],
+    cliente: ['', Validators.required],
+    servicio: ['', Validators.required],
+    fecha: ['', Validators.required],
+    hora: ['', Validators.required],
+    monto: [0, [Validators.required, Validators.min(0)]]
+  });
+
+  constructor() {
+    // Sincronizar monto al cambiar servicio en edición
+    this.editForm.get('servicio')?.valueChanges.subscribe(nombre => {
+      const s = this.serviciosDisponibles().find(x => x.nombre === nombre);
+      if (s) this.editForm.patchValue({ monto: s.precio }, { emitEvent: false });
+    });
+  }
+
   ngOnInit() {
     this.generarSemana();
     this.cargarDatosBarbero();
 
-    // EL CORAZÓN DEL SISTEMA: Late cada 10 segundos
     this.intervalId = setInterval(() => {
-      this.now.set(Date.now()); // Avanza las barras de progreso
+      this.now.set(Date.now()); 
       
-      // MAGIA NOCTURNA: Si cambió el día, actualizamos todo
       const fechaActualReal = this.formatDateToDDMMYYYY(new Date());
       if (this.hoyStr() !== fechaActualReal) {
         this.hoyStr.set(fechaActualReal);
         this.diaSeleccionado.set(new Date());
         this.generarSemana();
-
         this.staffService.cargarEmpleados();
       }
     }, 10000);
@@ -94,7 +107,6 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     if (this.intervalId) clearInterval(this.intervalId);
   }
 
-  // --- EXTRACCIÓN LIMPIA DE SUPABASE ---
   async cargarDatosBarbero() {
     const { data: { session } } = await this.supabase.client.auth.getSession();
     const emp = this.staffService.empleados().find(e => e.email === session?.user?.email);
@@ -125,6 +137,21 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     return parseInt(`${d.year}${d.month}${d.day}`);
   }
 
+  getFechaActualLocal(): string {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  getHoraActualLocal(): string {
+    const d = new Date();
+    const hours = d.getHours().toString().padStart(2, '0');
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
   misTurnosTotales = computed(() => this.turnosService.turnos().filter(t => t.barbero === this.nombreCompleto()));
   turnosDeHoy = computed(() => this.misTurnosTotales().filter(t => this.esFechaIgual(t.fecha, this.hoyStr())));
   
@@ -142,11 +169,9 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
         const valB = this.getValorFecha(b.fecha);
         if (valA !== valB) return valA - valB;
         
-        // 1. Intentamos ordenar por la hora extraída
         const compHora = this.extraerHora(a.fecha).localeCompare(this.extraerHora(b.fecha));
         if (compHora !== 0) return compHora;
 
-        // 2. DESEMPATE: Si tienen la misma hora exacta, va primero el más antiguo (el que se registró primero)
         return a.id - b.id; 
       });
   });
@@ -165,19 +190,17 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     return Math.min(Math.max(prog, 0), 100);
   });
 
-  // 1. Adelantos recibidos específicamente HOY
   adelantosHoy = computed(() => {
     if (!this.empleadoId()) return 0;
     return this.gastosService.gastos()
       .filter(g => 
         g.empleado_id === this.empleadoId() && 
         g.estado === 'activo' && 
-        this.esFechaIgual(g.fecha, this.hoyStr()) // Comparamos con la fecha actual
+        this.esFechaIgual(g.fecha, this.hoyStr())
       )
       .reduce((acc, g) => acc + Number(g.monto), 0);
   });
 
-  // 2. Deuda Total (Suma de todos los préstamos activos sin importar la fecha)
   deudaTotalAcumulada = computed(() => {
     if (!this.empleadoId()) return 0;
     return this.gastosService.gastos()
@@ -186,34 +209,31 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
   });
 
   turnosAgenda = computed(() => {
-  return this.misTurnosTotales()
-    .filter(t => this.esFechaIgual(t.fecha, this.fechaSeleccionadaStr()))
-    .sort((a, b) => {
-      // Definimos los pesos de prioridad
-      const prioridad = (estado: string) => {
-        switch (estado) {
-          case 'in_progress': return 1; // En curso
-          case 'pending':     return 2; // Pendiente
-          case 'finished':    return 3; // 3. Terminado (Esperando pago)    
-          case 'completed':   return 4; // 4 Pagado/Terminado
-          case 'annulled':    return 5; // 5 Anulado
-          default:            return 6;
-        }
-      };
+    return this.misTurnosTotales()
+      .filter(t => this.esFechaIgual(t.fecha, this.fechaSeleccionadaStr()))
+      .sort((a, b) => {
+        const prioridad = (estado: string) => {
+          switch (estado) {
+            case 'in_progress': return 1;
+            case 'pending':     return 2;
+            case 'finished':    return 3;
+            case 'completed':   return 4;
+            case 'annulled':    return 5;
+            default:            return 6;
+          }
+        };
 
-      const pA = prioridad(a.estado);
-      const pB = prioridad(b.estado);
+        const pA = prioridad(a.estado);
+        const pB = prioridad(b.estado);
 
-      // Si tienen distinta prioridad, ordenamos por ella
-      if (pA !== pB) return pA - pB;
+        if (pA !== pB) return pA - pB;
 
-      // Si tienen la misma prioridad (ej. dos pendientes), ordenamos por hora e ID (desempate)
-      const compHora = this.extraerHora(a.fecha).localeCompare(this.extraerHora(b.fecha));
-      if (compHora !== 0) return compHora;
-      
-      return a.id - b.id;
-    });
-});
+        const compHora = this.extraerHora(a.fecha).localeCompare(this.extraerHora(b.fecha));
+        if (compHora !== 0) return compHora;
+        
+        return a.id - b.id;
+      });
+  });
 
   dineroGeneradoHoy = computed(() => {
     const terminados = this.turnosDeHoy().filter(t => t.estado === 'finished' || t.estado === 'completed');
@@ -224,16 +244,11 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
 
   deudaTotalPendiente = computed(() => {
     if (!this.empleadoId()) return 0;
-    
-    // Filtramos TODOS los gastos de este empleado que sigan 'activos' 
-    // (Sin importar la fecha, hasta que el admin los liquide)
     const gastosPendientes = this.gastosService.gastos()
       .filter(g => g.empleado_id === this.empleadoId() && g.estado === 'activo');
-      
     return gastosPendientes.reduce((acc, g) => acc + Number(g.monto), 0);
   });
 
-  // El Neto ahora resta toda la deuda acumulada
   netoEstimadoHoy = computed(() => this.comisionGanadaHoy() - this.deudaTotalAcumulada());
 
   formatDateToDDMMYYYY(date: Date): string {
@@ -295,7 +310,6 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
       estado: 'in_progress', 
       horaInicio: new Date().toISOString() 
     });
-    // <-- NUEVO: Ponemos al barbero en "Ocupado" automáticamente
     if (this.empleadoId()) {
       this.staffService.actualizarEmpleado(this.empleadoId()!, { estado_asistencia: 'ocupado' });
     }
@@ -310,7 +324,6 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
       confirmText: 'Sí, Terminar',
       action: () => {
         this.turnosService.actualizarTurno(turno.id, { estado: 'finished' });
-        // <-- NUEVO: El barbero vuelve a Disponible y se va al final de la fila
         if (this.empleadoId()) {
           this.staffService.actualizarEmpleado(this.empleadoId()!, { 
             estado_asistencia: 'disponible',
@@ -326,53 +339,107 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     this.confirmConfig.update(c => ({ ...c, isOpen: false }));
   }
 
+  // --- MÉTODOS DE RESERVA ---
   abrirModalReserva() {
-    const hoy = new Date();
-    const yyyy = hoy.getFullYear();
-    const mm = (hoy.getMonth() + 1).toString().padStart(2, '0');
-    const dd = hoy.getDate().toString().padStart(2, '0');
-
-    const hh = hoy.getHours().toString().padStart(2, '0');
-    const min = hoy.getMinutes().toString().padStart(2, '0');
-    
-    this.reservaForm.reset({
-      cliente: '',
-      servicio: '',
-      fecha: `${yyyy}-${mm}-${dd}`, // Pre-llena con la fecha real de hoy
-      hora: `${hh}:${min}`
+    this.reservaForm.patchValue({
+      fecha: this.getFechaActualLocal(),
+      hora: this.getHoraActualLocal()
     });
     this.isReservaModalOpen.set(true);
   }
 
-  guardarReserva() {
+  async guardarReserva() {
     if (this.reservaForm.invalid) {
       this.reservaForm.markAllAsTouched();
       return;
     }
-    const formValues = this.reservaForm.getRawValue();
-    
-    // Separamos los valores del formulario
-    const [year, month, day] = formValues.fecha.split('-');
-    const [hour, minute] = formValues.hora.split(':');
-    
-    // CONSTRUCCIÓN MANUAL: Este es el formato que la Agenda.ts entiende (DD/MM/YYYY)
-    const fechaFormateadaManual = `${day}/${month}/${year}, ${hour}:${minute}`;
-    
-    const servicioObj = this.serviciosDisponibles().find(s => s.nombre === formValues.servicio);
+    const val = this.reservaForm.getRawValue();
 
-    const nuevaReserva: Turno = {
+    const [year, month, day] = val.fecha.split('-');
+    const [hour, minute] = val.hora.split(':');
+    
+    const fechaLlegada = `${day}/${month}/${year}, ${hour}:${minute}:00`;
+    const servicioSeleccionado = this.serviciosDisponibles().find(s => s.nombre === val.servicio);
+
+    const nuevoTurno: Turno = { 
       id: Date.now(),
-      servicio: formValues.servicio,
+      servicio: val.servicio,
       barbero: this.nombreCompleto(),
-      cliente: formValues.cliente.trim(),
-      monto: servicioObj?.precio || 0,
+      cliente: val.cliente?.trim() || 'Cliente de paso',
+      monto: servicioSeleccionado?.precio || 0,
       estado: 'pending',
-      fecha: fechaFormateadaManual, // <-- FORMATO CORREGIDO
+      fecha: fechaLlegada,
       metodoPago: 'Pendiente'
     };
 
-    this.turnosService.agregarTurno(nuevaReserva);
-    this.toast.show('¡Reserva agregada correctamente!');
+    this.turnosService.agregarTurno(nuevoTurno); 
+    this.toast.show('¡Reserva agendada con éxito!');
+    
     this.isReservaModalOpen.set(false);
+    this.reservaForm.reset({
+      cliente: '',
+      servicio: '',
+      fecha: this.getFechaActualLocal(),
+      hora: this.getHoraActualLocal()
+    });
+  }
+
+  // --- MÉTODOS DE EDICIÓN Y ANULACIÓN ---
+  abrirModalEditar(turno: Turno) {
+    let fechaInput = this.getFechaActualLocal();
+    let horaInput = this.getHoraActualLocal();
+
+    if (turno.fecha && turno.fecha.includes(',')) {
+      const [fechaPart, horaPart] = turno.fecha.split(',');
+      const [d, m, y] = fechaPart.trim().split('/');
+      if (d && m && y) {
+        fechaInput = `${y}-${m}-${d}`;
+      }
+      if (horaPart) {
+        horaInput = horaPart.trim().substring(0, 5);
+      }
+    }
+
+    this.editForm.patchValue({
+      id: turno.id,
+      cliente: turno.cliente || '',
+      servicio: turno.servicio,
+      fecha: fechaInput,
+      hora: horaInput,
+      monto: turno.monto
+    });
+    this.isEditModalOpen.set(true);
+  }
+
+  guardarEdicion() {
+    if (this.editForm.invalid) return;
+    const val = this.editForm.getRawValue();
+    const [y, m, d] = val.fecha.split('-');
+    const fechaLlegada = `${d}/${m}/${y}, ${val.hora}:00`;
+
+    this.turnosService.actualizarTurno(val.id, {
+      cliente: val.cliente,
+      servicio: val.servicio,
+      fecha: fechaLlegada,
+      monto: val.monto
+    });
+
+    this.toast.show('Cita actualizada correctamente');
+    this.isEditModalOpen.set(false);
+  }
+
+  anularTurno(id: number) {
+    this.confirmConfig.set({
+      isOpen: true,
+      title: '¿Anular cita?',
+      message: 'Esta acción cancelará el turno y lo quitará de tu agenda de hoy.',
+      type: 'danger',
+      confirmText: 'Sí, Anular',
+      action: () => {
+        this.turnosService.actualizarTurno(id, { estado: 'annulled' });
+        this.toast.show('Turno anulado exitosamente');
+        this.cerrarConfirmacion();
+      }
+    });
   }
 }

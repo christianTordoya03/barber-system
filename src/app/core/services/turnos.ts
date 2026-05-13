@@ -30,19 +30,39 @@ export class TurnosService {
     if (data) this.turnos.set(data as Turno[]);
   }
 
+  // Devuelve un array de strings con las horas ya reservadas, ej: ['15:30', '16:00']
+  async obtenerHorasOcupadas(barberoId: number, fecha: string): Promise<string[]> {
+    const { data, error } = await this.supabase.client
+      .from('turnos')
+      .select('horaInicio')
+      // Usamos la propiedad reglamentaria 'barbero_id' de tu modelo Turno
+      .eq('barbero_id', barberoId) 
+      .eq('fecha', fecha)
+      // Excluimos los turnos anulados para liberar esa hora si se canceló
+      .neq('estado', 'annulled'); 
+
+    if (error || !data) {
+      console.error('Error consultando disponibilidad:', error);
+      return [];
+    }
+    
+    // Devolvemos un listado limpio de horas ocupadas, ej: ['15:30', '16:00']
+    return data.map(t => t.horaInicio).filter((h): h is string => !!h);
+  }
+
   // --- ESCUCHA EN TIEMPO REAL ---
   private escucharTurnosRealTime() {
     this.supabase.client
       .channel('cambios-en-turnos') // Nombre del canal
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'turnos' }, 
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'turnos' },
         (payload) => {
           // Si hay un cambio, recargamos la lista automáticamente
           this.cargarTurnos();
-          
+
           // Opcional: Mostrar un aviso si es un corte nuevo
           if (payload.eventType === 'INSERT') {
-             // Esto se disparará en el celular del barbero
+            // Esto se disparará en el celular del barbero
           }
         }
       )

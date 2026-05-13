@@ -2,9 +2,6 @@
   
   <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
     
-    <!-- ============================================== -->
-    <!-- COLUMNA IZQ: TARJETA DE PERFIL (Sticky en PC)  -->
-    <!-- ============================================== -->
     <div class="w-full lg:w-[400px] shrink-0">
       <div class="bg-white dark:bg-[#111111] rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-xl text-center relative overflow-hidden lg:sticky lg:top-8">
         
@@ -30,7 +27,7 @@
           </button>
         </div>
         
-        <input #fileInput type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
+        <input #fileInput id="avatarInput" type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
         
         <div class="px-8 pb-10 pt-5">
           <h2 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{{ nombre() }}</h2>
@@ -58,10 +55,24 @@
       </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- COLUMNA DER: GALERÍA DE TRABAJOS EXPANSIVA     -->
-    <!-- ============================================== -->
     <div class="flex-1">
+      @if (totalComisionesAcumuladas() > 0) {
+        <div class="mb-8">
+          <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[2.5rem] p-8 text-white shadow-xl shadow-emerald-500/20">
+            <div class="flex justify-between items-start mb-4">
+              <div class="bg-white/20 p-3 rounded-2xl">
+                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span class="text-xs font-bold bg-white/20 px-3 py-1 rounded-full uppercase tracking-wider">Ingresos Extra</span>
+            </div>
+            <p class="text-emerald-100 text-sm font-medium">Total Propinas y Adicionales Activas</p>
+            <h3 class="text-4xl font-black mt-1">S/ {{ totalComisionesAcumuladas() | number:'1.2-2' }}</h3>
+          </div>
+        </div>
+      }
+
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-zinc-200 dark:border-zinc-800 pb-4 gap-4">
         <div>
           <h3 class="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">Mi Portafolio</h3>
@@ -78,10 +89,9 @@
         </button>
       </div>
 
-      <input #portafolioInput type="file" class="hidden" accept="image/*, video/mp4, video/quicktime, video/webm" (change)="onPortafolioSelected($event)">
+      <input #portafolioInput type="file" class="hidden" accept="image/*, video/*" (change)="onPortafolioSelected($event)">
 
       @if (portafolio().length === 0) {
-        <!-- EMPTY STATE DE PANTALLA AMPLIA -->
         <div class="relative bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#151515] dark:to-black rounded-3xl p-12 text-center border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-inner mt-4">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.1)_0,transparent_100%)] dark:bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05)_0,transparent_100%)]"></div>
           <div class="relative z-10 max-w-md mx-auto">
@@ -97,31 +107,48 @@
           </div>
         </div>
       } @else {
-        <!-- CUADRÍCULA EXPANSIVA Y ELEGANTE (Diseño 4:5 estilo Portrait) -->
         <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mt-4 pb-10">
           @for (trabajo of portafolio(); track trabajo.id) {
-            <div class="aspect-[4/5] relative group bg-zinc-200 dark:bg-zinc-900 overflow-hidden cursor-pointer rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300" (click)="verTrabajo(trabajo)">
+            <div class="aspect-[4/5] relative group bg-zinc-200 dark:bg-zinc-900 overflow-hidden rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300">
               
               @if (isVideo(trabajo.url_imagen)) {
-                <video [src]="trabajo.url_imagen" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>
-                <div class="absolute top-3 left-3 bg-black/50 backdrop-blur-md rounded-full p-1.5 shadow-sm">
+                <video #vid [src]="trabajo.url_imagen" 
+                       class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer" 
+                       muted loop playsinline preload="metadata"
+                       (click)="vid.paused ? vid.play() : vid.pause()">
+                </video>
+                
+                @if (vid.paused) {
+                  <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                    <div class="bg-black/60 backdrop-blur-md rounded-full p-3 text-white shadow-lg border border-white/10">
+                      <svg class="h-6 w-6 ml-0.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                  </div>
+                }
+
+                <div class="absolute top-3 left-3 bg-black/50 backdrop-blur-md rounded-full p-1.5 shadow-sm pointer-events-none z-10">
                   <svg class="h-4 w-4 text-white ml-[1px]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </div>
               } @else {
-                <img [src]="trabajo.url_imagen" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                <img [src]="trabajo.url_imagen" 
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer"
+                     (click)="verTrabajo(trabajo)">
               }
               
-              <!-- Gradiente inferior oscuro -->
-              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               
-              <!-- Botón Eliminar Directo (Visible en móvil por defecto o en PC al pasar el mouse) -->
-              <button (click)="$event.stopPropagation(); confirmarEliminarDirecto(trabajo)" class="absolute top-3 right-3 bg-red-500/90 text-white p-2 rounded-full backdrop-blur-md opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 hover:scale-110 shadow-lg" title="Eliminar este trabajo">
+              <button (click)="confirmarEliminarDirecto(trabajo)" class="absolute top-3 right-3 bg-red-500/90 text-white p-2 rounded-full backdrop-blur-md opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 hover:scale-110 shadow-lg cursor-pointer z-20" title="Eliminar este trabajo">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </button>
 
-              <div class="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div class="absolute bottom-3 inset-x-3 flex justify-between items-center opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
                 <span class="text-xs font-bold text-white drop-shadow-md">{{ trabajo.fecha }}</span>
+                
+                <button (click)="verTrabajo(trabajo)" class="bg-black/50 hover:bg-black/80 text-white p-1.5 rounded-lg backdrop-blur-md transition-colors cursor-pointer" title="Ver a pantalla completa">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                </button>
               </div>
+
             </div>
           }
         </div>
@@ -131,11 +158,6 @@
   </div>
 </div>
 
-<!-- ============================================== -->
-<!-- VISORES Y MODALES (MISMOS QUE ANTES)           -->
-<!-- ============================================== -->
-
-<!-- VISOR FOTO DE PERFIL -->
 @if (isPhotoModalOpen() && avatarUrl()) {
   <div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 backdrop-blur-sm transition-opacity cursor-pointer" (click)="cerrarFoto()">
     <div class="absolute top-0 inset-x-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-10 cursor-default" (click)="$event.stopPropagation()">
@@ -153,7 +175,6 @@
   </div>
 }
 
-<!-- VISOR DEL PORTAFOLIO -->
 @if (isTrabajoModalOpen() && trabajoSeleccionado()) {
   <div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 backdrop-blur-sm transition-opacity cursor-pointer" (click)="isTrabajoModalOpen.set(false)">
     <div class="absolute top-0 inset-x-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-20 cursor-default" (click)="$event.stopPropagation()">
@@ -175,7 +196,6 @@
   </div>
 }
 
-<!-- MODAL PARA EDITAR BIO -->
 @if (isBioModalOpen()) {
   <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
     <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" (click)="isBioModalOpen.set(false)"></div>

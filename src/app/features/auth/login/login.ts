@@ -16,14 +16,13 @@ export class LoginComponent {
   private router = inject(Router);
 
   isLoading = signal<boolean>(false);
-  showPassword = signal<boolean>(false); // NUEVO: Estado para ver contraseña
+  showPassword = signal<boolean>(false);
 
   loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  // NUEVO: Función para alternar el ojito
   togglePassword() {
     this.showPassword.update(v => !v);
   }
@@ -44,18 +43,21 @@ export class LoginComponent {
       });
       if (error) throw error;
 
+      // Buscamos si el usuario existe en la tabla de empleados
       const { data: empleado } = await this.supabase.client
         .from('empleados')
         .select('rol')
         .eq('email', correo)
-        .single();
+        .maybeSingle(); // Usamos maybeSingle para que no arroje error si no lo encuentra
 
-      // NUEVA LÓGICA BLINDADA: Solo el que diga 'admin' en la tabla entra al panel maestro
+      // ENRUTADOR MAESTRO DE TRES VÍAS
       if (empleado?.rol === 'admin') {
         this.router.navigate(['/admin/dashboard']);
-      } else {
-        // Cualquier otro usuario (barbero o recién registrado) va al panel de empleado
+      } else if (empleado?.rol === 'barbero') {
         this.router.navigate(['/barbero/dashboard']);
+      } else {
+        // Si no es admin ni barbero, es un CLIENTE
+        this.router.navigate(['/cliente/home']);
       }
 
     } catch (error) {

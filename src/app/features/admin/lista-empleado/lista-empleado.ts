@@ -6,6 +6,7 @@ import { StaffService } from '../../../core/services/staff';
 import { GastosService } from '../../../core/services/gastos';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { ComisionesService } from '../../../core/services/comisiones';
 
 @Component({
   selector: 'app-lista-empleado',
@@ -17,6 +18,7 @@ export class ListaEmpleadoComponent {
   private turnosService = inject(TurnosService);
   private staffService = inject(StaffService);
   private gastosService = inject(GastosService);
+  private comisionesService = inject(ComisionesService);
 
   hoyStrHtml = (() => {
     const d = new Date();
@@ -26,6 +28,7 @@ export class ListaEmpleadoComponent {
   fechaInicio = signal<string>(this.hoyStrHtml);
   fechaFin = signal<string>(this.hoyStrHtml);
   nombreEmpleadoReporte = signal<string>('');
+  empleados = this.staffService.empleados;
   
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero'));
   
@@ -40,7 +43,6 @@ export class ListaEmpleadoComponent {
     const filtro = this.filtroAplicado();
     if (!filtro.empleado) return [];
     
-    // Convertimos YYYY-MM-DD a YYYYMMDD para comparar rangos exactos numéricamente
     const inicioStr = filtro.inicio.replace(/-/g, '');
     const finStr = filtro.fin.replace(/-/g, '');
 
@@ -49,14 +51,10 @@ export class ListaEmpleadoComponent {
       if (!t.fecha) return false;
       
       let itemStr = '';
-      
-      // Intentar leer el formato actual (DD/MM/YYYY)
       const match = t.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (match) {
-        // Rellenamos con ceros por si el día o mes tiene 1 dígito
         itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
       } else {
-        // Respaldo para datos antiguos guardados como YYYY-MM-DD
         const matchISO = t.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
         if (matchISO) {
           itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
@@ -70,7 +68,40 @@ export class ListaEmpleadoComponent {
     });
   });
 
-  // 2. CÁLCULO DE ADELANTOS (Reactivo)
+  // 2. NUEVO: CÁLCULO DE PROPINAS Y COMISIONES EXTRAS (Reactivo)
+  comisionesEmpleado = computed(() => {
+    const filtro = this.filtroAplicado();
+    if (!filtro.empleado) return [];
+
+    const empleadoObj = this.barberos().find(e => e.nombre === filtro.empleado);
+    if (!empleadoObj) return [];
+
+    const inicioStr = filtro.inicio.replace(/-/g, '');
+    const finStr = filtro.fin.replace(/-/g, '');
+
+    return this.comisionesService.comisiones().filter(c => {
+      if (c.estado === 'anulado' || Number(c.empleado_id) !== empleadoObj.id) return false;
+      if (!c.fecha) return false;
+
+      let itemStr = '';
+      const match = c.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (match) {
+        itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
+      } else {
+        const matchISO = c.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (matchISO) {
+          itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
+        }
+      }
+
+      if (itemStr) {
+        return itemStr >= inicioStr && itemStr <= finStr;
+      }
+      return false;
+    });
+  });
+
+  // 3. CÁLCULO DE ADELANTOS (Reactivo)
   adelantosEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
     if (!filtro.empleado) return [];
@@ -103,7 +134,7 @@ export class ListaEmpleadoComponent {
     });
   });
 
-  // 3. MATEMÁTICA FINAL
+  // 4. MATEMÁTICA FINAL INTEGRADA
   totalGeneradoEmpleado = computed(() => this.turnosEmpleado().reduce((acc, t) => acc + Number(t.monto), 0));
   
   porcentajeComisionEmpleado = computed(() => {
@@ -113,12 +144,13 @@ export class ListaEmpleadoComponent {
 
   comisionNetaEmpleado = computed(() => (this.totalGeneradoEmpleado() * this.porcentajeComisionEmpleado()) / 100);
   
+  totalComisionesExtraEmpleado = computed(() => this.comisionesEmpleado().reduce((acc, c) => acc + Number(c.monto), 0));
+
   totalAdelantosEmpleado = computed(() => this.adelantosEmpleado().reduce((acc, g) => acc + Number(g.monto), 0));
 
-  pagoFinalEmpleado = computed(() => this.comisionNetaEmpleado() - this.totalAdelantosEmpleado());
+  pagoFinalEmpleado = computed(() => (this.comisionNetaEmpleado() + this.totalComisionesExtraEmpleado()) - this.totalAdelantosEmpleado());
 
   buscar() {
-    // Solución al error TS2322: Leemos las señales de forma segura asegurándonos de extraer su valor como string
     const emp = typeof this.nombreEmpleadoReporte === 'function' ? this.nombreEmpleadoReporte() : this.nombreEmpleadoReporte;
     const ini = typeof this.fechaInicio === 'function' ? this.fechaInicio() : this.fechaInicio;
     const fin = typeof this.fechaFin === 'function' ? this.fechaFin() : this.fechaFin;
@@ -128,6 +160,24 @@ export class ListaEmpleadoComponent {
       inicio: String(ini),
       fin: String(fin)
     });
+  }
+
+  getResumenFinanciero(emp: any) {
+    const hoy = new Date().toLocaleDateString('es-PE');
+    const turnosHoy = this.turnosService.turnos().filter(t => 
+      t.barbero === emp.nombre && 
+      (t.estado === 'completed' || t.estado === 'finished') &&
+      t.fecha.includes(hoy)
+    );
+    const comisionCortes = turnosHoy.reduce((acc, t) => acc + (Number(t.monto) * (emp.comision || 50) / 100), 0);
+    const extras = this.comisionesService.comisiones().filter(c => 
+      Number(c.empleado_id) === emp.id && c.estado !== 'anulado' && c.fecha === hoy
+    ).reduce((acc, c) => acc + Number(c.monto), 0);
+    const deuda = this.gastosService.gastos().filter(g => 
+      g.empleado_id === emp.id && g.estado === 'activo'
+    ).reduce((acc, g) => acc + Number(g.monto), 0);
+
+    return { comisionCortes, extras, deuda };
   }
 
   generarPDF() {
@@ -142,18 +192,10 @@ export class ListaEmpleadoComponent {
     const [y2, m2, d2] = filtro.fin.split('-');
     const subtitulo = `Barbero: ${filtro.empleado} | Del ${d1}/${m1}/${y1} al ${d2}/${m2}/${y2}`;
 
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(89, 93, 100);
+    doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.setTextColor(89, 93, 100);
     doc.text("REPORTE DE COMISIONES Y ADELANTOS", 105, 20, { align: "center" });
-
-    doc.setLineWidth(0.5);
-    doc.setDrawColor(150, 150, 150);
-    doc.line(14, 26, 196, 26);
-
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(50, 50, 50);
+    doc.setLineWidth(0.5); doc.setDrawColor(150, 150, 150); doc.line(14, 26, 196, 26);
+    doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.setTextColor(50, 50, 50);
     doc.text(subtitulo, 14, 38);
 
     const bodyData: any[] = [];
@@ -163,6 +205,16 @@ export class ListaEmpleadoComponent {
       this.turnosEmpleado().forEach(t => bodyData.push([`${t.fecha.split(',')[0]} - ${t.servicio}`, `S/ ${Number(t.monto).toFixed(2)}`]));
       bodyData.push([{ content: 'Total Generado por el Barbero:', styles: { fontStyle: 'bold', fillColor: [240, 240, 240] } }, { content: `S/ ${this.totalGeneradoEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', fillColor: [240, 240, 240] } }]);
       bodyData.push([{ content: `Comisión a Pagar (${this.porcentajeComisionEmpleado()}%):`, styles: { fontStyle: 'bold', fillColor: [254, 243, 199] } }, { content: `S/ ${this.comisionNetaEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', fillColor: [254, 243, 199] } }]);
+    }
+
+    // NUEVO: Sección Propinas / Extras
+    if (this.comisionesEmpleado().length > 0) {
+      bodyData.push([{ content: '--- PROPINAS Y COMISIONES EXTRAS ---', colSpan: 2, styles: { halign: 'center', fillColor: [209, 250, 229], textColor: [6, 95, 70], fontStyle: 'bold' } }]);
+      this.comisionesEmpleado().forEach(c => {
+        const desc = c.descripcion ? `(${c.descripcion})` : '';
+        bodyData.push([`${c.fecha} - [${c.tipo.toUpperCase()}] ${desc}`, `+ S/ ${Number(c.monto).toFixed(2)}`]);
+      });
+      bodyData.push([{ content: 'Total Propinas / Extras:', styles: { fontStyle: 'bold', textColor: [6, 95, 70] } }, { content: `+ S/ ${this.totalComisionesExtraEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', textColor: [6, 95, 70] } }]);
     }
 
     // Sección: Adelantos
@@ -176,16 +228,11 @@ export class ListaEmpleadoComponent {
     bodyData.push([{ content: 'TOTAL NETO A PAGAR:', styles: { fontStyle: 'bold', fillColor: [209, 250, 229], textColor: [6, 78, 59] } }, { content: `S/ ${this.pagoFinalEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', fillColor: [209, 250, 229], textColor: [6, 78, 59] } }]);
 
     autoTable(doc, {
-      startY: 45,
-      head: [['Detalle', 'Monto']],
-      body: bodyData,
-      theme: 'grid',
-      headStyles: { fillColor: [89, 93, 100], textColor: 255, fontStyle: 'bold' },
-      columnStyles: { 1: { halign: 'right' } }
+      startY: 45, head: [['Detalle', 'Monto']], body: bodyData, theme: 'grid',
+      headStyles: { fillColor: [89, 93, 100], textColor: 255, fontStyle: 'bold' }, columnStyles: { 1: { halign: 'right' } }
     });
 
     const blob = doc.output('blob');
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    window.open(URL.createObjectURL(blob), '_blank');
   }
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TurnosService } from '../../../core/services/turnos';
 import { GastosService } from '../../../core/services/gastos';
+import { ComisionesService } from '../../../core/services/comisiones'; // <-- Importado
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -15,8 +16,8 @@ import autoTable from 'jspdf-autotable';
 export class ReportesComponent {
   private turnosService = inject(TurnosService);
   private gastosService = inject(GastosService);
+  private comisionesService = inject(ComisionesService); // <-- Inyectado
 
-  // --- ESTADOS DEL FILTRO ---
   tipoFiltro = signal<'mes' | 'rango'>('mes');
   mesSeleccionado = signal<string>((new Date().getMonth() + 1).toString().padStart(2, '0'));
   anioSeleccionado = signal<string>(new Date().getFullYear().toString());
@@ -47,27 +48,19 @@ export class ReportesComponent {
     fin: this.hoyStrHtml
   });
 
-  // NUEVA VARIABLE: Para saber si ya le dio al botón Buscar
   hasSearched = signal<boolean>(false);
 
-  // --- FUNCIÓN ÚTIL PARA LEER FECHAS ROBUSTAS ---
   private parseDateStr(fechaStr: string) {
-    // Esto detecta 5/5/2026 o 05/05/2026 sin problemas
     const match = fechaStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (match) {
-      return {
-        day: match[1].padStart(2, '0'),
-        month: match[2].padStart(2, '0'),
-        year: match[3]
-      };
+      return { day: match[1].padStart(2, '0'), month: match[2].padStart(2, '0'), year: match[3] };
     }
     return null;
   }
 
-  // --- MOTOR DE FILTRADO ---
+  // --- MOTORES DE FILTRADO ---
   turnosFiltrados = computed(() => {
-    if (!this.hasSearched()) return []; // Si no ha buscado, tabla en blanco
-
+    if (!this.hasSearched()) return []; 
     const todosLosTurnos = this.turnosService.turnos().filter(t => t.estado === 'completed');
     const filtro = this.filtroAplicado();
 
@@ -79,7 +72,6 @@ export class ReportesComponent {
     } else {
       const inicioStr = filtro.inicio.replace(/-/g, '');
       const finStr = filtro.fin.replace(/-/g, '');
-      
       return todosLosTurnos.filter(t => {
         const d = this.parseDateStr(t.fecha);
         if (d) {
@@ -92,8 +84,7 @@ export class ReportesComponent {
   });
 
   gastosFiltrados = computed(() => {
-    if (!this.hasSearched()) return []; // Si no ha buscado, tabla en blanco
-    
+    if (!this.hasSearched()) return []; 
     const filtro = this.filtroAplicado();
     const todosLosGastos = this.gastosService.gastos().filter(g => g.estado !== 'anulado');
 
@@ -105,7 +96,6 @@ export class ReportesComponent {
     } else {
       const inicioStr = filtro.inicio.replace(/-/g, '');
       const finStr = filtro.fin.replace(/-/g, '');
-      
       return todosLosGastos.filter(g => {
         const d = this.parseDateStr(g.fecha);
         if (d) {
@@ -117,7 +107,32 @@ export class ReportesComponent {
     }
   });
 
-  // --- CÁLCULOS REACTIVOS (INGRESOS MEJORADOS) ---
+  // CÁLCULO DE COMISIONES Y PROPINAS EN BASE AL FILTRO
+  comisionesFiltradas = computed(() => {
+    if (!this.hasSearched()) return [];
+    const filtro = this.filtroAplicado();
+    const todasLasComisiones = this.comisionesService.comisiones();
+
+    if (filtro.tipo === 'mes') {
+      return todasLasComisiones.filter(c => {
+        const d = this.parseDateStr(c.fecha);
+        return d && d.month === filtro.mes && d.year === filtro.anio;
+      });
+    } else {
+      const inicioStr = filtro.inicio.replace(/-/g, '');
+      const finStr = filtro.fin.replace(/-/g, '');
+      return todasLasComisiones.filter(c => {
+        const d = this.parseDateStr(c.fecha);
+        if (d) {
+          const itemStr = `${d.year}${d.month}${d.day}`;
+          return itemStr >= inicioStr && itemStr <= finStr;
+        }
+        return false;
+      });
+    }
+  });
+
+  // --- SUMATORIAS GLOBALES ---
   totalYape = computed(() => this.sumarMetodo('Yape'));
   totalYapeJk = computed(() => this.sumarMetodo('Yape JK'));
   totalTarjeta = computed(() => this.sumarMetodo('Tarjeta'));
@@ -126,26 +141,33 @@ export class ReportesComponent {
 
   totalIngresos = computed(() => this.turnosFiltrados().reduce((acc, t) => acc + Number(t.monto), 0));
 
-  // --- CÁLCULOS REACTIVOS (GASTOS PRECISOS) ---
+  totalSoloComisiones = computed(() => 
+    this.comisionesFiltradas().filter(c => c.tipo === 'producto').reduce((acc, c) => acc + Number(c.monto), 0)
+  );
+  
+  totalSoloServiciosExtra = computed(() => 
+    this.comisionesFiltradas().filter(c => c.tipo === 'servicio_extra').reduce((acc, c) => acc + Number(c.monto), 0)
+  );
+  
+  // Total Propinas y Extras del staff en el rango consultado
+  totalComisiones = computed(() => this.comisionesFiltradas().reduce((acc, c) => acc + Number(c.monto), 0));
+
+  totalSoloPropinas = computed(() => 
+    this.comisionesFiltradas().filter(c => c.tipo === 'propina').reduce((acc, c) => acc + Number(c.monto), 0)
+  );
+
   totalGastosEfectivo = computed(() => 
-    this.gastosFiltrados()
-      .filter(g => g.metodoPago && g.metodoPago.toLowerCase() === 'efectivo')
-      .reduce((acc, g) => acc + Number(g.monto), 0)
+    this.gastosFiltrados().filter(g => g.metodoPago && g.metodoPago.toLowerCase() === 'efectivo').reduce((acc, g) => acc + Number(g.monto), 0)
   );
   
   totalGastosDigitales = computed(() => 
-    this.gastosFiltrados()
-      .filter(g => !g.metodoPago || g.metodoPago.toLowerCase() !== 'efectivo')
-      .reduce((acc, g) => acc + Number(g.monto), 0)
+    this.gastosFiltrados().filter(g => !g.metodoPago || g.metodoPago.toLowerCase() !== 'efectivo').reduce((acc, g) => acc + Number(g.monto), 0)
   );
 
   totalGastos = computed(() => this.totalGastosEfectivo() + this.totalGastosDigitales());
-
-  // Físico vs Global
   totalCajaEfectivo = computed(() => this.totalEfectivo() - this.totalGastosEfectivo());
   totalNeto = computed(() => this.totalIngresos() - this.totalGastos());
 
-  // Suma de métodos blindada a mayúsculas/minúsculas
   private sumarMetodo(metodo: string) {
     return this.turnosFiltrados()
       .filter(t => t.metodoPago && t.metodoPago.trim().toLowerCase() === metodo.toLowerCase())
@@ -153,29 +175,18 @@ export class ReportesComponent {
   }
 
   buscar() {
-    this.filtroAplicado.set({
-      tipo: this.tipoFiltro(),
-      mes: this.mesSeleccionado(),
-      anio: this.anioSeleccionado(),
-      inicio: this.fechaInicio(),
-      fin: this.fechaFin()
-    });
-    this.hasSearched.set(true); // <--- Habilita los resultados y el botón de PDF
+    this.filtroAplicado.set({ tipo: this.tipoFiltro(), mes: this.mesSeleccionado(), anio: this.anioSeleccionado(), inicio: this.fechaInicio(), fin: this.fechaFin() });
+    this.hasSearched.set(true); 
   }
 
   cambiarPestana(tipo: 'mes' | 'rango') {
     this.tipoFiltro.set(tipo);
-    this.hasSearched.set(false); // <--- Esta línea oculta la tabla al cambiar de pestaña
+    this.hasSearched.set(false); 
   }
 
-  // --- GENERACIÓN DEL PDF ---
   generarPDF() {
     const doc = new jsPDF();
-    doc.setProperties({
-      title: 'Reporte General de Ingresos y Gastos',
-      subject: 'Marina 305 Barber Shop',
-      author: 'Marina 305'
-    });
+    doc.setProperties({ title: 'Reporte General de Ingresos y Gastos', subject: 'Marina 305 Barber Shop', author: 'Marina 305' });
     let subtitulo = '';
     const filtro = this.filtroAplicado();
 
@@ -212,6 +223,13 @@ export class ReportesComponent {
         ['Total Efectivo', `S/ ${this.totalEfectivo().toFixed(2)}`],
         ['Total Transferencia', `S/ ${this.totalTransferencia().toFixed(2)}`],
         ['Total de Ingresos', `S/ ${this.totalIngresos().toFixed(2)}`],
+        // --- SECCIÓN DE EXTRAS DESGLOSADA ---
+        ['(+) Total Solo Propinas', `S/ ${this.totalSoloPropinas().toFixed(2)}`],
+        ['(+) Total Comisión Productos', `S/ ${this.totalSoloComisiones().toFixed(2)}`],
+        ['(+) Total Servicios Extras', `S/ ${this.totalSoloServiciosExtra().toFixed(2)}`],
+        ['TOTAL EXTRAS / COMISIONES', `S/ ${this.totalComisiones().toFixed(2)}`],
+        // Añadida la fila contable en el documento oficial
+        ['Total Propinas / Comisiones Extra', `S/ ${this.totalComisiones().toFixed(2)}`],
         ['Total Gastos (Efectivo)', `S/ ${this.totalGastosEfectivo().toFixed(2)}`],
         ['Total Gastos (Bancos/Digital)', `S/ ${this.totalGastosDigitales().toFixed(2)}`],
         ['Total (Efectivo) físico en caja', `S/ ${this.totalCajaEfectivo().toFixed(2)}`],
@@ -223,21 +241,18 @@ export class ReportesComponent {
       
       willDrawCell: (data) => {
         if (data.section === 'body') {
-          // Ingresos y Neto en negrita
-          if (data.row.index === 5 || data.row.index === 9) {
+          if (data.row.index === 5 || data.row.index === 10) {
             doc.setFillColor(89, 93, 100);
             doc.setTextColor(255, 255, 255);
             doc.setFont("helvetica", "bold");
           }
-          // Gastos y Caja en negrita normal
-          if (data.row.index >= 6 && data.row.index <= 8) {
+          if (data.row.index >= 6 && data.row.index <= 9) {
             doc.setFont("helvetica", "bold");
           }
         }
       }
     });
 
-    // Genera el archivo en la memoria del navegador y abre en nueva pestaña
     const blob = doc.output('blob');
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');

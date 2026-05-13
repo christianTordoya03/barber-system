@@ -62,7 +62,6 @@
       </thead>
       <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
 
-        <!-- SERVICIOS -->
         @for (turno of turnosEmpleado(); track turno.id) {
         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300 transition-colors">
           <td class="px-6 py-3"><span class="text-xs text-zinc-400 mr-2">{{ turno.fecha.split(',')[0] }}</span> {{
@@ -70,12 +69,13 @@
           <td class="px-6 py-3 text-right">S/ {{ turno.monto | number:'1.2-2' }}</td>
         </tr>
         } @empty {
-        <tr>
-          <td colspan="2" class="px-6 py-12 text-center text-zinc-500">No hay registros para este filtro.</td>
-        </tr>
+          @if (comisionesEmpleado().length === 0 && adelantosEmpleado().length === 0) {
+          <tr>
+            <td colspan="2" class="px-6 py-12 text-center text-zinc-500">No hay registros para este filtro.</td>
+          </tr>
+          }
         }
 
-        <!-- SUBTOTALES COMISIÓN -->
         @if (turnosEmpleado().length > 0) {
         <tr
           class="bg-zinc-100/60 dark:bg-zinc-800/50 text-zinc-800 dark:text-zinc-200 font-bold border-t-2 border-zinc-300 dark:border-zinc-700">
@@ -91,7 +91,31 @@
         </tr>
         }
 
-        <!-- SECCIÓN DE ADELANTOS (Solo aparece si hay descuentos) -->
+        @if (comisionesEmpleado().length > 0) {
+        <tr class="bg-emerald-50/40 dark:bg-emerald-950/10">
+          <td colspan="2"
+            class="px-6 py-2.5 font-bold text-emerald-700 dark:text-emerald-400 uppercase text-xs tracking-wider border-t border-zinc-200 dark:border-zinc-800">
+            Propinas y Comisiones Extras
+          </td>
+        </tr>
+        @for (extra of comisionesEmpleado(); track extra.id) {
+        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300 transition-colors">
+          <td class="px-6 py-3 pl-8 text-sm">
+            <span class="text-xs text-zinc-400 mr-2">{{ extra.fecha }}</span>
+            <span class="font-semibold capitalize">{{ extra.tipo.replace('_', ' ') }}</span>
+            @if (extra.descripcion) { <span class="text-zinc-500 text-xs">({{ extra.descripcion }})</span> }
+          </td>
+          <td class="px-6 py-3 text-right text-emerald-600 font-bold">+ S/ {{ extra.monto | number:'1.2-2' }}</td>
+        </tr>
+        }
+        <tr
+          class="bg-emerald-50/80 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400 font-bold border-b border-emerald-200 dark:border-emerald-900/30">
+          <td class="px-6 py-3 text-right text-xs uppercase tracking-wider text-emerald-600/70">Total Propinas / Extras:
+          </td>
+          <td class="px-6 py-3 text-right text-lg font-black text-emerald-600">+ S/ {{ totalComisionesExtraEmpleado() | number:'1.2-2' }}</td>
+        </tr>
+        }
+
         @if (adelantosEmpleado().length > 0) {
         <tr class="bg-red-50/50 dark:bg-red-900/10">
           <td colspan="2"
@@ -114,8 +138,7 @@
         </tr>
         }
 
-        <!-- TOTAL NETO FINAL -->
-        @if (turnosEmpleado().length > 0 || adelantosEmpleado().length > 0) {
+        @if (turnosEmpleado().length > 0 || adelantosEmpleado().length > 0 || comisionesEmpleado().length > 0) {
         <tr
           class="bg-emerald-100/60 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-400 font-black border-b-4 border-emerald-200 dark:border-emerald-900/30 text-xl">
           <td class="px-6 py-5 text-right uppercase">NETO A PAGAR:</td>

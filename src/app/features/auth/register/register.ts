@@ -17,12 +17,22 @@ export class RegisterComponent {
 
   isLoading = signal<boolean>(false);
   successMessage = signal<string | null>(null);
+  
+  // NUEVO: Señal para controlar si se ve o no la contraseña
+  showPassword = signal<boolean>(false);
 
   registerForm = this.fb.nonNullable.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
+    telefono: ['', [Validators.required, Validators.minLength(6)]],
+    fechaNacimiento: [''],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
+
+  // NUEVO: Función para alternar el ojito
+  togglePassword() {
+    this.showPassword.update(v => !v);
+  }
 
   async onSubmit() {
     if (this.registerForm.invalid) {
@@ -32,35 +42,31 @@ export class RegisterComponent {
     this.isLoading.set(true);
     this.successMessage.set(null);
 
-    const { fullName, email, password } = this.registerForm.getRawValue();
+    const { fullName, telefono, fechaNacimiento, email, password } = this.registerForm.getRawValue();
 
     try {
-      // 1. Creamos la cuenta en el sistema de autenticación
       const { data, error } = await this.supabase.client.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } }
+        options: { 
+          data: { 
+            full_name: fullName,
+            telefono: telefono 
+          } 
+        }
       });
       
       if (error) throw error;
 
-      // 2. Verificamos si el admin ya lo había agregado antes a la tabla
-      const { data: existeEmpleado } = await this.supabase.client
-        .from('empleados')
-        .select('id')
-        .eq('email', email)
-        .single();
+      const { error: clienteError } = await this.supabase.client.from('clientes').insert({
+        nombre: fullName,
+        telefono: telefono,
+        email: email,
+        fecha_nacimiento: fechaNacimiento || null
+      });
 
-      // 3. NUEVO: Si no existe, lo agregamos automáticamente como "barbero"
-      if (!existeEmpleado) {
-        await this.supabase.client.from('empleados').insert({
-          id: Date.now(),
-          nombre: fullName,
-          email: email,
-          rol: 'barbero', // Rango por defecto
-          comision: 50,
-          activo: true 
-        });
+      if (clienteError) {
+        console.error('Error registrando en la base de datos de clientes:', clienteError);
       }
 
       this.successMessage.set('¡Cuenta creada! Revisa tu correo para confirmar.');

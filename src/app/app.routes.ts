@@ -6,10 +6,6 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./features/auth/login/login').then(m => m.LoginComponent)
   },
-  // {
-  //   path: 'instalar', // <-- NUEVA RUTA AQUÍ
-  //   loadComponent: () => import('./features/clientes/instalar/instalar').then(m => m.InstalarComponent)
-  // },
   {
     path: 'register',
     loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterComponent)
@@ -22,7 +18,30 @@ export const routes: Routes = [
     path: 'update-password',
     loadComponent: () => import('./features/auth/update-password/update-password').then(m => m.UpdatePasswordComponent)
   },
-  // --- NUEVA RUTA DEL ADMINISTRADOR ---
+  // --- RUTAS DEL CLIENTE (NUEVO ECOSISTEMA VIP) ---
+  {
+    path: 'cliente',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/cliente/cliente-layout/cliente-layout').then(m => m.ClienteLayoutComponent),
+    children: [
+      {
+        path: 'home',
+        loadComponent: () => import('./features/cliente/cliente-home/cliente-home').then(m => m.ClienteHomeComponent)
+      },
+      // Definición única y correcta para reservar
+      {
+        path: 'reservar',
+        loadComponent: () => import('./features/cliente/cliente-reservar/cliente-reservar').then(m => m.ClienteReservarComponent)
+      },
+      {
+        path: 'mi-perfil',
+        loadComponent: () => import('./features/cliente/cliente-home/cliente-home').then(m => m.ClienteHomeComponent)
+      },
+      { path: '', redirectTo: 'home', pathMatch: 'full' }
+    ]
+  },
+
+  // --- RUTAS DEL ADMINISTRADOR ---
   {
     path: 'admin',
     canActivate: [authGuard],
@@ -60,15 +79,14 @@ export const routes: Routes = [
         path: 'gastos',
         loadComponent: () => import('./features/admin/gastos/gastos').then(m => m.GastosComponent)
       },
-      { 
-         path: 'lista-empleado', 
-         loadComponent: () => import('./features/admin/lista-empleado/lista-empleado').then(m => m.ListaEmpleadoComponent) 
+      {
+        path: 'lista-empleado',
+        loadComponent: () => import('./features/admin/lista-empleado/lista-empleado').then(m => m.ListaEmpleadoComponent)
       },
       {
-          path: 'agenda',
-          loadComponent: () => import('./features/admin/agenda/agenda').then(m => m.AgendaComponent)
+        path: 'agenda',
+        loadComponent: () => import('./features/admin/agenda/agenda').then(m => m.AgendaComponent)
       },
-      // Por ahora, si entra a /admin, lo mandamos a realizar-servicio para que no vea la pantalla negra
       { path: '', redirectTo: 'realizar-servicio', pathMatch: 'full' }
     ]
   },
@@ -94,7 +112,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
-  
+
   {
     path: '',
     redirectTo: 'login',

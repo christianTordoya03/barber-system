@@ -3,11 +3,24 @@ export interface Turno {
   servicio: string;
   barbero: string;
   cliente: string;
+  cliente_id?: number;  
   monto: number;
   estado: 'pending' | 'in_progress' | 'finished' | 'completed' | 'annulled';
   fecha: string;
   metodoPago?: string | null;
   horaInicio?: string | null;
+}
+
+export interface Cliente {
+  id?: number;
+  nombre: string;
+  telefono: string;      // Campo clave para tus promociones
+  email?: string;        // Opcional para el cliente, valioso para ti
+  fecha_nacimiento?: string; // Para enviar promociones de cumpleaños
+  avatar_url?: string;
+  puntos_acumulados?: number;
+  notas_tecnicas?: string; // Notas de cortes anteriores (visibles para barberos)
+  fecha_registro?: string;
 }
 
 export interface Empleado {
@@ -54,4 +67,16 @@ export interface TrabajoPortafolio {
   empleado_id: number;
   url_imagen: string;
   fecha: string;
+}
+
+export interface Comision {
+  id: number;
+  empleado_id: number;
+  tipo: 'propina' | 'producto' | 'servicio_extra';
+  monto: number;
+  descripcion?: string;
+  fecha: string;
+  created_at?: string;
+  estado?: 'activo' | 'anulado';
+  empleados?: { nombre: string }; // Relación para los reportes del Admin
 }

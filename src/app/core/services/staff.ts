@@ -7,32 +7,32 @@ export class StaffService {
   private supabase = inject(SupabaseService);
   empleados = signal<Empleado[]>([]);
 
-  constructor() { 
-    this.cargarEmpleados(); 
+  constructor() {
+    this.cargarEmpleados();
     this.escucharCambiosEnTiempoReal(); // <-- ¡NUEVO: Encendemos los oídos de Angular!
-  } 
+  }
 
   async cargarEmpleados() {
     const { data, error } = await this.supabase.client.from('empleados').select('*').order('id', { ascending: true });
-    
+
     if (data) {
       const empleadosLista = data as Empleado[];
-      
+
       // --- AUTO-RESET NOCTURNO (Limpiador Inteligente) ---
       const hoyStr = new Date().toDateString(); // Ej. "Wed May 06 2026"
-      
+
       empleadosLista.forEach(emp => {
         // Si el barbero NO está en descanso, pero su última actividad fue ayer o antes...
         if (emp.rol === 'barbero' && emp.estado_asistencia !== 'descanso' && emp.ultima_vez_disponible) {
-           const ultimaVezStr = new Date(emp.ultima_vez_disponible).toDateString();
-           
-           if (ultimaVezStr !== hoyStr) {
-              // Lo forzamos a Descanso de forma automática en la Base de Datos
-              this.actualizarEmpleado(emp.id, { estado_asistencia: 'descanso' });
-           }
+          const ultimaVezStr = new Date(emp.ultima_vez_disponible).toDateString();
+
+          if (ultimaVezStr !== hoyStr) {
+            // Lo forzamos a Descanso de forma automática en la Base de Datos
+            this.actualizarEmpleado(emp.id, { estado_asistencia: 'descanso' });
+          }
         }
       });
-      
+
       this.empleados.set(empleadosLista);
     }
   }
@@ -54,10 +54,17 @@ export class StaffService {
 
   // --- LÓGICA DE EMPLEADOS / AVATAR ---
   async subirAvatar(file: File): Promise<string | null> {
-    const fileExt = file.name.split('.').pop();
+    // Normalizamos la extensión garantizando que esté en minúsculas
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const { error } = await this.supabase.client.storage.from('avatars').upload(fileName, file);
-    
+
+    // Declaramos de forma explícita el contentType para asegurar renderizado web nativo
+    const { error } = await this.supabase.client.storage.from('avatars').upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type || 'image/jpeg'
+    });
+
     if (error) {
       console.error('Error subiendo imagen:', error);
       return null;
@@ -70,8 +77,8 @@ export class StaffService {
     this.empleados.update(lista => [...lista, nuevoEmpleado]);
     const { id, ...empleadoParaBD } = nuevoEmpleado;
     const { data, error } = await this.supabase.client.from('empleados').insert(empleadoParaBD).select().single();
-    
-    if (error) this.cargarEmpleados(); 
+
+    if (error) this.cargarEmpleados();
     else if (data) this.empleados.update(lista => lista.map(e => e.id === nuevoEmpleado.id ? (data as Empleado) : e));
   }
 
@@ -92,15 +99,20 @@ export class StaffService {
   }
 
   async subirFotoPortafolio(file: File): Promise<string | null> {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-    
-    const { error } = await this.supabase.client.storage.from('portafolio').upload(fileName, file);
+
+    const { error } = await this.supabase.client.storage.from('portafolio').upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type || 'image/jpeg'
+    });
+
     if (error) {
       console.error('Error subiendo multimedia:', error);
       return null;
     }
-    
+
     const { data } = this.supabase.client.storage.from('portafolio').getPublicUrl(fileName);
     return data.publicUrl;
   }
@@ -113,7 +125,7 @@ export class StaffService {
   async eliminarTrabajoPortafolio(id: number, url: string) {
     // 1. Borrar de la base de datos (PostgreSQL)
     await this.supabase.client.from('portafolio').delete().eq('id', id);
-    
+
     // 2. Limpiar el archivo físico del Bucket (Storage)
     const fileName = url.split('/').pop();
     if (fileName) {

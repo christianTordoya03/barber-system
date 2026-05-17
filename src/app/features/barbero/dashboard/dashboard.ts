@@ -34,11 +34,11 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
   serviciosDisponibles = this.catalogoService.servicios;
   
   isComisionModalOpen = signal<boolean>(false);
-  nuevaComision = signal({
+  nuevaComision = {
     tipo: 'propina' as 'propina' | 'producto' | 'servicio_extra',
     monto: null as number | null,
     descripcion: ''
-  });
+  };
 
   // Filtramos proactivamente para que sumen solo registros activos del barbero logueado y de hoy
   listaComisiones = computed(() => {
@@ -144,12 +144,13 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
   }
 
   abrirModalComision() {
-    this.nuevaComision.set({ tipo: 'propina', monto: null, descripcion: '' });
+    this.nuevaComision = { tipo: 'propina', monto: null, descripcion: '' };
     this.isComisionModalOpen.set(true);
   }
 
+  // 3. Actualiza el método guardarComision quitando los paréntesis:
   async guardarComision() {
-    const com = this.nuevaComision();
+    const com = this.nuevaComision; // <-- Sin paréntesis
     if (!com.monto || com.monto <= 0) {
       this.toast.show('Ingresa un monto válido', 'error');
       return;

@@ -27,7 +27,7 @@
           </button>
         </div>
         
-        <input #fileInput id="avatarInput" type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
+        <input #fileInput id="avatarInput" type="file" class="hidden" accept="image/jpeg, image/png, image/webp" (change)="onFileSelected($event)">
         
         <div class="px-8 pb-10 pt-5">
           <h2 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{{ nombre() }}</h2>
@@ -89,7 +89,7 @@
         </button>
       </div>
 
-      <input #portafolioInput type="file" class="hidden" accept="image/*, video/*" (change)="onPortafolioSelected($event)">
+      <input #portafolioInput type="file" class="hidden" accept="image/jpeg, image/png, image/webp, video/mp4, video/quicktime" (change)="onPortafolioSelected($event)">
 
       @if (portafolio().length === 0) {
         <div class="relative bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#151515] dark:to-black rounded-3xl p-12 text-center border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-inner mt-4">

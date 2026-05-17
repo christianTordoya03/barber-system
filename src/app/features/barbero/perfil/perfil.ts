@@ -32,8 +32,8 @@ export class BarberoPerfilComponent implements OnInit {
   misComisiones = computed(() => {
     const id = this.empleadoId();
     if (!id) return [];
-    return this.comisionesService.comisiones().filter(c => 
-      Number(c.empleado_id) === Number(id) && 
+    return this.comisionesService.comisiones().filter(c =>
+      Number(c.empleado_id) === Number(id) &&
       c.estado !== 'anulado'
     );
   });
@@ -44,23 +44,23 @@ export class BarberoPerfilComponent implements OnInit {
 
   isBioModalOpen = signal<boolean>(false);
   tempBio = signal<string>('');
-  isPhotoModalOpen = signal<boolean>(false); 
+  isPhotoModalOpen = signal<boolean>(false);
   isTrabajoModalOpen = signal<boolean>(false);
   trabajoSeleccionado = signal<TrabajoPortafolio | null>(null);
 
-  confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });
+  confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => { } });
 
   async ngOnInit() {
     const { data: { session } } = await this.supabase.client.auth.getSession();
     const emp = this.staffService.empleados().find(e => e.email === session?.user?.email);
-    
+
     if (emp) {
       this.empleadoId.set(emp.id!);
       this.nombre.set(emp.nombre);
       this.avatarUrl.set(emp.avatar_url || null);
       this.bio.set(emp.bio || '');
       this.cargarPortafolio(emp.id!);
-      
+
       this.comisionesService.cargarTodas();
     }
   }
@@ -78,7 +78,7 @@ export class BarberoPerfilComponent implements OnInit {
       const timeout = setTimeout(() => { resolve(0); }, 2500);
       video.onloadedmetadata = () => { clearTimeout(timeout); window.URL.revokeObjectURL(video.src); resolve(video.duration); };
       video.onerror = () => { clearTimeout(timeout); resolve(0); };
-      video.src = URL.createObjectURL(file); video.load(); 
+      video.src = URL.createObjectURL(file); video.load();
     });
   }
 
@@ -90,15 +90,26 @@ export class BarberoPerfilComponent implements OnInit {
   async onPortafolioSelected(event: any) {
     const file = event.target.files[0];
     if (file && this.empleadoId()) {
+
+      // Añadimos un límite de peso estricto (Ejemplo: 15MB expresados en bytes)
+      const maxSize = 15 * 1024 * 1024;
+      if (file.size > maxSize) {
+        this.toast.show('El archivo supera el límite de 15MB.', 'error');
+        event.target.value = '';
+        return;
+      }
+
       if (file.type.startsWith('video/') || this.isVideo(file.name)) {
         const duracion = await this.getVideoDuration(file);
-        if (duracion > 10.5) { 
+        if (duracion > 10.5) {
           this.toast.show('El video es muy largo. Máximo 10 segundos.', 'error');
-          event.target.value = ''; return;
+          event.target.value = '';
+          return;
         }
       }
+
       this.isUploadingPortafolio.set(true);
-      const url = await this.staffService.subirFotoPortafolio(file); 
+      const url = await this.staffService.subirFotoPortafolio(file);
       if (url) {
         const fechaActual = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
         const nuevo = await this.staffService.agregarTrabajoPortafolio({ empleado_id: this.empleadoId()!, url_imagen: url, fecha: fechaActual });
@@ -108,7 +119,7 @@ export class BarberoPerfilComponent implements OnInit {
         }
       }
       this.isUploadingPortafolio.set(false);
-      event.target.value = ''; 
+      event.target.value = '';
     }
   }
 
@@ -135,7 +146,7 @@ export class BarberoPerfilComponent implements OnInit {
   async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file && this.empleadoId()) {
-      const url = await this.staffService.subirAvatar(file); 
+      const url = await this.staffService.subirAvatar(file);
       if (url) {
         await this.staffService.actualizarEmpleado(this.empleadoId()!, { avatar_url: url });
         this.avatarUrl.set(url); this.toast.show('¡Imagen actualizada!');

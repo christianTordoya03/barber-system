@@ -54,6 +54,17 @@
         <span class="text-sm font-medium">Mi Perfil</span>
       </a>
     </div>
+
+    <div class="pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
+      <button (click)="confirmarLogout()"
+        class="w-full flex items-center gap-3 px-4 py-3 text-zinc-500 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all font-medium text-sm cursor-pointer text-left group">
+        <svg class="w-5 h-5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        <span>Cerrar Sesión</span>
+      </button>
+    </div>
   </aside>
 
   <main class="flex-1 min-w-0 h-screen overflow-y-auto pb-24 md:pb-8">

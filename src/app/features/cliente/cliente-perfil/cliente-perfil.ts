@@ -8,8 +8,7 @@ import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-co
 @Component({
   selector: 'app-cliente-perfil',
   standalone: true,
-  // ¡IMPORTANTE! Añadimos ModalConfirmComponent a los imports
-  imports: [CommonModule, RouterModule, ModalConfirmComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './cliente-perfil.html',
 })
 export default class ClientePerfilComponent implements OnInit, OnDestroy {

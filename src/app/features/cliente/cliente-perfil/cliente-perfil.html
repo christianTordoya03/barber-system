@@ -199,31 +199,7 @@
         </div>
       </div>
 
-      <button (click)="abrirModalCerrarSesion()" class="w-full py-4 bg-zinc-200/40 dark:bg-zinc-800/40 hover:bg-zinc-300/40 dark:hover:bg-zinc-700/40 transition-colors rounded-2xl text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest border border-zinc-300/50 dark:border-zinc-700/50 mt-6">
-        Cerrar Sesión
-      </button>
-
     </div>
   </div>
   
 </div>
-
-<app-modal-confirm
-  [isOpen]="isCancelModalOpen()"
-  title="Cancelar Cita"
-  message="¿Estás seguro de cancelar tu reserva? Perderás tu turno actual en la barbería."
-  confirmText="Sí, cancelar cita"
-  type="danger"
-  (onConfirm)="confirmarCancelacion()"
-  (onCancel)="isCancelModalOpen.set(false)">
-</app-modal-confirm>
-
-<app-modal-confirm
-  [isOpen]="isLogoutModalOpen()"
-  title="Cerrar Sesión"
-  message="¿Estás seguro de que deseas salir de tu cuenta de Marina 305?"
-  confirmText="Sí, salir"
-  type="danger"
-  (onConfirm)="confirmarCerrarSesion()"
-  (onCancel)="isLogoutModalOpen.set(false)">
-</app-modal-confirm>

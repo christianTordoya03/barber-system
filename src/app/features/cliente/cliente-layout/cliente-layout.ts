@@ -2,18 +2,19 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { SupabaseService } from '../../../core/supabase/supabase';
+import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-confirm'; // 👈 Se añadió la importación
 
 @Component({
   selector: 'app-cliente-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ModalConfirmComponent], // 👈 Se agregó a los imports
   templateUrl: './cliente-layout.html',
 })
 export class ClienteLayoutComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   
-  // NUEVO: Señal para guardar el nombre real del cliente
+  // Señal para guardar el nombre real del cliente
   nombreCliente = signal<string>('Socio');
   
   confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });

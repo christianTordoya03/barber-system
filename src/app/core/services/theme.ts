@@ -4,37 +4,38 @@ import { Injectable, signal } from '@angular/core';
   providedIn: 'root'
 })
 export class ThemeService {
-  // Signal para saber el estado actual (por defecto 'light' para que se parezca a su sistema anterior)
-  theme = signal<'light' | 'dark'>('light');
+  // 1. Leemos el localStorage, pero si está vacío, el respaldo (fallback) será 'dark' 👈
+  private themeSignal = signal<'light' | 'dark'>(
+    (localStorage.getItem('theme') as 'light' | 'dark') || 'dark'
+  );
+
+  // Exponemos la señal como lectura para tus componentes
+  public theme = this.themeSignal.asReadonly();
 
   constructor() {
-    this.loadTheme();
+    // 2. Aplicamos el tema correcto en el segundo en que se levanta el servicio
+    this.aplicarTemaHtml(this.themeSignal());
   }
 
-  toggleTheme() {
-    const newTheme = this.theme() === 'light' ? 'dark' : 'light';
-    this.theme.set(newTheme);
-    this.applyTheme(newTheme);
-    localStorage.setItem('marina305_theme', newTheme);
+  /**
+   * Alterna entre modo claro y oscuro
+   */
+  public toggleTheme() {
+    const nuevoTema = this.themeSignal() === 'light' ? 'dark' : 'light';
+    this.themeSignal.set(nuevoTema);
+    localStorage.setItem('theme', nuevoTema);
+    this.aplicarTemaHtml(nuevoTema);
   }
 
-  private loadTheme() {
-    // Revisamos si ya había elegido un tema antes
-    const savedTheme = localStorage.getItem('marina305_theme') as 'light' | 'dark';
-    if (savedTheme) {
-      this.theme.set(savedTheme);
-      this.applyTheme(savedTheme);
+  /**
+   * Inyecta o remueve la clase 'dark' en la etiqueta <html> para Tailwind
+   */
+  private aplicarTemaHtml(tema: 'light' | 'dark') {
+    const root = window.document.documentElement;
+    if (tema === 'dark') {
+      root.classList.add('dark');
     } else {
-      // Si no hay nada, forzamos light
-      this.applyTheme('light');
-    }
-  }
-
-  private applyTheme(theme: 'light' | 'dark') {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.remove('dark');
     }
   }
 }

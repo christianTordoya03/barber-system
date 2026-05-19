@@ -6,6 +6,16 @@
   <base href="/">
   <!-- Meta especial para que se comporte como app en móviles -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+
+  <script>
+    // Si el usuario ya eligió explícitamente 'dark' o es su primera vez en la app, inyectamos 'dark' de inmediato
+    const temaGuardado = localStorage.getItem('theme');
+    if (temaGuardado === 'dark' || !temaGuardado) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
   
   <!-- Icono estándar para Android y PC -->
   <link rel="icon" type="image/x-icon" href="logo-icon.jpg">

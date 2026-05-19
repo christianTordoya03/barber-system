@@ -1,0 +1,42 @@
+<div class="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center animate-fade-in-up font-sans selection:bg-blue-500 selection:text-white">
+  
+  <div class="mb-8">
+    <div class="mx-auto h-24 w-24 bg-zinc-900 border border-zinc-800 rounded-3xl flex items-center justify-center shadow-2xl">
+       <span class="text-4xl">💈</span>
+    </div>
+  </div>
+  
+  <h1 class="text-3xl font-black text-white tracking-tight mb-2">Marina 305 App</h1>
+  <p class="text-zinc-400 mb-10 max-w-xs mx-auto text-sm">Gestiona tus cortes, revisa tus comisiones y agenda reservas al instante sin ocupar memoria en tu teléfono.</p>
+  
+  @if (pwaService.canInstall()) {
+    <button (click)="pwaService.installApp()" class="w-full max-w-xs bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-base py-4 px-8 rounded-2xl shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 flex items-center justify-center cursor-pointer">
+      <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+      </svg>
+      Instalar Aplicación
+    </button>
+
+  } @else if (pwaService.isIos()) {
+    <div class="bg-[#111111] border border-zinc-800 rounded-3xl p-6 max-w-xs w-full text-left shadow-2xl relative overflow-hidden">
+      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-zinc-700 via-gray-200 to-zinc-500"></div>
+      
+      <p class="text-sm text-white font-bold mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-zinc-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm4.207 12.793-1.414 1.414L12 13.414l-2.793 2.793-1.414-1.414L10.586 12 7.793 9.207l1.414-1.414L12 10.586l2.793-2.793 1.414 1.414L13.414 12l2.793 2.793z"></path></svg>
+         Para usuarios de iPhone
+      </p>
+      <ol class="text-sm text-zinc-400 space-y-4 list-decimal list-inside">
+        <li>Toca el icono <span class="font-bold text-white bg-zinc-800 px-2 py-0.5 rounded">Compartir</span> en la barra inferior de Safari.</li>
+        <li>Desliza hacia abajo y selecciona <span class="font-bold text-white bg-zinc-800 px-2 py-0.5 rounded">Agregar a Inicio</span>.</li>
+        <li>Abre Marina 305 desde tu pantalla principal.</li>
+      </ol>
+    </div>
+
+  } @else {
+    <div class="bg-blue-500/10 border border-blue-500/20 rounded-3xl p-6 max-w-xs w-full shadow-2xl">
+      <p class="text-sm text-blue-400 font-medium leading-relaxed">
+        Para instalar la app, asegúrate de abrir este enlace desde Google Chrome (Android) o Safari (iPhone).
+      </p>
+    </div>
+  }
+</div>

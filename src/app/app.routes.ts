@@ -18,6 +18,10 @@ export const routes: Routes = [
     path: 'update-password',
     loadComponent: () => import('./features/auth/update-password/update-password').then(m => m.UpdatePasswordComponent)
   },
+  {
+    path: 'app-instalar',
+    loadComponent: () => import('./features/clientes/instalar/instalar').then(m => m.InstalarComponent)
+  },
   // --- RUTAS DEL CLIENTE (NUEVO ECOSISTEMA VIP) ---
   {
     path: 'cliente',
@@ -33,10 +37,7 @@ export const routes: Routes = [
         path: 'reservar',
         loadComponent: () => import('./features/cliente/cliente-reservar/cliente-reservar').then(m => m.ClienteReservarComponent)
       },
-      {
-        path: 'mi-perfil',
-        loadComponent: () => import('./features/cliente/cliente-home/cliente-home').then(m => m.ClienteHomeComponent)
-      },
+      { path: 'perfil', loadComponent: () => import('./features/cliente/cliente-perfil/cliente-perfil') },
       { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]
   },

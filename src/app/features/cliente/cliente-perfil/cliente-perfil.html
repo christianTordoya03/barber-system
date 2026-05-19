@@ -1,0 +1,229 @@
+<div class="relative z-10 p-4 md:p-8 lg:p-12 max-w-6xl mx-auto bg-transparent">
+  
+  <div class="flex items-center gap-5 mb-8 md:mb-10">
+    <div>
+      <h1 class="text-2xl md:text-4xl font-black text-zinc-900 dark:text-white tracking-tight drop-shadow-sm">{{ nombreCliente() }}</h1>
+      <div class="flex items-center mt-1.5">
+        <span class="text-xs md:text-sm font-extrabold uppercase tracking-widest text-zinc-700 dark:text-zinc-300 bg-white/90 dark:bg-zinc-900/90 px-3 py-1 rounded-lg border border-zinc-300/50 dark:border-zinc-800/80 shadow-sm">
+          Socio {{ nivelActual() }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+    
+    <div class="lg:col-span-2 space-y-6">
+      
+      <div class="bg-white/75 dark:bg-[#111114]/75 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-800/80 rounded-3xl p-6 shadow-md relative overflow-hidden">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h2 class="text-xs font-black uppercase tracking-widest text-amber-600 dark:text-amber-500">Progreso de Membresía</h2>
+            <h3 class="text-lg font-bold text-zinc-900 dark:text-white mt-0.5">Camino a Socio {{ proximoNivel() }}</h3>
+          </div>
+          <div class="text-right">
+            <span class="text-2xl font-black text-zinc-900 dark:text-white">{{ cortesTotalesHistoricos() }}</span>
+            <span class="text-xs font-bold text-zinc-400"> / {{ cortesParaProximoNivel() }} cortes</span>
+          </div>
+        </div>
+        
+        <div class="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-3 overflow-hidden p-[1px]">
+          <div class="bg-gradient-to-r from-zinc-700 via-amber-500 to-amber-400 h-full rounded-full transition-all duration-1000"
+               [style.width.%]="(cortesTotalesHistoricos() / cortesParaProximoNivel()) * 100"></div>
+        </div>
+        
+        <div class="flex justify-between text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mt-2.5">
+          <span>Clásico (0)</span>
+          <span>Plata (10)</span>
+          <span>Oro (25)</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/40 rounded-3xl p-5 shadow-sm">
+          <div class="flex justify-between items-end mb-3">
+            <div>
+              <h3 class="font-bold text-zinc-900 dark:text-white">Corte Gratis</h3>
+              <p class="text-xs text-zinc-600 dark:text-zinc-400 font-medium">Acumula 10 visitas</p>
+            </div>
+            <span class="text-xl font-black text-amber-600 dark:text-amber-500">{{ cortesAcumulados() }}<span class="text-xs text-zinc-400">/10</span></span>
+          </div>
+          <div class="w-full bg-zinc-200 dark:bg-zinc-800/60 rounded-full h-2.5 overflow-hidden">
+            <div class="bg-gradient-to-r from-amber-400 to-amber-600 h-2.5 rounded-full" [style.width.%]="(cortesAcumulados() / 10) * 100"></div>
+          </div>
+          <p class="text-[11px] text-zinc-600 dark:text-zinc-300 font-semibold mt-3">Faltan {{ 10 - cortesAcumulados() }} servicios para tu recompensa.</p>
+        </div>
+
+        <div class="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/40 rounded-3xl p-5 shadow-sm">
+          <div class="flex justify-between items-end mb-3">
+            <div>
+              <h3 class="font-bold text-zinc-900 dark:text-white">Bono por Referidos</h3>
+              <p class="text-xs text-zinc-600 dark:text-zinc-400 font-medium">Cada 3 amigos recomendados</p>
+            </div>
+            <span class="text-xl font-black text-amber-600 dark:text-amber-500">{{ referidos() }}<span class="text-xs text-zinc-400">/3</span></span>
+          </div>
+          <div class="w-full bg-zinc-200 dark:bg-zinc-800/60 rounded-full h-2.5 flex gap-1">
+            <div class="h-full flex-1 rounded-l-full transition-colors" [ngClass]="referidos() >= 1 ? 'bg-amber-500' : 'bg-transparent'"></div>
+            <div class="h-full flex-1 transition-colors" [ngClass]="referidos() >= 2 ? 'bg-amber-500' : 'bg-transparent'"></div>
+            <div class="h-full flex-1 rounded-r-full transition-colors" [ngClass]="referidos() >= 3 ? 'bg-amber-500' : 'bg-transparent'"></div>
+          </div>
+          <p class="text-[11px] text-zinc-600 dark:text-zinc-300 font-semibold mt-3">¡Próximo beneficio: Barba/Marcado gratis!</p>
+        </div>
+      </div>
+
+      <div class="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-3xl p-5 shadow-sm">
+        <h3 class="text-sm font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-4 ml-1">Beneficios del Club Marina 305</h3>
+        
+        <div class="flex bg-zinc-200/60 dark:bg-zinc-800/60 p-1 rounded-2xl gap-1 mb-5">
+          <button (click)="cambiarPestanaNivel('clasico')" 
+                  [ngClass]="pestanaNivelActiva() === 'clasico' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800'"
+                  class="flex-1 py-2 text-xs font-bold rounded-xl transition-all uppercase tracking-wider">
+            Clásico
+          </button>
+          <button (click)="cambiarPestanaNivel('plata')" 
+                  [ngClass]="pestanaNivelActiva() === 'plata' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800'"
+                  class="flex-1 py-2 text-xs font-bold rounded-xl transition-all uppercase tracking-wider">
+            Plata
+          </button>
+          <button (click)="cambiarPestanaNivel('oro')" 
+                  [ngClass]="pestanaNivelActiva() === 'oro' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800'"
+                  class="flex-1 py-2 text-xs font-bold rounded-xl transition-all uppercase tracking-wider">
+            Oro ⭐
+          </button>
+        </div>
+
+        <div class="min-h-[120px] bg-white/30 dark:bg-zinc-950/20 rounded-2xl p-4 border border-zinc-200/40 dark:border-zinc-800/30">
+          @if (pestanaNivelActiva() === 'clasico') {
+            <div>
+              <div class="flex items-center gap-2 text-zinc-900 dark:text-white font-bold text-sm mb-2">
+                <div class="w-2 h-2 rounded-full bg-zinc-400"></div> Requisitos: 0 a 9 cortes históricos
+              </div>
+              <ul class="space-y-2 text-xs text-zinc-600 dark:text-zinc-300 font-medium pl-4 list-disc">
+                <li>Acceso completo al sistema de reservas online 24/7.</li>
+                <li>Acumulación de visitas para el beneficio de lealtad (10 cortes = 1 Gratis).</li>
+                <li>Participación en las promociones del mes vigentes.</li>
+              </ul>
+            </div>
+          }
+          @if (pestanaNivelActiva() === 'plata') {
+            <div>
+              <div class="flex items-center gap-2 text-amber-600 dark:text-amber-500 font-bold text-sm mb-2">
+                <div class="w-2 h-2 rounded-full bg-amber-500"></div> Requisitos: 10 a 24 cortes históricos
+              </div>
+              <ul class="space-y-2 text-xs text-zinc-600 dark:text-zinc-300 font-medium pl-4 list-disc">
+                <li>Todos los beneficios del nivel Clásico.</li>
+                <li><strong>Prioridad de atención</strong> en lista de espera digital de la barbería.</li>
+                <li><strong>10% de descuento fijo</strong> en ceras, pomadas y productos para el cuidado de la barba.</li>
+              </ul>
+            </div>
+          }
+          @if (pestanaNivelActiva() === 'oro') {
+            <div>
+              <div class="flex items-center gap-2 text-amber-500 font-bold text-sm mb-2">
+                <div class="w-2 h-2 rounded-full bg-amber-400 shadow-sm shadow-amber-500"></div> Requisitos: 25+ cortes históricos
+              </div>
+              <ul class="space-y-2 text-xs text-zinc-600 dark:text-zinc-300 font-medium pl-4 list-disc">
+                <li>Todos los beneficios del nivel Plata.</li>
+                <li><strong>Bebida de cortesía premium</strong> (café express, agua helada o cerveza artesanal) en cada visita.</li>
+                <li><strong>Reservas preferenciales</strong> garantizadas en fechas de alta demanda (Navidad, Año Nuevo, feriados).</li>
+                <li>Acceso exclusivo a preventas de lanzamientos de productos Marina 305.</li>
+              </ul>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <div class="space-y-6">
+      
+      <div>
+        <h2 class="text-sm font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-3 ml-2">Próxima Cita</h2>
+        @if (citaActiva()) {
+          <div [ngClass]="citaActiva().estado.toLowerCase() === 'en progreso' ? 'border-amber-500/50 bg-gradient-to-b from-white/90 to-amber-500/5 dark:from-[#121216]/90 dark:to-amber-500/5' : 'border-zinc-200/50 dark:border-zinc-800/50 bg-white/80 dark:bg-[#121216]/80'"
+               class="backdrop-blur-xl border rounded-3xl p-1.5 shadow-md transition-all duration-300">
+            <div class="p-4 flex items-center gap-4">
+              
+              @if (citaActiva().estado.toLowerCase() === 'en progreso') {
+                <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col items-center justify-center shrink-0 animate-pulse">
+                  <span class="text-xl">✂️</span>
+                </div>
+              } @else {
+                <div class="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 flex flex-col items-center justify-center shrink-0">
+                  <span class="text-xs font-bold text-amber-600 dark:text-amber-500 uppercase">May</span>
+                  <span class="text-2xl font-black text-zinc-900 dark:text-white leading-none">18</span>
+                </div>
+              }
+
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <h3 class="text-base font-bold text-zinc-900 dark:text-white">{{ citaActiva().servicio }}</h3>
+                  @if (citaActiva().estado.toLowerCase() === 'en progreso') {
+                    <span class="text-[9px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded animate-pulse">Atendiendo</span>
+                  }
+                </div>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 font-medium mt-0.5">con {{ citaActiva().barbero }} • {{ citaActiva().hora }}</p>
+              </div>
+            </div>
+
+            @if (citaActiva().estado.toLowerCase() !== 'en progreso') {
+              <button (click)="abrirModalCancelar()" class="w-full py-3.5 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors rounded-2xl text-xs font-bold uppercase tracking-wider">
+                Cancelar Cita
+              </button>
+            } @else {
+              <div class="w-full py-3 text-center text-[11px] font-bold text-zinc-500 uppercase tracking-widest bg-zinc-100/50 dark:bg-zinc-800/30 rounded-2xl border-t border-zinc-200/30 dark:border-zinc-700/30">
+                Tu servicio está en curso
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md border border-dashed border-zinc-300 dark:border-zinc-700 rounded-3xl p-6 text-center">
+            <p class="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-4">No tienes citas programadas.</p>
+            <button routerLink="/cliente/reservar" class="px-6 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold rounded-xl text-xs uppercase tracking-wider">Agendar Cita</button>
+          </div>
+        }
+      </div>
+
+      <div>
+        <h2 class="text-sm font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-3 ml-2">Historial Reciente</h2>
+        <div class="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-3xl overflow-hidden shadow-sm">
+          @for (cita of historialCitas(); track cita.id) {
+            <div class="p-4 border-b border-zinc-100 dark:border-zinc-800/40 last:border-0 flex justify-between items-center">
+              <div>
+                <p class="font-bold text-sm text-zinc-900 dark:text-white">{{ cita.servicio }}</p>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ cita.fecha }} • con {{ cita.barbero }}</p>
+              </div>
+              <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded uppercase border border-emerald-100/30">Completado</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <button (click)="abrirModalCerrarSesion()" class="w-full py-4 bg-zinc-200/40 dark:bg-zinc-800/40 hover:bg-zinc-300/40 dark:hover:bg-zinc-700/40 transition-colors rounded-2xl text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest border border-zinc-300/50 dark:border-zinc-700/50 mt-6">
+        Cerrar Sesión
+      </button>
+
+    </div>
+  </div>
+  
+</div>
+
+<app-modal-confirm
+  [isOpen]="isCancelModalOpen()"
+  title="Cancelar Cita"
+  message="¿Estás seguro de cancelar tu reserva? Perderás tu turno actual en la barbería."
+  confirmText="Sí, cancelar cita"
+  type="danger"
+  (onConfirm)="confirmarCancelacion()"
+  (onCancel)="isCancelModalOpen.set(false)">
+</app-modal-confirm>
+
+<app-modal-confirm
+  [isOpen]="isLogoutModalOpen()"
+  title="Cerrar Sesión"
+  message="¿Estás seguro de que deseas salir de tu cuenta de Marina 305?"
+  confirmText="Sí, salir"
+  type="danger"
+  (onConfirm)="confirmarCerrarSesion()"
+  (onCancel)="isLogoutModalOpen.set(false)">
+</app-modal-confirm>

@@ -1,10 +1,8 @@
 <div class="max-w-2xl mx-auto animate-fade-in pb-24 px-2 sm:px-0">
 
   @if (reservaConfirmada()) {
-  <div
-    class="bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 text-center shadow-2xl animate-fade-in-up mt-8">
-    <div
-      class="h-20 w-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20">
+  <div class="bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 text-center shadow-2xl animate-fade-in-up mt-8">
+    <div class="h-20 w-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20">
       <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
       </svg>
@@ -12,28 +10,20 @@
     <h2 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">¡Cita Confirmada!</h2>
     <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-2">Tu espacio en Marina 305 ha sido reservado con éxito.</p>
 
-    <div
-      class="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-5 mt-6 text-left border border-zinc-200 dark:border-zinc-800/80 space-y-2.5">
-      <div class="flex justify-between text-xs sm:text-sm"><span class="text-zinc-400">Experto:</span> <span
-          class="font-bold text-zinc-900 dark:text-white">{{ barberoSeleccionado()?.nombre }}</span></div>
-      <div class="flex justify-between text-xs sm:text-sm"><span class="text-zinc-400">Servicio:</span> <span
-          class="font-bold text-zinc-900 dark:text-white">{{ servicioSeleccionado()?.nombre }}</span></div>
-      <div class="flex justify-between text-xs sm:text-sm"><span class="text-zinc-400">Fecha:</span> <span
-          class="font-bold text-blue-600 dark:text-blue-400 capitalize">{{ fechaSeleccionada() | date:'d de MMMM de
-          yyyy' }}</span></div>
-      <div class="flex justify-between text-xs sm:text-sm"><span class="text-zinc-400">Hora:</span> <span
-          class="font-bold text-blue-600 dark:text-blue-400">{{ '1970-01-01T' + horaSeleccionada() | date:'hh:mm a'
-          }}</span></div>
+    <div class="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-5 mt-6 text-left border border-zinc-200 dark:border-zinc-800/80 space-y-2.5">
+      <div class="flex justify-between text-xs sm:text-sm"><span class="text-zinc-400">A nombre de:</span> <span class="font-bold text-zinc-900 dark:text-white">{{ nombreUsuarioLogeado() }}</span></div>
+      <div class="flex justify-between text-xs sm:text-sm"><span class="text-zinc-400">Experto:</span> <span class="font-bold text-zinc-900 dark:text-white">{{ barberoSeleccionado()?.nombre }}</span></div>
+      <div class="flex justify-between text-xs sm:text-sm"><span class="text-zinc-400">Servicio:</span> <span class="font-bold text-zinc-900 dark:text-white">{{ servicioSeleccionado()?.nombre }}</span></div>
+      <div class="flex justify-between text-xs sm:text-sm"><span class="text-zinc-400">Fecha:</span> <span class="font-bold text-blue-600 dark:text-blue-400 capitalize">{{ fechaSeleccionadaFormateada() }}</span></div>
+      <div class="flex justify-between text-xs sm:text-sm"><span class="text-zinc-400">Hora:</span> <span class="font-bold text-blue-600 dark:text-blue-400">{{ horaSeleccionadaFormateada() }}</span></div>
       @if (comentario()) {
       <div class="pt-2 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 italic">
-        <span class="font-bold block text-[10px] uppercase not-italic text-zinc-400">Nota enviada al barbero:</span>
-        "{{ comentario() }}"
+        <span class="font-bold block text-[10px] uppercase not-italic text-zinc-400">Nota enviada:</span> "{{ comentario() }}"
       </div>
       }
     </div>
 
-    <button (click)="reiniciarFlujo()"
-      class="mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 cursor-pointer text-xs sm:text-sm">
+    <button (click)="reiniciarFlujo()" class="mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 cursor-pointer text-xs sm:text-sm">
       VOLVER AL INICIO
     </button>
   </div>
@@ -41,25 +31,16 @@
 
   <div class="flex items-center justify-between mb-8 px-2 mt-4">
     <div class="flex items-center space-x-1.5 sm:space-x-3">
-      <span
-        [ngClass]="pasoActual() >= 1 ? 'bg-blue-600 text-white font-black ring-4 ring-blue-500/20' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'"
-        class="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 shrink-0">1</span>
+      <span [ngClass]="pasoActual() >= 1 ? 'bg-blue-600 text-white font-black ring-4 ring-blue-500/20' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'" class="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 shrink-0">1</span>
       <div class="h-px w-3 sm:w-8 bg-zinc-200 dark:bg-zinc-800"></div>
-      <span
-        [ngClass]="pasoActual() >= 2 ? 'bg-blue-600 text-white font-black ring-4 ring-blue-500/20' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'"
-        class="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 shrink-0">2</span>
+      <span [ngClass]="pasoActual() >= 2 ? 'bg-blue-600 text-white font-black ring-4 ring-blue-500/20' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'" class="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 shrink-0">2</span>
       <div class="h-px w-3 sm:w-8 bg-zinc-200 dark:bg-zinc-800"></div>
-      <span
-        [ngClass]="pasoActual() >= 3 ? 'bg-blue-600 text-white font-black ring-4 ring-blue-500/20' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'"
-        class="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 shrink-0">3</span>
+      <span [ngClass]="pasoActual() >= 3 ? 'bg-blue-600 text-white font-black ring-4 ring-blue-500/20' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'" class="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 shrink-0">3</span>
       <div class="h-px w-3 sm:w-8 bg-zinc-200 dark:bg-zinc-800"></div>
-      <span
-        [ngClass]="pasoActual() >= 4 ? 'bg-blue-600 text-white font-black ring-4 ring-blue-500/20' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'"
-        class="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 shrink-0">4</span>
+      <span [ngClass]="pasoActual() >= 4 ? 'bg-blue-600 text-white font-black ring-4 ring-blue-500/20' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'" class="h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 shrink-0">4</span>
     </div>
     @if (pasoActual() > 1) {
-    <button (click)="pasoActual.set(pasoActual() - 1)"
-      class="text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors active:scale-95 cursor-pointer">
+    <button (click)="pasoActual.set(pasoActual() - 1)" class="text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors active:scale-95 cursor-pointer">
       ← VOLVER
     </button>
     }
@@ -74,30 +55,24 @@
 
     <div class="grid grid-cols-1 gap-3.5">
       @for (barbero of barberos(); track barbero.id) {
-      <div (click)="seleccionarBarbero(barbero)"
-        class="bg-white dark:bg-[#111111] p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center space-x-4 cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 active:scale-95 shadow-sm">
-        <div
-          class="h-14 w-14 sm:h-16 sm:w-16 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-lg font-bold text-zinc-500 shadow-inner">
+      <div (click)="seleccionarBarbero(barbero)" class="bg-white dark:bg-[#111111] p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center space-x-4 cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 active:scale-95 shadow-sm">
+        <div class="h-14 w-14 sm:h-16 sm:w-16 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-lg font-bold text-zinc-500 shadow-inner">
           @if (barbero.avatar_url) {
           <img [src]="barbero.avatar_url" class="h-full w-full object-cover">
           } @else {
           {{ barbero.nombre.charAt(0) }}
           }
         </div>
-
         <div class="flex-1 min-w-0">
           <h4 class="text-base sm:text-lg font-bold text-zinc-900 dark:text-white truncate">{{ barbero.nombre }}</h4>
-          <p class="text-xs text-zinc-400 line-clamp-1 italic mt-0.5">{{ barbero.bio || 'Especialista en cortes y
-            perfilados' }}</p>
+          <p class="text-xs text-zinc-400 line-clamp-1 italic mt-0.5">{{ barbero.bio || 'Especialista en cortes y perfilados' }}</p>
         </div>
-
         <div class="flex flex-col items-end shrink-0">
           <span [ngClass]="{
                   'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 border-green-500/20': barbero.estado_asistencia === 'disponible',
                   'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-500/20': barbero.estado_asistencia === 'ocupado' || barbero.estado_asistencia === 'pausa',
                   'text-zinc-500 bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700': barbero.estado_asistencia === 'descanso'
-                }"
-            class="px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider border">
+                }" class="px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider border">
             {{ barbero.estado_asistencia || 'disponible' }}
           </span>
         </div>
@@ -109,11 +84,8 @@
 
   @if (pasoActual() === 2) {
   <div class="space-y-6 animate-fade-in-up">
-
-    <div
-      class="flex items-center space-x-4 bg-white dark:bg-[#111111] p-4 sm:p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-      <div
-        class="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 border-2 border-blue-600 dark:border-blue-500 flex items-center justify-center text-xl font-bold text-zinc-500">
+    <div class="flex items-center space-x-4 bg-white dark:bg-[#111111] p-4 sm:p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <div class="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 border-2 border-blue-600 dark:border-blue-500 flex items-center justify-center text-xl font-bold text-zinc-500">
         @if (barberoSeleccionado()?.avatar_url) {
         <img [src]="barberoSeleccionado()?.avatar_url" class="h-full w-full object-cover">
         } @else {
@@ -123,171 +95,111 @@
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 font-black">
           <h3 class="text-lg sm:text-xl text-zinc-900 dark:text-white truncate">{{ barberoSeleccionado()?.nombre }}</h3>
-          <svg class="h-4 w-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-          </svg>
+          <svg class="h-4 w-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
         </div>
-        <p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">{{
-          barberoSeleccionado()?.bio || 'Formando parte del equipo oficial de Marina 305.' }}</p>
+        <p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">{{ barberoSeleccionado()?.bio || 'Formando parte del equipo oficial de Marina 305.' }}</p>
       </div>
     </div>
 
     <div>
-      <h4 class="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-3 ml-1">Trabajos Recientes
-      </h4>
+      <h4 class="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-3 ml-1">Trabajos Recientes</h4>
       <div class="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
         @for (trabajo of portfolioBarbero(); track trabajo.id) {
-        <div
-          class="h-36 w-28 sm:h-40 sm:w-32 shrink-0 rounded-2xl overflow-hidden bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 relative group shadow-sm select-none">
-
+        <div class="h-36 w-28 sm:h-40 sm:w-32 shrink-0 rounded-2xl overflow-hidden bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 relative group shadow-sm select-none">
           @if (isVideo(trabajo.url_imagen)) {
-          <video #vid [src]="trabajo.url_imagen"
-            class="h-full w-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
-            muted loop playsinline preload="metadata" (click)="vid.paused ? vid.play() : vid.pause()"
-            (contextmenu)="$event.preventDefault()">
-          </video>
+          <video #vid [src]="trabajo.url_imagen" class="h-full w-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105" muted loop playsinline preload="metadata" (click)="vid.paused ? vid.play() : vid.pause()" (contextmenu)="$event.preventDefault()"></video>
           @if (vid.paused) {
           <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
             <div class="bg-black/60 backdrop-blur-md rounded-full p-2 text-white shadow-md border border-white/10">
-              <svg class="h-5 w-5 ml-0.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
+              <svg class="h-5 w-5 ml-0.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
             </div>
           </div>
           }
-          <div
-            class="absolute top-2 left-2 bg-black/50 backdrop-blur-md rounded-full p-1 shadow-sm pointer-events-none z-10">
-            <svg class="h-3 w-3 text-white ml-[1px]" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
+          <div class="absolute top-2 left-2 bg-black/50 backdrop-blur-md rounded-full p-1 shadow-sm pointer-events-none z-10">
+            <svg class="h-3 w-3 text-white ml-[1px]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
           </div>
           } @else {
-          <img [src]="trabajo.url_imagen"
-            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
-            (click)="verTrabajo(trabajo)" (contextmenu)="$event.preventDefault()">
+          <img [src]="trabajo.url_imagen" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer" (click)="verTrabajo(trabajo)" (contextmenu)="$event.preventDefault()">
           }
-
-          <div
-            class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2 text-white pointer-events-none">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2 text-white pointer-events-none">
             <span class="text-[9px] font-bold line-clamp-1">Corte Marina 305</span>
-            <button (click)="$event.stopPropagation(); verTrabajo(trabajo)"
-              class="pointer-events-auto bg-black/50 hover:bg-black/80 text-white p-1 rounded-lg backdrop-blur-md transition-colors cursor-pointer"
-              title="Ver a pantalla completa">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-              </svg>
+            <button (click)="$event.stopPropagation(); verTrabajo(trabajo)" class="pointer-events-auto bg-black/50 hover:bg-black/80 text-white p-1 rounded-lg backdrop-blur-md transition-colors cursor-pointer" title="Ver a pantalla completa">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
             </button>
           </div>
-
         </div>
         } @empty {
-        <div
-          class="w-full py-8 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+        <div class="w-full py-8 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
           <p class="text-xs text-zinc-500 italic">Este experto aún no ha subido fotos a su portafolio.</p>
         </div>
         }
       </div>
     </div>
 
-    <div
-      class="bg-white dark:bg-[#111111] p-5 sm:p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6">
-
+    <div class="bg-white dark:bg-[#111111] p-5 sm:p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6">
       <div>
-        <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 ml-1">1. Selecciona el
-          Día</label>
+        <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 ml-1">1. Selecciona el Día</label>
         <div class="relative">
-          <input #fReserva type="date" [ngModel]="fechaSeleccionada()" (ngModelChange)="onFechaCambiada($event)"
-            [min]="fechaMinima()" (click)="fReserva.showPicker()"
-            class="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3.5 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer text-sm font-bold shadow-inner">
+          <input #fReserva type="date" [ngModel]="fechaSeleccionada()" (ngModelChange)="onFechaCambiada($event)" [min]="fechaMinima()" (click)="fReserva.showPicker()" class="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3.5 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer text-sm font-bold shadow-inner">
         </div>
       </div>
 
       <div>
-        <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 ml-1">2. Elige un
-          Espacio Disponible</label>
-
+        <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 ml-1">2. Elige un Espacio Disponible</label>
         @if (!fechaSeleccionada()) {
-        <div
-          class="py-6 px-4 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
-          <p class="text-xs text-zinc-500 font-medium">Por favor, selecciona un día en el calendario superior para ver
-            las horas de atención.</p>
+        <div class="py-6 px-4 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+          <p class="text-xs text-zinc-500 font-medium">Por favor, selecciona un día en el calendario superior para ver las horas de atención.</p>
         </div>
         } @else {
         <div class="space-y-5">
-
           <div>
             <div class="flex items-center gap-2 mb-2 ml-1 text-zinc-400">
-              <svg class="h-3.5 w-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 4.22a1 1 0 011.415 0l.708.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM6.343 7.757a1 1 0 010-1.414l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414 0zM10 6a4 4 0 100 8 4 4 0 000-8zM2 10a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm15 0a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM6.343 12.243a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zm7.07 0a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM10 15a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" />
-              </svg>
+              <svg class="h-3.5 w-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 4.22a1 1 0 011.415 0l.708.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM6.343 7.757a1 1 0 010-1.414l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414 0zM10 6a4 4 0 100 8 4 4 0 000-8zM2 10a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm15 0a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM6.343 12.243a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zm7.07 0a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM10 15a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" /></svg>
               <span class="text-[11px] font-bold tracking-wide">Mañana</span>
             </div>
             <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
               @for (hora of horasDisponibles(); track hora) {
-              @if (hora < '12:00' ) { <button type="button" (click)="horaSeleccionada.set(hora)"
-                [disabled]="horasOcupadas().includes(hora)" [ngClass]="{
-                                  'bg-blue-600 text-white font-bold ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-[#111111] shadow-md': horaSeleccionada() === hora,
-                                  'opacity-30 bg-zinc-200 dark:bg-zinc-900/50 text-zinc-400 dark:text-zinc-600 border-dashed border-zinc-300 dark:border-zinc-800 cursor-not-allowed line-through': horasOcupadas().includes(hora),
-                                  'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800': horaSeleccionada() !== hora && !horasOcupadas().includes(hora)
-                                }"
-                class="py-3 px-1 rounded-xl text-xs text-center transition-all active:scale-95 cursor-pointer font-medium select-none">
+              @if (hora < '12:00' ) { <button type="button" (click)="horaSeleccionada.set(hora)" [disabled]="horasOcupadas().includes(hora) || (fechaSeleccionada() === fechaMinima() && hora < horaActualMilitar())" [ngClass]="{ 'bg-blue-600 text-white font-bold ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-[#111111] shadow-md': horaSeleccionada() === hora, 'opacity-30 bg-zinc-200 dark:bg-zinc-900/50 text-zinc-400 dark:text-zinc-600 border-dashed border-zinc-300 dark:border-zinc-800 cursor-not-allowed line-through': horasOcupadas().includes(hora), 'opacity-40 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500 cursor-not-allowed': !horasOcupadas().includes(hora) && (fechaSeleccionada() === fechaMinima() && hora < horaActualMilitar()), 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800': horaSeleccionada() !== hora && !horasOcupadas().includes(hora) && !(fechaSeleccionada() === fechaMinima() && hora < horaActualMilitar()) }" class="py-3 px-1 rounded-xl text-xs text-center transition-all active:scale-95 cursor-pointer font-medium select-none">
                 {{ '1970-01-01T' + hora | date:'hh:mm a' }}
                 </button>
                 }
                 }
             </div>
           </div>
-
           <div>
             <div class="flex items-center gap-2 mb-2 ml-1 text-zinc-400">
-              <svg class="h-3.5 w-3.5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-6h2a1 1 0 110 2h-3a1 1 0 01-1-1V6a1 1 0 112 0v4z" />
-              </svg>
+              <svg class="h-3.5 w-3.5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-6h2a1 1 0 110 2h-3a1 1 0 01-1-1V6a1 1 0 112 0v4z" /></svg>
               <span class="text-[11px] font-bold tracking-wide">Tarde</span>
             </div>
             <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
               @for (hora of horasDisponibles(); track hora) {
-              @if (hora >= '12:00' && hora < '18:00' ) { <button type="button" (click)="horaSeleccionada.set(hora)"
-                [ngClass]="horaSeleccionada() === hora ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-[#111111] shadow-md' : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800'"
-                class="py-3 px-1 rounded-xl text-xs text-center transition-all active:scale-95 cursor-pointer font-medium select-none">
+              @if (hora >= '12:00' && hora < '18:00' ) { <button type="button" (click)="horaSeleccionada.set(hora)" [disabled]="horasOcupadas().includes(hora) || (fechaSeleccionada() === fechaMinima() && hora < horaActualMilitar())" [ngClass]="{ 'bg-blue-600 text-white font-bold ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-[#111111] shadow-md': horaSeleccionada() === hora, 'opacity-30 bg-zinc-200 dark:bg-zinc-900/50 text-zinc-400 dark:text-zinc-600 border-dashed border-zinc-300 dark:border-zinc-800 cursor-not-allowed line-through': horasOcupadas().includes(hora), 'opacity-40 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500 cursor-not-allowed': !horasOcupadas().includes(hora) && (fechaSeleccionada() === fechaMinima() && hora < horaActualMilitar()), 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800': horaSeleccionada() !== hora && !horasOcupadas().includes(hora) && !(fechaSeleccionada() === fechaMinima() && hora < horaActualMilitar()) }" class="py-3 px-1 rounded-xl text-xs text-center transition-all active:scale-95 cursor-pointer font-medium select-none">
                 {{ '1970-01-01T' + hora | date:'hh:mm a' }}
                 </button>
                 }
                 }
             </div>
           </div>
-
           <div>
             <div class="flex items-center gap-2 mb-2 ml-1 text-zinc-400">
-              <svg class="h-3.5 w-3.5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
+              <svg class="h-3.5 w-3.5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /></svg>
               <span class="text-[11px] font-bold tracking-wide">Noche</span>
             </div>
             <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
               @for (hora of horasDisponibles(); track hora) {
               @if (hora >= '18:00') {
-              <button type="button" (click)="horaSeleccionada.set(hora)"
-                [ngClass]="horaSeleccionada() === hora ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-[#111111] shadow-md' : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800'"
-                class="py-3 px-1 rounded-xl text-xs text-center transition-all active:scale-95 cursor-pointer font-medium select-none">
+              <button type="button" (click)="horaSeleccionada.set(hora)" [disabled]="horasOcupadas().includes(hora) || (fechaSeleccionada() === fechaMinima() && hora < horaActualMilitar())" [ngClass]="{ 'bg-blue-600 text-white font-bold ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-[#111111] shadow-md': horaSeleccionada() === hora, 'opacity-30 bg-zinc-200 dark:bg-zinc-900/50 text-zinc-400 dark:text-zinc-600 border-dashed border-zinc-300 dark:border-zinc-800 cursor-not-allowed line-through': horasOcupadas().includes(hora), 'opacity-40 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500 cursor-not-allowed': !horasOcupadas().includes(hora) && (fechaSeleccionada() === fechaMinima() && hora < horaActualMilitar()), 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800': horaSeleccionada() !== hora && !horasOcupadas().includes(hora) && !(fechaSeleccionada() === fechaMinima() && hora < horaActualMilitar()) }" class="py-3 px-1 rounded-xl text-xs text-center transition-all active:scale-95 cursor-pointer font-medium select-none">
                 {{ '1970-01-01T' + hora | date:'hh:mm a' }}
               </button>
               }
               }
             </div>
           </div>
-
         </div>
         }
       </div>
-
     </div>
-
-    <button (click)="continuarAServicios()" [disabled]="!fechaSeleccionada() || !horaSeleccionada()"
-      class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm tracking-wide">
+    <button (click)="continuarAServicios()" [disabled]="!fechaSeleccionada() || !horaSeleccionada()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm tracking-wide">
       VER SERVICIOS DISPONIBLES
     </button>
   </div>
@@ -296,32 +208,21 @@
   @if (pasoActual() === 3) {
   <div class="space-y-6 animate-fade-in-up">
     <header>
-      <h2 class="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">¿Qué te realizaremos?
-      </h2>
-      <p class="text-xs sm:text-sm text-zinc-500 mt-1">Selecciona el trabajo que {{ barberoSeleccionado()?.nombre }}
-        preparará para ti.</p>
+      <h2 class="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">¿Qué te realizaremos?</h2>
+      <p class="text-xs sm:text-sm text-zinc-500 mt-1">Selecciona el trabajo que {{ barberoSeleccionado()?.nombre }} preparará para ti.</p>
     </header>
-
     <div class="grid grid-cols-1 gap-3.5">
       @for (serv of servicios(); track serv.id) {
-      <div (click)="seleccionarServicio(serv)"
-        class="group bg-white dark:bg-[#111111] p-4 sm:p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex justify-between items-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 active:scale-95 shadow-sm">
+      <div (click)="seleccionarServicio(serv)" class="group bg-white dark:bg-[#111111] p-4 sm:p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex justify-between items-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 active:scale-95 shadow-sm">
         <div>
-          <h4
-            class="text-base sm:text-lg font-bold text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-            {{ serv.nombre }}</h4>
+          <h4 class="text-base sm:text-lg font-bold text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ serv.nombre }}</h4>
           <div class="flex items-center space-x-3 mt-1.5">
-            <span
-              class="text-xs sm:text-sm bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold px-2.5 py-1 rounded-lg border border-blue-500/20">S/
-              {{ serv.precio }}</span>
+            <span class="text-xs sm:text-sm bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold px-2.5 py-1 rounded-lg border border-blue-500/20">S/ {{ serv.precio }}</span>
             <span class="text-xs text-zinc-400">{{ serv.duracion }} min</span>
           </div>
         </div>
-        <div
-          class="h-10 w-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-200 shrink-0">
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
+        <div class="h-10 w-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-200 shrink-0">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
         </div>
       </div>
       }
@@ -333,38 +234,22 @@
   <div class="space-y-6 animate-fade-in-up">
     <header>
       <h2 class="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Últimos Detalles</h2>
-      <p class="text-xs sm:text-sm text-zinc-500 mt-1">Revisa tu cita y agrega instrucciones especiales si lo deseas.
-      </p>
+      <p class="text-xs sm:text-sm text-zinc-500 mt-1">Revisa tu cita y agrega instrucciones especiales si lo deseas.</p>
     </header>
-
-    <div
-      class="bg-white dark:bg-[#111111] p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
-
+    <div class="bg-white dark:bg-[#111111] p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
       <div class="space-y-2.5 border-b border-zinc-200 dark:border-zinc-800 pb-4 text-xs sm:text-sm font-medium">
-        <div class="flex justify-between"><span class="text-zinc-500">Experto asignado:</span> <span
-            class="text-zinc-900 dark:text-white font-bold">{{ barberoSeleccionado()?.nombre }}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Servicio solicitado:</span> <span
-            class="text-zinc-900 dark:text-white font-bold">{{ servicioSeleccionado()?.nombre }}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Horario reservado:</span> <span
-            class="text-blue-600 dark:text-blue-400 font-bold capitalize">{{ fechaSeleccionada() | date:'d MMM yyyy' }}
-            a las {{ '1970-01-01T' + horaSeleccionada() | date:'hh:mm a' }}</span></div>
-        <div class="flex justify-between pt-1"><span class="text-zinc-500">Pago total en barbería:</span> <span
-            class="text-blue-600 dark:text-blue-400 font-black text-sm sm:text-base">S/ {{
-            servicioSeleccionado()?.precio }}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">A nombre de:</span> <span class="text-zinc-900 dark:text-white font-bold">{{ nombreUsuarioLogeado() }}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Experto asignado:</span> <span class="text-zinc-900 dark:text-white font-bold">{{ barberoSeleccionado()?.nombre }}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Servicio solicitado:</span> <span class="text-zinc-900 dark:text-white font-bold">{{ servicioSeleccionado()?.nombre }}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Horario reservado:</span> <span class="text-blue-600 dark:text-blue-400 font-bold capitalize">{{ fechaSeleccionadaFormateada() }} a las {{ horaSeleccionadaFormateada() }}</span></div>
+        <div class="flex justify-between pt-1"><span class="text-zinc-500">Pago total en barbería:</span> <span class="text-blue-600 dark:text-blue-400 font-black text-sm sm:text-base">S/ {{ servicioSeleccionado()?.precio }}</span></div>
       </div>
-
       <div class="pt-1">
-        <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 ml-1">Instrucciones o
-          preferencias de corte</label>
-        <textarea [(ngModel)]="comentario"
-          placeholder="Ej: Me gustaría conservar largo arriba, usar navaja al cero en los laterales, tengo piel sensible..."
-          class="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-600 transition-all text-xs sm:text-sm h-24 resize-none placeholder:text-zinc-500"></textarea>
+        <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 ml-1">Instrucciones o preferencias de corte</label>
+        <textarea [ngModel]="comentario()" (ngModelChange)="comentario.set($event)" placeholder="Ej: Me gustaría conservar largo arriba, usar navaja al cero en los laterales, tengo piel sensible..." class="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-600 transition-all text-xs sm:text-sm h-24 resize-none placeholder:text-zinc-500"></textarea>
       </div>
-
     </div>
-
-    <button (click)="confirmarReserva()"
-      class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 cursor-pointer text-xs sm:text-sm tracking-wide">
+    <button (click)="confirmarReserva()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 cursor-pointer text-xs sm:text-sm tracking-wide">
       CONFIRMAR CITA DEFINITIVA
     </button>
   </div>
@@ -374,32 +259,19 @@
 </div>
 
 @if (isTrabajoModalOpen() && trabajoSeleccionado()) {
-<div
-  class="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 backdrop-blur-sm transition-opacity cursor-pointer select-none"
-  (click)="isTrabajoModalOpen.set(false)">
-  <div
-    class="absolute top-0 inset-x-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-20 cursor-default"
-    (click)="$event.stopPropagation()">
-    <button (click)="isTrabajoModalOpen.set(false)"
-      class="text-white p-2 hover:bg-white/20 rounded-full transition-colors active:scale-95 cursor-pointer">
-      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-      </svg>
+<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 backdrop-blur-sm transition-opacity cursor-pointer select-none" (click)="isTrabajoModalOpen.set(false)">
+  <div class="absolute top-0 inset-x-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-20 cursor-default" (click)="$event.stopPropagation()">
+    <button (click)="isTrabajoModalOpen.set(false)" class="text-white p-2 hover:bg-white/20 rounded-full transition-colors active:scale-95 cursor-pointer">
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
     </button>
     <span class="text-white font-medium text-sm drop-shadow-md">Arte Marina 305</span>
     <div class="w-10"></div>
   </div>
-
   <div class="w-full h-full p-0 flex items-center justify-center relative z-10">
     @if (isVideo(trabajoSeleccionado()?.url_imagen)) {
-    <video [src]="trabajoSeleccionado()?.url_imagen" class="max-w-full max-h-full drop-shadow-2xl cursor-default"
-      controls controlsList="nodownload" autoplay loop playsinline (click)="$event.stopPropagation()"
-      (contextmenu)="$event.preventDefault()">
-    </video>
+    <video [src]="trabajoSeleccionado()?.url_imagen" class="max-w-full max-h-full drop-shadow-2xl cursor-default" controls controlsList="nodownload" autoplay loop playsinline (click)="$event.stopPropagation()" (contextmenu)="$event.preventDefault()"></video>
     } @else {
-    <img [src]="trabajoSeleccionado()?.url_imagen"
-      class="max-w-full max-h-full object-contain drop-shadow-2xl cursor-default" (click)="$event.stopPropagation()"
-      (contextmenu)="$event.preventDefault()">
+    <img [src]="trabajoSeleccionado()?.url_imagen" class="max-w-full max-h-full object-contain drop-shadow-2xl cursor-default" (click)="$event.stopPropagation()" (contextmenu)="$event.preventDefault()">
     }
   </div>
 </div>

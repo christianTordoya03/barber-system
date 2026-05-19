@@ -2,12 +2,11 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { SupabaseService } from '../../../core/supabase/supabase';
-import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-confirm';
 
 @Component({
   selector: 'app-cliente-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ModalConfirmComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './cliente-layout.html',
 })
 export class ClienteLayoutComponent implements OnInit {

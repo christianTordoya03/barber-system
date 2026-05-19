@@ -1,42 +1,51 @@
-// import { Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
-// @Injectable({
-//   providedIn: 'root'
-// })
-// export class PwaService {
-//   // Guardará el evento nativo del celular
-//   private promptEvent: any;
+@Injectable({
+  providedIn: 'root'
+})
+export class PwaService {
+  // Guardará el evento nativo del celular Android
+  private promptEvent: any;
   
-//   // Señal que le dirá al HTML si debe mostrar el botón o no
-//   public canInstall = signal<boolean>(false);
+  // Señales reactivas para la interfaz
+  public canInstall = signal<boolean>(false);
+  public isIos = signal<boolean>(false);
 
-//   constructor() {
-//     this.initPwaListener();
-//   }
+  constructor() {
+    this.detectarDispositivo();
+    this.initPwaListener();
+  }
 
-//   private initPwaListener() {
-//     // Aquí es donde "escuchamos" al celular (solo en Android/Chrome)
-//     window.addEventListener('beforeinstallprompt', (event) => {
-//       event.preventDefault(); // Evitamos que salga el mensaje feo por defecto de Google
-//       this.promptEvent = event; // Guardamos la orden de instalación
-//       this.canInstall.set(true); // ¡Encendemos el botón azul!
-//     });
-//   }
+  private detectarDispositivo() {
+    // Verificamos si el cliente está usando un dispositivo de Apple
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const esApple = /iphone|ipad|ipod/.test(userAgent);
+    this.isIos.set(esApple);
+  }
 
-//   public async installApp() {
-//     if (!this.promptEvent) return;
+  private initPwaListener() {
+    // Solo Android y Chrome disparan este evento mágico
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault(); // Ocultamos el banner feo del navegador
+      this.promptEvent = event; 
+      this.canInstall.set(true); // Encendemos nuestro botón personalizado
+    });
+  }
 
-//     // Al hacer clic en tu botón, disparamos la instalación nativa
-//     this.promptEvent.prompt();
+  public async installApp() {
+    if (!this.promptEvent) return;
 
-//     // Esperamos a ver si el cliente le da a "Aceptar" o "Cancelar" en su pantalla
-//     const choiceResult = await this.promptEvent.userChoice;
+    // Lanzamos el modal nativo de instalación
+    this.promptEvent.prompt();
+
+    // Esperamos la respuesta del cliente
+    const choiceResult = await this.promptEvent.userChoice;
     
-//     if (choiceResult.outcome === 'accepted') {
-//       console.log('El cliente instaló la app con éxito');
-//       this.canInstall.set(false); // Ocultamos el botón para que no vuelva a salir
-//     }
+    if (choiceResult.outcome === 'accepted') {
+      console.log('El cliente instaló la app con éxito');
+      this.canInstall.set(false); // Ocultamos el botón
+    }
     
-//     this.promptEvent = null;
-//   }
-// }
+    this.promptEvent = null;
+  }
+}

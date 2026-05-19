@@ -1,44 +1,34 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { SupabaseService } from '../supabase/supabase';
-import { ToastService } from './toast';
 import { Turno } from '../models/marina';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class TurnosService {
   private supabase = inject(SupabaseService);
-  private toast = inject(ToastService);
-
   turnos = signal<Turno[]>([]);
 
   constructor() {
     this.cargarTurnos();
-    this.escucharTurnosRealTime(); // <-- ¡NUEVA LÍNEA MÁGICA!
+    this.escucharTurnosRealTime();
   }
 
   async cargarTurnos() {
-    const { data, error } = await this.supabase.client
-      .from('turnos')
-      .select('*')
-      .order('id', { ascending: false });
-
-    if (error) {
-      console.error('Error cargando turnos', error);
-      return;
+    const { data, error } = await this.supabase.client.from('turnos').select('*').order('id', { ascending: false });
+    if (!error && data) {
+      this.turnos.set(data as Turno[]);
     }
-    if (data) this.turnos.set(data as Turno[]);
   }
 
-  // Devuelve un array de strings con las horas ya reservadas, ej: ['15:30', '16:00']
-  async obtenerHorasOcupadas(barberoId: number, fecha: string): Promise<string[]> {
+  // --- CONSULTA CORREGIDA: Buscamos por el NOMBRE del barbero ---
+  async obtenerHorasOcupadas(nombreBarbero: string, fechaISO: string): Promise<string[]> {
+    const [year, month, day] = fechaISO.split('-');
+    const fechaFiltro = `${day}/${month}/${year}`;
+
     const { data, error } = await this.supabase.client
       .from('turnos')
-      .select('horaInicio')
-      // Usamos la propiedad reglamentaria 'barbero_id' de tu modelo Turno
-      .eq('barbero_id', barberoId) 
-      .eq('fecha', fecha)
-      // Excluimos los turnos anulados para liberar esa hora si se canceló
+      .select('fecha')
+      .eq('barbero', nombreBarbero) // <-- Filtramos por texto, no por ID
+      .like('fecha', `${fechaFiltro}%`) // <-- Compatibilidad absoluta
       .neq('estado', 'annulled'); 
 
     if (error || !data) {
@@ -46,52 +36,41 @@ export class TurnosService {
       return [];
     }
     
-    // Devolvemos un listado limpio de horas ocupadas, ej: ['15:30', '16:00']
-    return data.map(t => t.horaInicio).filter((h): h is string => !!h);
+    return data.map(t => {
+      const partes = t.fecha.split(',');
+      if (partes.length > 1) {
+        return partes[1].trim().substring(0, 5);
+      }
+      return '';
+    }).filter(h => h !== '');
   }
 
-  // --- ESCUCHA EN TIEMPO REAL ---
-  private escucharTurnosRealTime() {
-    this.supabase.client
-      .channel('cambios-en-turnos') // Nombre del canal
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'turnos' },
-        (payload) => {
-          // Si hay un cambio, recargamos la lista automáticamente
-          this.cargarTurnos();
-
-          // Opcional: Mostrar un aviso si es un corte nuevo
-          if (payload.eventType === 'INSERT') {
-            // Esto se disparará en el celular del barbero
-          }
-        }
-      )
-      .subscribe();
-  }
-
-  async agregarTurno(nuevoTurno: Turno) {
-    const { id, ...turnoParaBD } = nuevoTurno;
-    const { data, error } = await this.supabase.client
-      .from('turnos')
-      .insert(turnoParaBD)
-      .select()
-      .single();
-
+  async agregarTurno(turno: Turno) {
+    const { data, error } = await this.supabase.client.from('turnos').insert(turno).select().single();
     if (error) {
-      this.toast.show('Error al guardar en la nube', 'error');
+      console.error('Error insertando turno:', error);
+      return null;
     }
-    // No necesitamos actualizar el signal manualmente porque el Real-time lo hará por nosotros
+    return data;
   }
 
   async actualizarTurno(id: number, cambios: Partial<Turno>) {
-    const { error } = await this.supabase.client
-      .from('turnos')
-      .update(cambios)
-      .eq('id', id);
+    const { error } = await this.supabase.client.from('turnos').update(cambios).eq('id', id);
+    if (error) console.error('Error actualizando turno:', error);
+  }
 
-    if (error) {
-      this.toast.show('Error de sincronización', 'error');
-    }
-    // El Real-time se encarga de refrescar la pantalla de todos
+  private escucharTurnosRealTime() {
+    this.supabase.client
+      .channel('turnos_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'turnos' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          this.turnos.update(t => [payload.new as Turno, ...t]);
+        } else if (payload.eventType === 'UPDATE') {
+          this.turnos.update(t => t.map(item => (item.id === payload.new['id'] ? (payload.new as Turno) : item)));
+        } else if (payload.eventType === 'DELETE') {
+          this.turnos.update(t => t.filter(item => item.id !== payload.old['id']));
+        }
+      })
+      .subscribe();
   }
 }

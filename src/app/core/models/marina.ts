@@ -3,12 +3,13 @@ export interface Turno {
   servicio: string;
   barbero: string;
   cliente: string;
-  cliente_id?: number;  
+  cliente_id?: number;
   monto: number;
   estado: 'pending' | 'in_progress' | 'finished' | 'completed' | 'annulled';
   fecha: string;
   metodoPago?: string | null;
   horaInicio?: string | null;
+  notas?: string;
 }
 
 export interface Cliente {
@@ -79,4 +80,16 @@ export interface Comision {
   created_at?: string;
   estado?: 'activo' | 'anulado';
   empleados?: { nombre: string }; // Relación para los reportes del Admin
+}
+
+export interface PerfilCliente {
+  id?: string;
+  user_id?: string;
+  email: string;
+  nombre: string;
+  telefono?: string;
+  puntos: number;
+  cortes_totales: number;
+  nivel: 'Classic' | 'Silver' | 'Gold' | string;
+  created_at?: string;
 }

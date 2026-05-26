@@ -2,23 +2,26 @@ import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { SupabaseService } from '../../../core/supabase/supabase';
-import { ToastService } from '../../../core/services/toast'; // <-- Añadimos el Toast
-import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-confirm'; // <-- Añadimos el Modal
+import { ToastService } from '../../../core/services/toast'; 
+import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-confirm'; 
 
 @Component({
   selector: 'app-cliente-perfil',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ModalConfirmComponent],
   templateUrl: './cliente-perfil.html',
 })
-export default class ClientePerfilComponent implements OnInit, OnDestroy {
+export class ClientePerfilComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
-  private toast = inject(ToastService); // Inyectamos el servicio de alertas premium
+  private toast = inject(ToastService); 
 
   private turnoChannel: any;
 
   nombreCliente = signal('Cargando...');
+  telefono = signal('Cargando...'); // <-- NUEVA VARIABLE
+  email = signal('');               // <-- NUEVA VARIABLE
+  
   nivelActual = signal('Clásico'); 
   cortesAcumulados = signal(0); 
   referidos = signal(0); 
@@ -42,14 +45,9 @@ export default class ClientePerfilComponent implements OnInit, OnDestroy {
   conectarCanalTiempoReal() {
     this.turnoChannel = this.supabase.client
       .channel('cambios-perfil-turnos')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'turnos' },
-        async () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'turnos' }, async () => {
           await this.cargarDatosReales(); 
-        }
-      )
-      .subscribe();
+      }).subscribe();
   }
 
   async cargarDatosReales() {
@@ -60,8 +58,24 @@ export default class ClientePerfilComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const nombreUsuario = user.user_metadata?.['full_name'] || user.user_metadata?.['nombre'] || 'Socio VIP';
+      this.email.set(user.email || '');
+
+      let nombreUsuario = user.user_metadata?.['full_name'] || user.user_metadata?.['nombre'] || 'Socio VIP';
+      let telefonoUsuario = user.user_metadata?.['telefono'] || '';
+
+      const { data: clienteData } = await this.supabase.client
+        .from('clientes')
+        .select('nombre, telefono') 
+        .eq('email', user.email)
+        .maybeSingle();
+
+      if (clienteData) {
+         if (clienteData.nombre) nombreUsuario = clienteData.nombre;
+         if (clienteData.telefono) telefonoUsuario = clienteData.telefono;
+      }
+
       this.nombreCliente.set(nombreUsuario);
+      this.telefono.set(telefonoUsuario || 'No registrado');
 
       const { data: turnos, error } = await this.supabase.client
         .from('turnos')
@@ -88,7 +102,7 @@ export default class ClientePerfilComponent implements OnInit, OnDestroy {
       const estado = (t.estado || '').toLowerCase();
       return estado === 'pendiente' || estado === 'pending' || 
              estado === 'confirmado' || estado === 'confirmed' || 
-             estado === 'agendado' || estado === 'en progreso';
+             estado === 'agendado' || estado === 'in_progress';
     });
     
     const completadas = turnos.filter(t => {
@@ -111,12 +125,28 @@ export default class ClientePerfilComponent implements OnInit, OnDestroy {
 
       let horaAMPM = horaCruda;
       if (horaCruda !== '--:--' && horaCruda.includes(':')) {
-        if (horaCruda.toLowerCase().includes('pm') || horaCruda.toLowerCase().includes('am')) {
-          horaAMPM = horaCruda.toUpperCase();
-        } else {
+        const lower = horaCruda.toLowerCase();
+        
+        // 1. Si el texto ya trae explícitamente un indicador de PM (con o sin puntos/espacios)
+        if (lower.includes('pm') || lower.includes('p.m.') || lower.includes('p. m.')) {
+          let justoTiempo = horaCruda.replace(/[apAP]\.?\s*[mM]\.?/, '').trim();
+          let [h, m] = justoTiempo.split(':');
+          let horas = parseInt(h, 10);
+          let horas12 = horas % 12 || 12;
+          horaAMPM = `${horas12.toString().padStart(2, '0')}:${m.substring(0, 2)} PM`;
+        } 
+        // 2. Si trae explícitamente un indicador de AM
+        else if (lower.includes('am') || lower.includes('a.m.') || lower.includes('a. m.')) {
+          let justoTiempo = horaCruda.replace(/[apAP]\.?\s*[mM]\.?/, '').trim();
+          let [h, m] = justoTiempo.split(':');
+          let horas = parseInt(h, 10);
+          let horas12 = horas % 12 || 12;
+          horaAMPM = `${horas12.toString().padStart(2, '0')}:${m.substring(0, 2)} AM`;
+        } 
+        // 3. Si viene en formato puro de 24 horas numéricas (Ej: "07:03" o "19:03")
+        else {
           let [h, m] = horaCruda.split(':');
           let horas = parseInt(h, 10);
-          if (horas > 0 && horas <= 7) horas += 12; 
           const ampm = horas >= 12 ? 'PM' : 'AM';
           let horas12 = horas % 12 || 12; 
           horaAMPM = `${horas12.toString().padStart(2, '0')}:${m.substring(0, 2)} ${ampm}`;
@@ -199,41 +229,35 @@ export default class ClientePerfilComponent implements OnInit, OnDestroy {
     }
   }
 
-  // === NUEVAS ACCIONES CON MODALES ===
-
   abrirModalCancelar() {
     this.hacerVibrarCelular([300, 100, 300]);
-    this.isCancelModalOpen.set(true); // Abre el modal de cancelación
+    this.isCancelModalOpen.set(true); 
   }
 
   async confirmarCancelacion() {
-    this.isCancelModalOpen.set(false); // Cierra el modal primero
+    this.isCancelModalOpen.set(false); 
     if (this.citaActiva()) {
       try {
-        await this.supabase.client
-          .from('turnos')
-          .update({ estado: 'Cancelado' })
-          .eq('id', this.citaActiva().id);
-
+        await this.supabase.client.from('turnos').update({ estado: 'Cancelado' }).eq('id', this.citaActiva().id);
         this.citaActiva.set(null);
         this.enviarNotificacionPush('Cita Cancelada 🚫', 'Tu cita fue cancelada. ¡Te esperamos pronto!');
-        this.toast.show('Cita cancelada correctamente.', 'success'); // Usamos el Toast
+        this.toast.show('Cita cancelada correctamente.', 'success'); 
         await this.cargarDatosReales();
       } catch(e) {
-        this.toast.show('Hubo un error al cancelar. Intenta de nuevo.', 'error'); // Toast de error
+        this.toast.show('Hubo un error al cancelar. Intenta de nuevo.', 'error'); 
       }
     }
   }
 
   abrirModalCerrarSesion() {
     this.hacerVibrarCelular(100);
-    this.isLogoutModalOpen.set(true); // Abre el modal de cerrar sesión
+    this.isLogoutModalOpen.set(true); 
   }
 
   async confirmarCerrarSesion() {
     this.isLogoutModalOpen.set(false);
     await this.supabase.client.auth.signOut();
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/login']);
   }
 
   ngOnDestroy() {

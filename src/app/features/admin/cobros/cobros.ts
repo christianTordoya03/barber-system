@@ -89,27 +89,6 @@ export class CobrosComponent implements OnInit, OnDestroy {
     return (hours * 60) + minutes;
   }
 
-  formatearFechaCard(fechaStr: string): string {
-    if (!fechaStr) return '';
-    const d = this.parseDateStr(fechaStr);
-    const timePart = fechaStr.includes(',') ? fechaStr.split(',')[1].trim() : fechaStr.split(' ')[1]?.trim() || '';
-    const match = timePart.match(/(\d{1,2}):(\d{2})/);
-    
-    if (!d || !match) return fechaStr; // Si algo falla, devuelve el original
-
-    let hours = parseInt(match[1], 10);
-    const minutes = match[2];
-
-    if (timePart.toLowerCase().includes('p') && hours < 12) hours += 12;
-    if (timePart.toLowerCase().includes('a') && hours === 12) hours = 0;
-
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    let h12 = hours % 12;
-    h12 = h12 ? h12 : 12;
-
-    return `${d.day}/${d.month}/${d.year} - ${h12}:${minutes} ${ampm}`;
-  }
-
   barberoSeleccionadoParaCobro = signal<string>('');
 
   turnosParaCobrar = computed(() => {
@@ -170,11 +149,9 @@ export class CobrosComponent implements OnInit, OnDestroy {
       if (a.estado === 'completed' || a.estado === 'annulled') {
         return b.id - a.id; 
       } else {
-        // <-- NUEVO: ORDEN CRONOLÓGICO REAL
         const minA = this.obtenerMinutosDesdeFecha(a.fecha);
         const minB = this.obtenerMinutosDesdeFecha(b.fecha);
         if (minA !== minB) return minA - minB;
-        
         return a.id - b.id; 
       }
     });
@@ -209,15 +186,6 @@ export class CobrosComponent implements OnInit, OnDestroy {
     this.currentPage.set(1);
   }
 
-  limpiarBusqueda() {
-    this.searchTerm.set('');
-    this.currentPage.set(1);
-  }
-
-  limpiarFiltroRapido() {
-    this.cobroForm.patchValue({ barberoFiltro: '' });
-  }
-
   nextPage() { if (this.currentPage() < this.totalPages()) this.currentPage.update(p => p + 1); }
   prevPage() { if (this.currentPage() > 1) this.currentPage.update(p => p - 1); }
 
@@ -244,10 +212,14 @@ export class CobrosComponent implements OnInit, OnDestroy {
     return `Retrasado ~${Math.ceil(Math.abs(restante))} min`;
   }
 
+  // --- FORMULARIO AMPLIADO PARA PAGO MIXTO ---
   cobroForm = this.fb.nonNullable.group({
     barberoFiltro: [''], 
     turnoId: ['', Validators.required],
-    formaPago: ['', Validators.required]
+    formaPago: ['', Validators.required],
+    esPagoMixto: [false],
+    formaPago2: [''],
+    montoPago1: [0, [Validators.min(0)]]
   });
 
   servicioSeleccionado = signal<string>('');
@@ -299,57 +271,68 @@ export class CobrosComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- NUEVA FUNCIÓN PARA INICIAR DESDE LA TABLA ---
+  // Calcula automáticamente lo que falta pagar en base al total y lo que se puso en el input 1
+  getMontoRestante(): number {
+    const total = this.precioSeleccionado() || 0;
+    const pagado1 = this.cobroForm.get('montoPago1')?.value || 0;
+    const restante = total - pagado1;
+    return restante > 0 ? restante : 0;
+  }
+
   iniciarTurnoManual(id: number) {
     const turno = this.turnosService.turnos().find(t => t.id === id);
     if (!turno) return;
 
-    // 1. Verificamos si el barbero ya tiene otro turno en estado "in_progress"
-    const tieneEnCurso = this.turnosService.turnos().some(t => 
-      t.barbero === turno.barbero && 
-      t.estado === 'in_progress' && 
-      t.id !== id
-    );
+    const tieneEnCurso = this.turnosService.turnos().some(t => t.barbero === turno.barbero && t.estado === 'in_progress' && t.id !== id);
 
-    // 2. Separamos la lógica de guardado en una función para llamarla después (o de inmediato)
     const ejecutarInicio = () => {
-      this.turnosService.actualizarTurno(id, {
-        estado: 'in_progress',
-        horaInicio: new Date().toISOString()
-      });
-
+      this.turnosService.actualizarTurno(id, { estado: 'in_progress', horaInicio: new Date().toISOString() });
       const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
-      if (barberoObj) {
-        this.staffService.actualizarEmpleado(barberoObj.id, { estado_asistencia: 'ocupado' });
-      }
-
+      if (barberoObj) this.staffService.actualizarEmpleado(barberoObj.id, { estado_asistencia: 'ocupado' });
       this.toastService.show(`Servicio de ${turno.barbero} iniciado.`);
-      this.cerrarConfirmacion(); // Por si venimos del modal
+      this.cerrarConfirmacion(); 
     };
 
-    // 3. Evaluamos: ¿Lanzar alerta o iniciar de una vez?
     if (tieneEnCurso) {
-      this.confirmConfig.set({
-        isOpen: true,
-        title: 'Barbero Ocupado',
-        message: `El barbero ${turno.barbero} ya tiene un servicio en curso. ¿Estás seguro de iniciar otro al mismo tiempo?`,
-        type: 'info', 
-        confirmText: 'Sí, Iniciar de todos modos',
-        action: ejecutarInicio
-      });
+      this.confirmConfig.set({ isOpen: true, title: 'Barbero Ocupado', message: `El barbero ${turno.barbero} ya tiene un servicio en curso. ¿Estás seguro de iniciar otro al mismo tiempo?`, type: 'info', confirmText: 'Sí, Iniciar de todos modos', action: ejecutarInicio });
     } else {
-      ejecutarInicio(); // Si está libre, iniciamos sin preguntar
+      ejecutarInicio();
     }
   }
 
   realizarCobro() {
     if (this.cobroForm.invalid) { this.cobroForm.markAllAsTouched(); return; }
-    const { turnoId, formaPago } = this.cobroForm.getRawValue();
-    this.turnosService.actualizarTurno(Number(turnoId), { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: formaPago });
-    this.toastService.show(`Servicio cobrado correctamente con ${formaPago}`);
-    this.cobroForm.reset({ barberoFiltro: '', turnoId: '', formaPago: '' });
-    this.servicioSeleccionado.set(''); this.precioSeleccionado.set(null);
+    
+    const formVals = this.cobroForm.getRawValue();
+    let formaPagoFinal = formVals.formaPago;
+
+    // LÓGICA DE PAGO DIVIDIDO (EFECTIVO + TARJETA)
+    if (formVals.esPagoMixto) {
+      if (!formVals.formaPago || !formVals.formaPago2 || formVals.montoPago1 <= 0) {
+        this.toastService.show('Complete todos los métodos y montos para el pago dividido', 'error');
+        return;
+      }
+      const monto2 = this.getMontoRestante();
+      formaPagoFinal = `${formVals.formaPago} (S/ ${formVals.montoPago1}) + ${formVals.formaPago2} (S/ ${monto2})`;
+    }
+
+    this.turnosService.actualizarTurno(Number(formVals.turnoId), { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: formaPagoFinal });
+    
+    // SOLUCIÓN AL PROBLEMA DE TU CAPTURA (LIBERAR BARBERO)
+    const turno = this.turnosParaCobrar().find(t => t.id === Number(formVals.turnoId));
+    if (turno && turno.barbero) {
+      const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
+      if (barberoObj) {
+        this.staffService.actualizarEmpleado(barberoObj.id, { estado_asistencia: 'disponible' });
+      }
+    }
+
+    this.toastService.show(`Servicio cobrado correctamente`);
+    this.cobroForm.reset({ barberoFiltro: '', turnoId: '', formaPago: '', esPagoMixto: false, formaPago2: '', montoPago1: 0 });
+    this.servicioSeleccionado.set(''); 
+    this.precioSeleccionado.set(null);
   }
+  
 
   verDetalle(id: number) {
     const cobro = this.turnosLista().find(c => c.id === id);

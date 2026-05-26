@@ -168,10 +168,35 @@ export class ReportesComponent {
   totalCajaEfectivo = computed(() => this.totalEfectivo() - this.totalGastosEfectivo());
   totalNeto = computed(() => this.totalIngresos() - this.totalGastos());
 
-  private sumarMetodo(metodo: string) {
-    return this.turnosFiltrados()
-      .filter(t => t.metodoPago && t.metodoPago.trim().toLowerCase() === metodo.toLowerCase())
-      .reduce((acc, t) => acc + Number(t.monto), 0);
+  private sumarMetodo(metodoBuscado: string) {
+    const metodoMin = metodoBuscado.toLowerCase();
+    
+    return this.turnosFiltrados().reduce((acc, t) => {
+      if (!t.metodoPago) return acc;
+      const pagoStr = t.metodoPago.trim().toLowerCase();
+      
+      // 1. Si es un pago simple normal (Ej. "yape")
+      if (pagoStr === metodoMin) {
+        return acc + Number(t.monto || 0);
+      }
+      
+      // 2. Si es pago Mixto, escanea el texto con expresión regular
+      if (pagoStr.includes('+')) {
+        const partes = pagoStr.split('+');
+        for (const parte of partes) {
+          // Buscamos si esta mitad del pago contiene la palabra (Ej. "efectivo")
+          if (parte.includes(metodoMin)) {
+            // Extrae el número que está dentro del paréntesis: "efectivo (s/ 100)"
+            const match = parte.match(/s\/\s*([\d.]+)/);
+            if (match && match[1]) {
+              return acc + Number(match[1]);
+            }
+          }
+        }
+      }
+      
+      return acc;
+    }, 0);
   }
 
   buscar() {

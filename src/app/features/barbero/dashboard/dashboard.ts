@@ -40,11 +40,10 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     descripcion: ''
   };
 
-  // Filtramos proactivamente para que sumen solo registros activos del barbero logueado y de hoy
   listaComisiones = computed(() => {
     const idActual = this.empleadoId();
     if (idActual === null) return [];
-    const fechaHoyStr = this.hoyStr(); // Cadena "DD/MM/YYYY"
+    const fechaHoyStr = this.hoyStr(); 
     
     return this.comisionesService.comisiones().filter(c => 
       Number(c.empleado_id) === Number(idActual) && 
@@ -111,7 +110,6 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
         this.generarSemana();
         this.staffService.cargarEmpleados();
       }
-      // Mantenemos sincronización continua de BD
       if (this.empleadoId() !== null) {
         this.comisionesService.cargarTodas();
       }
@@ -120,10 +118,20 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() { if (this.intervalId) clearInterval(this.intervalId); }
 
+  // =========================================
+  // CORRECCIÓN APLICADA: Consulta directa a BD
+  // =========================================
   async cargarDatosBarbero() {
     const { data: { session } } = await this.supabase.client.auth.getSession();
-    const emp = this.staffService.empleados().find(e => e.email === session?.user?.email);
     
+    if (!session?.user?.email) return;
+
+    const { data: emp } = await this.supabase.client
+      .from('empleados')
+      .select('*')
+      .eq('email', session.user.email)
+      .maybeSingle();
+
     if (emp && emp.id !== undefined) {
       this.nombreCompleto.set(emp.nombre);
       this.nombreCorto.set(emp.nombre.split(' ')[0]);
@@ -131,6 +139,8 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
       this.comisionPorcentaje.set(emp.comision ?? 50);
       
       this.comisionesService.cargarTodas();
+    } else {
+      this.toast.show('No se pudo cargar tu perfil. Revisa tu conexión.', 'error');
     }
   }
 
@@ -148,9 +158,8 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     this.isComisionModalOpen.set(true);
   }
 
-  // 3. Actualiza el método guardarComision quitando los paréntesis:
   async guardarComision() {
-    const com = this.nuevaComision; // <-- Sin paréntesis
+    const com = this.nuevaComision;
     if (!com.monto || com.monto <= 0) {
       this.toast.show('Ingresa un monto válido', 'error');
       return;
@@ -184,7 +193,6 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ... (Resto de los métodos del Dashboard idénticos: parseDateStr, turnos, adelantos, agendas, etc.)
   private parseDateStr(fechaStr: string) {
     const match = fechaStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (match) return { day: match[1].padStart(2, '0'), month: match[2].padStart(2, '0'), year: match[3] };

@@ -1,13 +1,14 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { StaffService } from '../../../core/services/staff';
 import { CatalogoService } from '../../../core/services/catalogo';
 import { TurnosService } from '../../../core/services/turnos';
 import { ToastService } from '../../../core/services/toast';
 import { ClienteLayoutComponent } from '../cliente-layout/cliente-layout';
 import { Servicio, Empleado, TrabajoPortafolio } from '../../../core/models/marina';
-import { SupabaseService } from '../../../core/supabase/supabase'; // <-- Importado
+import { SupabaseService } from '../../../core/supabase/supabase';
 
 @Component({
   selector: 'app-cliente-reservar',
@@ -21,12 +22,11 @@ export class ClienteReservarComponent implements OnInit {
   private turnosService = inject(TurnosService);
   private toast = inject(ToastService);
   private layoutPadre = inject(ClienteLayoutComponent);
-  private supabase = inject(SupabaseService); // <-- Inyectado
+  private supabase = inject(SupabaseService);
+  private router = inject(Router);
 
   pasoActual = signal<number>(1);
   reservaConfirmada = signal<boolean>(false);
-
-  // --- SEÑAL PARA EL NOMBRE REAL DEL CLIENTE ---
   nombreUsuarioLogeado = signal<string>('Socio VIP');
 
   servicios = this.catalogoService.servicios;
@@ -63,19 +63,14 @@ export class ClienteReservarComponent implements OnInit {
     let hora = this.horaSeleccionada();
     if (!hora) return '';
     
-    // Si la hora ya viene con el texto AM/PM, la respetamos
-    if (hora.toLowerCase().includes('pm') || hora.toLowerCase().includes('am')) {
+    const lower = hora.toLowerCase();
+    if (lower.includes('pm') || lower.includes('am')) {
         return hora.toUpperCase();
     }
-
+    
+    // Formateo limpio basado estrictamente en el número real de 24 horas seleccionado
     let [h, m] = hora.split(':');
     let hour = parseInt(h, 10);
-    
-    // FILTRO ANTI-MADRUGADAS: Si marca entre 1 y 7, es PM seguro.
-    if (hour > 0 && hour <= 7) {
-      hour += 12;
-    }
-
     const ampm = hour >= 12 ? 'PM' : 'AM';
     let hour12 = hour % 12 || 12;
     return `${hour12.toString().padStart(2, '0')}:${m.substring(0, 2)} ${ampm}`;
@@ -94,10 +89,9 @@ export class ClienteReservarComponent implements OnInit {
 
   async ngOnInit() {
     this.catalogoService.cargarDatos();
-    await this.cargarDatosUsuario(); // <-- Se ejecuta al abrir la pantalla
+    await this.cargarDatosUsuario(); 
   }
 
-  // --- FUNCIÓN QUE LEE EL NOMBRE DE LA BD ---
   async cargarDatosUsuario() {
     try {
       const { data: { user } } = await this.supabase.client.auth.getUser();
@@ -159,31 +153,35 @@ export class ClienteReservarComponent implements OnInit {
     const barbero = this.barberoSeleccionado();
     const servicio = this.servicioSeleccionado();
     
-    if (barbero === null || servicio === null || !this.fechaSeleccionada() || !this.horaSeleccionada()) {
-      this.toast.show('Faltan datos para la reserva.', 'error');
+    if (!barbero || !servicio || !this.fechaSeleccionada() || !this.horaSeleccionada()) {
+      this.toast.show('Faltan seleccionar datos de la cita', 'error');
       return;
     }
 
-    const [year, month, day] = this.fechaSeleccionada().split('-');
-    const fechaLlegada = `${day}/${month}/${year}, ${this.horaSeleccionada()}:00`;
-
-    const nuevoTurno = {
-      id: Date.now(), 
-      barbero: barbero.nombre, 
-      cliente: this.nombreUsuarioLogeado(), // <-- MAGIA APLICADA: Forzamos el nombre seguro
-      servicio: servicio.nombre,
-      monto: servicio.precio,
-      estado: 'pending' as const,
-      fecha: fechaLlegada,
-      metodoPago: 'Pendiente',
-      notas: this.comentario() || '' 
-    };
-
     try {
-      await this.turnosService.agregarTurno(nuevoTurno as any);
+      // Formatear la fecha como la espera el sistema (DD/MM/YYYY, HH:mm:ss)
+      const [year, month, day] = this.fechaSeleccionada().split('-');
+      const fechaLlegada = `${day}/${month}/${year}, ${this.horaSeleccionada()}:00`;
+
+      const turnoNuevo = {
+        id: Date.now(),
+        barbero: barbero.nombre,
+        cliente: this.nombreUsuarioLogeado(),
+        servicio: servicio.nombre,
+        monto: servicio.precio,
+        estado: 'pending' as const,
+        fecha: fechaLlegada,
+        metodoPago: 'Pendiente',
+        notas: this.comentario() || 'Reserva desde Perfil Cliente'
+      };
+
+      await this.turnosService.agregarTurno(turnoNuevo as any);
+      
+      this.toast.show('¡Cita agendada con éxito!', 'success');
       this.reservaConfirmada.set(true);
     } catch (error) {
-      this.toast.show('Error al agendar la cita.', 'error');
+      this.toast.show('Error al registrar la cita', 'error');
+      console.error(error);
     }
   }
 

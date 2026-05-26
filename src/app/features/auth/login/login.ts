@@ -19,7 +19,7 @@ export class LoginComponent {
   showPassword = signal<boolean>(false);
 
   loginForm = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
+    identificador: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
@@ -33,8 +33,11 @@ export class LoginComponent {
       return;
     }
     this.isLoading.set(true);
-    const correo = this.loginForm.getRawValue().email.trim();
+    
+    const inputId = this.loginForm.getRawValue().identificador.trim();
     const password = this.loginForm.getRawValue().password;
+
+    const correo = inputId.includes('@') ? inputId : `${inputId}@marina305.com`;
 
     try {
       const { data, error } = await this.supabase.client.auth.signInWithPassword({ 
@@ -48,21 +51,23 @@ export class LoginComponent {
         .from('empleados')
         .select('rol')
         .eq('email', correo)
-        .maybeSingle(); // Usamos maybeSingle para que no arroje error si no lo encuentra
+        .maybeSingle();
 
-      // ENRUTADOR MAESTRO DE TRES VÍAS
-      if (empleado?.rol === 'admin') {
+      // NORMALIZAR ROL PARA EVITAR ERRORES DE MAYÚSCULAS/MINÚSCULAS
+      const rolNormalizado = empleado?.rol?.toLowerCase();
+
+      if (rolNormalizado === 'admin') {
         this.router.navigate(['/admin/dashboard']);
-      } else if (empleado?.rol === 'barbero') {
+      } else if (rolNormalizado === 'barbero') {
         this.router.navigate(['/barbero/dashboard']);
       } else {
-        // Si no es admin ni barbero, es un CLIENTE
+        // CLIENTE
         this.router.navigate(['/cliente/home']);
       }
 
     } catch (error) {
       console.error('Error al iniciar sesión', error);
-      alert('Credenciales incorrectas o error de conexión');
+      alert('Credenciales incorrectas');
     } finally {
       this.isLoading.set(false);
     }

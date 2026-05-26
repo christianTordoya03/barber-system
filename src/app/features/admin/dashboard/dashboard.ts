@@ -314,6 +314,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const id = this.cobroSeleccionado()?.id;
     if (id) {
       this.turnosService.actualizarTurno(id, { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: metodo });
+      
+      // SOLUCIÓN AL PROBLEMA DE TU CAPTURA (LIBERAR BARBERO)
+      const turno = this.ultimosMovimientos().find(t => t.id === id);
+      if (turno && turno.barbero) {
+        const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
+        if (barberoObj) {
+          this.staffService.actualizarEmpleado(barberoObj.id, { estado_asistencia: 'disponible' });
+        }
+      }
+
       this.toastService.show(`Turno cobrado con ${metodo}`);
     }
     this.cerrarModalCobro();

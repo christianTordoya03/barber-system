@@ -1,122 +1,51 @@
-<!-- Cambiamos bg-black por bg-zinc-50 dark:bg-black -->
 <div class="min-h-screen bg-zinc-50 dark:bg-black flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-blue-500 selection:text-white transition-colors duration-300">
   
   <div class="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-    <img
-       class="mx-auto h-56 w-auto object-contain transition-all duration-300 invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten"
-       src="logo-marina305.png"
-       alt="Marina 305 Barber Shop">
+    <img class="mx-auto h-56 w-auto object-contain transition-all duration-300 invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten" src="logo-marina305.png" alt="Marina 305 Barber Shop">
   </div>
   
   <div class="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
-    
-    <!-- Tarjeta: bg-white dark:bg-[#111111] y shadow-xl dark:shadow-2xl -->
     <div class="bg-white dark:bg-[#111111] py-8 px-6 shadow-xl dark:shadow-2xl sm:rounded-3xl sm:px-10 border border-zinc-200 dark:border-zinc-800 relative overflow-hidden transition-colors duration-300">
              
       <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-gray-200 to-blue-600"></div>
              
       <div class="mb-8 text-center mt-2">
-        <!-- Texto: text-zinc-900 dark:text-white -->
-        <h2 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-          Iniciar Sesión
-        </h2>
-        <!-- Texto secundario: text-zinc-500 dark:text-zinc-400 -->
-        <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Ingresa tus credenciales de acceso</p>
+        <h2 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Iniciar Sesión</h2>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Ingresa a tu cuenta de Marina 305</p>
       </div>
       
       <form class="space-y-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
                  
-        <!-- Input: Correo -->
         <div>
-          <label for="email" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            Correo electrónico
-          </label>
+          <label for="identificador" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Número de Celular</label>
           <div class="mt-2">
-            <!-- Input: bg-zinc-50 dark:bg-zinc-900, text-zinc-900 dark:text-white, border-zinc-300 dark:border-zinc-800 -->
-            <input
-               id="email"
-               type="email"
-               formControlName="email"
-              autocomplete="email"
-               placeholder="admin@marina305.com"
-              class="block w-full rounded-xl border-0 bg-zinc-100 dark:bg-zinc-900 py-3.5 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 placeholder:text-zinc-500 dark:placeholder:text-zinc-600 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6 transition-all duration-200 autofill:bg-zinc-100 dark:autofill:bg-zinc-900">
+            <input id="identificador" type="text" formControlName="identificador" autocomplete="username" placeholder="Ej: 999888777"
+              class="block w-full rounded-xl border-0 bg-zinc-100 dark:bg-zinc-900 py-3.5 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 placeholder:text-zinc-500 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm">
           </div>
-          @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
-            <p class="mt-2 text-sm text-red-500 dark:text-red-400">Ingresa un correo válido.</p>
-          }
         </div>
         
-        <!-- Input: Contraseña -->
         <div>
-          <label for="password" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            Contraseña
-          </label>
+          <label for="password" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Contraseña</label>
           <div class="mt-2 relative">
-            <input 
-              id="password" 
-              [type]="showPassword() ? 'text' : 'password'" 
-              formControlName="password"
-              autocomplete="current-password" 
-              placeholder="••••••••"
-              class="block w-full rounded-xl border-0 bg-zinc-100 dark:bg-zinc-900 py-3.5 pl-4 pr-12 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 placeholder:text-zinc-500 dark:placeholder:text-zinc-600 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6 transition-all duration-200 autofill:bg-zinc-100 dark:autofill:bg-zinc-900">
-            
-            <!-- Botón del ojito -->
-            <button type="button" (click)="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
-              @if (showPassword()) {
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.71-1.581c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" />
-                </svg>
-              } @else {
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
-                </svg>
-              }
+            <input id="password" [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="current-password" placeholder="••••••••"
+              class="block w-full rounded-xl border-0 bg-zinc-100 dark:bg-zinc-900 py-3.5 pl-4 pr-12 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 placeholder:text-zinc-500 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm">
+            <button type="button" (click)="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors">
+              <svg *ngIf="showPassword()" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.71-1.581c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" /></svg>
+              <svg *ngIf="!showPassword()" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" /></svg>
             </button>
           </div>
         </div>
         
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <!-- Checkbox -->
-            <input id="remember-me" name="remember-me" type="checkbox" class="block w-full rounded-xl border-0 bg-zinc-100 dark:bg-zinc-900 py-3.5 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 placeholder:text-zinc-500 dark:placeholder:text-zinc-600 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6 transition-all duration-200 autofill:bg-zinc-100 dark:autofill:bg-zinc-900">
-            <label for="remember-me" class="ml-2 block text-sm text-zinc-600 dark:text-zinc-400">
-              Recordarme
-            </label>
-          </div>
-          <div class="text-sm">
-            <a routerLink="/forgot-password" class="font-medium text-blue-600 dark:text-zinc-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer">
-               ¿Olvidaste tu contraseña?
-            </a>
-          </div>
-        </div>
-        
-        <!-- Botón de Enviar -->
         <div>
-          <!-- Botón primario: bg-zinc-900 text-white dark:bg-white dark:text-black -->
-          <button
-             type="submit"
-             [disabled]="isLoading()"
-            class="flex w-full justify-center rounded-xl bg-zinc-900 dark:bg-white px-3 py-3.5 text-sm font-bold text-white dark:text-black shadow-sm hover:bg-zinc-800 dark:hover:bg-zinc-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 dark:focus-visible:outline-white transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
-                         
-            @if (isLoading()) {
-              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white dark:text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Ingresando...
-            } @else {
-              Iniciar Sesión
-            }
+          <button type="submit" [disabled]="isLoading()"
+            class="flex w-full justify-center rounded-xl bg-zinc-900 dark:bg-white px-3 py-3.5 text-sm font-bold text-white dark:text-black shadow-sm hover:bg-zinc-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+            {{ isLoading() ? 'Ingresando...' : 'Iniciar Sesión' }}
           </button>
         </div>
       </form>
              
       <p class="mt-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
-         ¿No tienes una cuenta?
-         <a routerLink="/register" class="font-medium text-blue-600 dark:text-white hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer transition-colors">
-          Regístrate aquí
-        </a>
+         ¿No tienes una cuenta? <a routerLink="/register" class="font-medium text-blue-600 dark:text-white hover:underline cursor-pointer">Regístrate aquí</a>
       </p>
     </div>
   </div>

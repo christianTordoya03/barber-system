@@ -24,6 +24,38 @@ export class ClientesService {
     }
   }
 
+  // Añade esto dentro de tu clase ClientesService
+  // AÑADIR ESTA FUNCIÓN AL FINAL DE LA CLASE
+  async upsertClienteExpress(nombre: string, whatsapp: string, cumpleanos: string) {
+    const { data: existente, error: searchError } = await this.supabase.client
+      .from('clientes')
+      .select('*')
+      .eq('telefono', whatsapp)
+      .single();
+
+    if (existente) {
+      // Si el cliente ya existe pero le faltaba su cumpleaños, podemos actualizarlo
+      if (!existente['cumpleanos']) {
+          await this.supabase.client.from('clientes').update({ cumpleanos: cumpleanos }).eq('id', existente.id);
+      }
+      return existente; 
+    }
+
+    const { data: nuevo, error: insertError } = await this.supabase.client
+      .from('clientes')
+      .insert([{ 
+        nombre_completo: nombre, 
+        telefono: whatsapp, 
+        cumpleanos: cumpleanos, 
+        estado: 'activo' 
+      }])
+      .select()
+      .single();
+
+    if (insertError) throw insertError;
+    return nuevo;
+  }
+
   async agregarCliente(nuevoCliente: Cliente) {
     const { data, error } = await this.supabase.client
       .from('clientes')

@@ -25,24 +25,64 @@
         </div>
 
         <div class="mt-6">
-          <label class="block text-sm font-bold text-zinc-300 mb-3">Método de Pago</label>
+          <div class="flex justify-between items-center mb-3">
+            <label class="block text-sm font-bold text-zinc-300">Método de Pago</label>
+            <label class="flex items-center space-x-2 text-xs text-blue-400 cursor-pointer">
+              <input type="checkbox" [checked]="esPagoMixto()" (change)="toggleMixto($event)" class="rounded border-zinc-700 text-blue-600 focus:ring-blue-500 bg-zinc-900">
+              <span class="font-bold">Pago Dividido</span>
+            </label>
+          </div>
+          
+          @if (!esPagoMixto()) {
           <div class="grid grid-cols-2 gap-3">
             <button (click)="metodoPagoSeleccionado.set('Yape')" class="py-3 px-4 rounded-xl border-2 flex items-center justify-center font-bold transition-all duration-200" [ngClass]="metodoPagoSeleccionado() === 'Yape' ? 'bg-[#742384]/10 border-[#742384] text-[#D05CFA] shadow-[0_0_15px_rgba(116,35,132,0.3)]' : 'bg-zinc-900 border-transparent text-zinc-500 hover:border-zinc-700'">Yape</button>
             <button (click)="metodoPagoSeleccionado.set('Yape JK')" class="py-3 px-4 rounded-xl border-2 flex items-center justify-center font-bold transition-all duration-200" [ngClass]="metodoPagoSeleccionado() === 'Yape JK' ? 'bg-[#00D9C5]/10 border-[#00D9C5] text-[#00D9C5] shadow-[0_0_15px_rgba(0,217,197,0.2)]' : 'bg-zinc-900 border-transparent text-zinc-500 hover:border-zinc-700'">Yape JK</button>
             <button (click)="metodoPagoSeleccionado.set('Efectivo')" class="py-3 px-4 rounded-xl border-2 flex items-center justify-center font-bold transition-all duration-200" [ngClass]="metodoPagoSeleccionado() === 'Efectivo' ? 'bg-green-500/10 border-green-500 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]' : 'bg-zinc-900 border-transparent text-zinc-500 hover:border-zinc-700'">Efectivo</button>
             <button (click)="metodoPagoSeleccionado.set('Tarjeta')" class="py-3 px-4 rounded-xl border-2 flex items-center justify-center font-bold transition-all duration-200" [ngClass]="metodoPagoSeleccionado() === 'Tarjeta' ? 'bg-blue-500/10 border-blue-500 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-zinc-900 border-transparent text-zinc-500 hover:border-zinc-700'">Tarjeta</button>
           </div>
+          } @else {
+            <div class="space-y-3">
+              <div class="flex gap-2">
+                <select [(ngModel)]="formaPago1" class="block w-1/2 rounded-xl border border-zinc-700 bg-zinc-900 py-2.5 px-3 text-white sm:text-sm appearance-none outline-none focus:border-blue-500">
+                  <option value="" disabled>Método 1</option>
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Tarjeta">Tarjeta</option>
+                  <option value="Yape">Yape</option>
+                  <option value="Yape JK">Yape JK</option>
+                  <option value="Transferencia">Transferencia</option>
+                </select>
+                <div class="relative w-1/2">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500 font-bold">S/</span>
+                  <input type="number" [(ngModel)]="montoPago1" placeholder="0.00" class="block w-full pl-8 rounded-xl border border-zinc-700 bg-zinc-900 py-2.5 text-white sm:text-sm font-bold focus:ring-1 focus:ring-blue-500 outline-none">
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <select [(ngModel)]="formaPago2" class="block w-1/2 rounded-xl border border-zinc-700 bg-zinc-900 py-2.5 px-3 text-white sm:text-sm appearance-none outline-none focus:border-blue-500">
+                  <option value="" disabled>Método 2</option>
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Tarjeta">Tarjeta</option>
+                  <option value="Yape">Yape</option>
+                  <option value="Yape JK">Yape JK</option>
+                  <option value="Transferencia">Transferencia</option>
+                </select>
+                <div class="relative w-1/2">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500 font-bold">S/</span>
+                  <input type="text" [value]="getMontoRestante() | number:'1.2-2'" disabled class="block w-full pl-8 rounded-xl border border-zinc-800 bg-zinc-800/50 py-2.5 text-zinc-500 sm:text-sm cursor-not-allowed font-bold outline-none">
+                </div>
+              </div>
+            </div>
+          }
         </div>
       </div>
 
       <div class="p-4 border-t border-zinc-800 bg-[#0a0a0a] flex space-x-3">
         <button (click)="onClose.emit()" [disabled]="isProcessing()" class="flex-1 py-3.5 text-sm font-bold text-zinc-400 bg-zinc-900 hover:bg-zinc-800 hover:text-white rounded-xl transition-colors">Cancelar</button>
-        <button (click)="confirmar()" [disabled]="isProcessing()" class="flex-1 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-xl transition-all shadow-lg shadow-blue-500/30 flex justify-center items-center disabled:opacity-70 disabled:scale-100 transform active:scale-95">
+        <button (click)="confirmar()" [disabled]="isProcessing() || (esPagoMixto() && (!formaPago1() || !formaPago2() || montoPago1() <= 0))" class="flex-1 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-xl transition-all shadow-lg shadow-blue-500/30 flex justify-center items-center disabled:opacity-70 disabled:scale-100 transform active:scale-95">
           @if (isProcessing()) {
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             Procesando...
           } @else {
-            Confirmar S/ {{ cobro()?.monto }}
+            Confirmar Cobro
           }
         </button>
       </div>

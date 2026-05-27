@@ -315,12 +315,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (id) {
       this.turnosService.actualizarTurno(id, { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: metodo });
       
-      // SOLUCIÓN AL PROBLEMA DE TU CAPTURA (LIBERAR BARBERO)
+      // SOLUCIÓN: LIBERAR BARBERO Y REINICIAR SU RELOJ A LA HORA ACTUAL
       const turno = this.ultimosMovimientos().find(t => t.id === id);
       if (turno && turno.barbero) {
         const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
         if (barberoObj) {
-          this.staffService.actualizarEmpleado(barberoObj.id, { estado_asistencia: 'disponible' });
+          this.staffService.actualizarEmpleado(barberoObj.id, { 
+            estado_asistencia: 'disponible',
+            ultima_vez_disponible: new Date().toISOString() // <-- ¡Esta es la línea mágica que faltaba!
+          });
         }
       }
 

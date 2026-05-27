@@ -318,12 +318,15 @@ export class CobrosComponent implements OnInit, OnDestroy {
 
     this.turnosService.actualizarTurno(Number(formVals.turnoId), { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: formaPagoFinal });
     
-    // SOLUCIÓN AL PROBLEMA DE TU CAPTURA (LIBERAR BARBERO)
+    // SOLUCIÓN: LIBERAR BARBERO Y REINICIAR SU RELOJ A LA HORA ACTUAL
     const turno = this.turnosParaCobrar().find(t => t.id === Number(formVals.turnoId));
     if (turno && turno.barbero) {
       const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
       if (barberoObj) {
-        this.staffService.actualizarEmpleado(barberoObj.id, { estado_asistencia: 'disponible' });
+        this.staffService.actualizarEmpleado(barberoObj.id, { 
+          estado_asistencia: 'disponible',
+          ultima_vez_disponible: new Date().toISOString() // <-- ¡Esta es la línea mágica que faltaba!
+        });
       }
     }
 

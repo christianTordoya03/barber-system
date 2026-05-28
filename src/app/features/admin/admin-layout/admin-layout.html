@@ -1,53 +1,90 @@
-<div class="h-screen flex bg-zinc-50 dark:bg-black text-zinc-900 dark:text-white overflow-hidden font-sans selection:bg-blue-500 selection:text-white transition-colors duration-300">
-  
+<div
+  class="h-screen flex bg-zinc-50 dark:bg-black text-zinc-900 dark:text-white overflow-hidden font-sans selection:bg-blue-500 selection:text-white transition-colors duration-300">
+
   <!-- ============================================== -->
   <!-- SIDEBAR DE ESCRITORIO (Se mantiene intacto)    -->
   <!-- ============================================== -->
-  <aside class="hidden md:flex flex-col w-64 bg-white dark:bg-[#111111] border-r border-zinc-200 dark:border-zinc-800 relative transition-colors duration-300">
+  <aside
+    class="hidden md:flex flex-col w-64 bg-white dark:bg-[#111111] border-r border-zinc-200 dark:border-zinc-800 relative transition-colors duration-300">
     <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-gray-200 to-blue-600"></div>
     <div class="h-20 flex items-center px-6 border-b border-zinc-200 dark:border-zinc-800 mt-1">
-      <img class="h-10 w-auto mr-3 object-contain invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten transition-all duration-300" src="logo-marina305.png" alt="Logo">
+      <img
+        class="h-10 w-auto mr-3 object-contain invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten transition-all duration-300"
+        src="logo-marina305.png" alt="Logo">
       <span class="font-bold text-lg tracking-wide text-zinc-900 dark:text-white">MARINA 305</span>
     </div>
-    
+
     <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-      <a routerLink="/admin/dashboard" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      <a routerLink="/admin/dashboard" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+        class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
         Dashboard
       </a>
 
-      <a routerLink="/admin/agenda" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <a routerLink="/admin/agenda" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+        class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
         Revisar Reservas y Turnos
       </a>
-
-      <a routerLink="/admin/staff" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      @if (esAdmin()) {
+      <a routerLink="/admin/staff" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+        class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
         Empleados
-      </a>
-      <a routerLink="/admin/cobros" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </a>}
+      <a routerLink="/admin/cobros" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+        class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
         Cobros
       </a>
-      <a routerLink="/admin/gastos" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z"/></svg>
+      <a routerLink="/admin/gastos" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+        class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z" />
+        </svg>
         Gastos y Pagos
       </a>
-      
+
       <div class="mt-8 mb-4 px-4">
-        <p class="text-[11px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">Gestionar los Servicios</p>
+        <p class="text-[11px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">Gestionar los
+          Servicios</p>
       </div>
       <div class="space-y-1">
-        <a routerLink="/admin/realizar-servicio" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <a routerLink="/admin/realizar-servicio"
+          routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+          class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
           Realizar un Servicio
         </a>
-        <a routerLink="/admin/categorias" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <a routerLink="/admin/categorias" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+          class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          </svg>
           Categorías de Servicios
         </a>
-        <a routerLink="/admin/servicios" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+        <a routerLink="/admin/servicios" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+          class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+          </svg>
           Servicios
         </a>
       </div>
@@ -56,31 +93,48 @@
         <p class="text-[11px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">Reportes</p>
       </div>
       <div class="space-y-1">
-        <a routerLink="/admin/lista-empleado" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        @if (esAdmin()) {
+        <a routerLink="/admin/lista-empleado"
+          routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+          class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          </svg>
           Lista por empleado
-        </a>
-        <a routerLink="/admin/reportes" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
-          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </a>}
+        @if (esAdmin()) {
+        <a routerLink="/admin/reportes" routerLinkActive="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+          class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all">
+          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
           Reporte Diario y Mensual
-        </a>
+        </a>}
       </div>
     </nav>
     <div class="p-4 border-t border-zinc-200 dark:border-zinc-800">
-      <button (click)="confirmarLogout()" class="flex items-center w-full px-4 py-3 text-sm font-medium rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all">
-        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      <button (click)="confirmarLogout()"
+        class="flex items-center w-full px-4 py-3 text-sm font-medium rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all">
+        <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
         Cerrar Sesión
       </button>
     </div>
   </aside>
 
   <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-    
+
     <!-- Header Móvil Limpio -->
-    <header class="md:hidden flex items-center justify-center px-4 h-16 bg-white dark:bg-[#111111] border-b border-zinc-200 dark:border-zinc-800 shrink-0 relative transition-colors duration-300">
+    <header
+      class="md:hidden flex items-center justify-center px-4 h-16 bg-white dark:bg-[#111111] border-b border-zinc-200 dark:border-zinc-800 shrink-0 relative transition-colors duration-300">
       <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-gray-200 to-blue-600"></div>
       <div class="flex items-center mt-1">
-        <img class="h-8 w-auto mr-2 invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten transition-all duration-300" src="logo-marina305.png" alt="Logo">
+        <img
+          class="h-8 w-auto mr-2 invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten transition-all duration-300"
+          src="logo-marina305.png" alt="Logo">
         <span class="font-bold text-base tracking-wide text-zinc-900 dark:text-white">MARINA 305</span>
       </div>
     </header>
@@ -92,101 +146,149 @@
     <!-- ============================================== -->
     <!-- BARRA INFERIOR MÓVIL (Bottom Nav de 5 ítems)   -->
     <!-- ============================================== -->
-    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-[#111111]/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center h-16 px-4 pb-safe z-40">
-      
-      <a routerLink="/admin/dashboard" routerLinkActive="text-zinc-900 dark:text-white" class="flex flex-col items-center justify-center w-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
-        <svg class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    <nav
+      class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-[#111111]/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center h-16 px-4 pb-safe z-40">
+
+      <a routerLink="/admin/dashboard" routerLinkActive="text-zinc-900 dark:text-white"
+        class="flex flex-col items-center justify-center w-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+        <svg class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
         <span class="text-[10px] font-medium">Inicio</span>
       </a>
-      
-      <a routerLink="/admin/cobros" routerLinkActive="text-zinc-900 dark:text-white" class="flex flex-col items-center justify-center w-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
-        <svg class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+
+      <a routerLink="/admin/cobros" routerLinkActive="text-zinc-900 dark:text-white"
+        class="flex flex-col items-center justify-center w-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+        <svg class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
         <span class="text-[10px] font-medium">Cobros</span>
       </a>
-      
+
       <!-- Botón Flotante Central -->
       <div class="relative w-full flex justify-center">
-        <a routerLink="/admin/realizar-servicio" class="absolute -top-10 bg-gradient-to-tr from-blue-600 to-blue-400 text-white h-14 w-14 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 border-4 border-white dark:border-[#111111] hover:scale-105 transition-transform">
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <a routerLink="/admin/realizar-servicio"
+          class="absolute -top-10 bg-gradient-to-tr from-blue-600 to-blue-400 text-white h-14 w-14 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 border-4 border-white dark:border-[#111111] hover:scale-105 transition-transform">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
         </a>
       </div>
-      
-      <a routerLink="/admin/gastos" routerLinkActive="text-zinc-900 dark:text-white" class="flex flex-col items-center justify-center w-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
-        <svg class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z"/></svg>
+
+      <a routerLink="/admin/gastos" routerLinkActive="text-zinc-900 dark:text-white"
+        class="flex flex-col items-center justify-center w-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+        <svg class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z" />
+        </svg>
         <span class="text-[10px] font-medium">Gastos</span>
       </a>
-      
+
       <!-- Botón "Más" (Abre el Menú Bottom Sheet) -->
-      <button (click)="isMobileMenuOpen.set(true)" class="flex flex-col items-center justify-center w-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
-        <svg class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <button (click)="isMobileMenuOpen.set(true)"
+        class="flex flex-col items-center justify-center w-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+        <svg class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
         <span class="text-[10px] font-medium">Más</span>
       </button>
 
     </nav>
   </main>
-  
+
   <!-- ============================================== -->
   <!-- MENÚ MÓVIL DESLIZANTE (BOTTOM SHEET)           -->
   <!-- ============================================== -->
   @if (isMobileMenuOpen()) {
-    <div class="md:hidden fixed inset-0 z-[100] flex flex-col justify-end">
-      <!-- Fondo oscuro -->
-      <div class="absolute inset-0 bg-zinc-900/60 dark:bg-black/80 backdrop-blur-sm transition-opacity animate-fade-in" (click)="isMobileMenuOpen.set(false)"></div>
-      
-      <!-- Panel que sube -->
-      <div class="relative bg-white dark:bg-[#111111] rounded-t-3xl w-full pb-safe border-t border-zinc-200 dark:border-zinc-800 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] animate-fade-in-up">
-        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-gray-200 to-blue-600 rounded-t-3xl"></div>
-        
-        <!-- Barra superior indicadora de arrastre -->
-        <div class="w-full flex justify-center pt-3 pb-1" (click)="isMobileMenuOpen.set(false)">
-          <div class="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full"></div>
+  <div class="md:hidden fixed inset-0 z-[100] flex flex-col justify-end">
+    <!-- Fondo oscuro -->
+    <div class="absolute inset-0 bg-zinc-900/60 dark:bg-black/80 backdrop-blur-sm transition-opacity animate-fade-in"
+      (click)="isMobileMenuOpen.set(false)"></div>
+
+    <!-- Panel que sube -->
+    <div
+      class="relative bg-white dark:bg-[#111111] rounded-t-3xl w-full pb-safe border-t border-zinc-200 dark:border-zinc-800 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] animate-fade-in-up">
+      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-gray-200 to-blue-600 rounded-t-3xl">
+      </div>
+
+      <!-- Barra superior indicadora de arrastre -->
+      <div class="w-full flex justify-center pt-3 pb-1" (click)="isMobileMenuOpen.set(false)">
+        <div class="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full"></div>
+      </div>
+
+      <div class="p-6 pt-2 overflow-y-auto max-h-[80vh]">
+        <h3 class="text-lg font-bold text-zinc-900 dark:text-white mb-4">Más Opciones</h3>
+
+        <div class="space-y-2">
+          <a routerLink="/admin/servicios" (click)="isMobileMenuOpen.set(false)"
+            class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
+            <svg class="h-5 w-5 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+            </svg>
+            Catálogo de Servicios
+          </a>
+          <a routerLink="/admin/categorias" (click)="isMobileMenuOpen.set(false)"
+            class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
+            <svg class="h-5 w-5 mr-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            Categorías de Servicios
+          </a>
+          @if (esAdmin()) {
+          <a routerLink="/admin/staff" (click)="isMobileMenuOpen.set(false)"
+            class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
+            <svg class="h-5 w-5 mr-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Personal y Empleados
+          </a>}
+          @if (esAdmin()) {
+          <a routerLink="/admin/lista-empleado" (click)="isMobileMenuOpen.set(false)"
+            class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
+            <svg class="h-5 w-5 mr-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Lista por empleado
+          </a>}
+          @if (esAdmin()) {
+          <a routerLink="/admin/reportes" (click)="isMobileMenuOpen.set(false)"
+            class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
+            <svg class="h-5 w-5 mr-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Reporte General Financiero
+          </a>}
+          <a routerLink="/admin/agenda" (click)="isMobileMenuOpen.set(false)"
+            class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
+            <svg class="h-5 w-5 mr-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Revisar Reservas y Turnos
+          </a>
         </div>
 
-        <div class="p-6 pt-2 overflow-y-auto max-h-[80vh]">
-          <h3 class="text-lg font-bold text-zinc-900 dark:text-white mb-4">Más Opciones</h3>
-          
-          <div class="space-y-2">
-            <a routerLink="/admin/servicios" (click)="isMobileMenuOpen.set(false)" class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
-              <svg class="h-5 w-5 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg> 
-              Catálogo de Servicios
-            </a>
-            <a routerLink="/admin/categorias" (click)="isMobileMenuOpen.set(false)" class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
-              <svg class="h-5 w-5 mr-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg> 
-              Categorías de Servicios
-            </a>
-            <a routerLink="/admin/staff" (click)="isMobileMenuOpen.set(false)" class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
-              <svg class="h-5 w-5 mr-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg> 
-              Personal y Empleados
-            </a>
-            <a routerLink="/admin/lista-empleado" (click)="isMobileMenuOpen.set(false)" class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
-              <svg class="h-5 w-5 mr-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg> 
-              Lista por empleado
-            </a>
-            <a routerLink="/admin/reportes" (click)="isMobileMenuOpen.set(false)" class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
-              <svg class="h-5 w-5 mr-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> 
-              Reporte General Financiero
-            </a>
-            <a routerLink="/admin/agenda" (click)="isMobileMenuOpen.set(false)" class="flex items-center px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium active:scale-95 transition-transform">
-              <svg class="h-5 w-5 mr-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-               Revisar Reservas y Turnos
-            </a>
-          </div>
-
-          <button (click)="confirmarLogout()" class="mt-6 w-full flex items-center justify-center py-3.5 text-red-600 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-xl font-bold active:scale-95 transition-all">
-             <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-             Cerrar Sesión
-          </button>
-        </div>
+        <button (click)="confirmarLogout()"
+          class="mt-6 w-full flex items-center justify-center py-3.5 text-red-600 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-xl font-bold active:scale-95 transition-all">
+          <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Cerrar Sesión
+        </button>
       </div>
     </div>
+  </div>
   }
-  <app-modal-confirm 
-  [isOpen]="confirmConfig().isOpen" 
-  [title]="confirmConfig().title" 
-  [message]="confirmConfig().message" 
-  [type]="confirmConfig().type" 
-  [confirmText]="confirmConfig().confirmText" 
-  (onConfirm)="confirmConfig().action()" 
-  (onCancel)="cerrarConfirmacion()">
-</app-modal-confirm>
+  <app-modal-confirm [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title"
+    [message]="confirmConfig().message" [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText"
+    (onConfirm)="confirmConfig().action()" (onCancel)="cerrarConfirmacion()">
+  </app-modal-confirm>
 </div>

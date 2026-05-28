@@ -5,6 +5,7 @@ import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-co
 import { ToastService } from '../../../core/services/toast';
 import { StaffService } from '../../../core/services/staff';
 import { GastosService } from '../../../core/services/gastos';
+import { SupabaseService } from '../../../core/supabase/supabase'; // <-- INYECTADO
 import { Empleado } from '../../../core/models/marina';
 
 @Component({
@@ -18,6 +19,7 @@ export class StaffComponent {
   private toastService = inject(ToastService);
   private staffService = inject(StaffService);
   private gastosService = inject(GastosService);
+  private supabase = inject(SupabaseService); // <-- INYECTADO
 
   miembrosStaff = this.staffService.empleados;
 
@@ -35,20 +37,26 @@ export class StaffComponent {
 
   confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger'|'info', confirmText: '', action: () => {} });
 
-  // 1. ELIMINAMOS LA CONTRASEÑA DE AQUÍ PARA QUE NO LA PIDA
   staffForm = this.fb.nonNullable.group({
     nombre: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     telefono: [''],
     rol: ['barbero', Validators.required],
-    comision: [50, [Validators.required, Validators.min(0), Validators.max(100)]]
+    comision: [50, [Validators.required, Validators.min(0), Validators.max(100)]],
+    password: [''] // <-- NUEVO CAMPO AÑADIDO
   });
 
   constructor() {
     this.staffForm.get('rol')?.valueChanges.subscribe(rol => {
       const comisionCtrl = this.staffForm.get('comision');
-      if (rol === 'admin') { comisionCtrl?.disable(); comisionCtrl?.setValue(0); }
-       else { comisionCtrl?.enable(); if (comisionCtrl?.value === 0) comisionCtrl?.setValue(50); }
+      // Admin y Recepción no ganan por corte
+      if (rol === 'admin' || rol === 'recepcion') { 
+        comisionCtrl?.disable(); 
+        comisionCtrl?.setValue(0); 
+      } else { 
+        comisionCtrl?.enable(); 
+        if (comisionCtrl?.value === 0) comisionCtrl?.setValue(50); 
+      }
     });
   }
 
@@ -74,9 +82,12 @@ export class StaffComponent {
     this.miembroActualId.set(null);
     this.avatarFile.set(null);
     this.avatarPreview.set(null);
-
-    // 2. LIMPIAMOS LA LÓGICA DE VALIDACIÓN DE LA CONTRASEÑA
-    this.staffForm.reset({ nombre: '', email: '', telefono: '', rol: 'barbero', comision: 50 });
+    
+    // Reseteamos incluyendo contraseña obligatoria
+    this.staffForm.reset({ nombre: '', email: '', telefono: '', rol: 'barbero', comision: 50, password: '' });
+    this.staffForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+    this.staffForm.get('password')?.updateValueAndValidity();
+    
     this.staffForm.get('comision')?.enable();
     this.isModalOpen.set(true);
   }
@@ -87,29 +98,32 @@ export class StaffComponent {
     this.avatarFile.set(null);
     this.avatarPreview.set(miembro.avatar_url || null);
 
+    // Al editar, quitamos la validación de contraseña
+    this.staffForm.get('password')?.clearValidators();
+    this.staffForm.get('password')?.updateValueAndValidity();
+
     this.staffForm.patchValue({
       nombre: miembro.nombre,
       email: miembro.email,
       telefono: miembro.telefono || '',
       rol: miembro.rol,
-      comision: miembro.comision || 0
+      comision: miembro.comision || 0,
+      password: ''
     });
 
-    if (miembro.rol === 'admin') this.staffForm.get('comision')?.disable();
+    if (miembro.rol === 'admin' || miembro.rol === 'recepcion') this.staffForm.get('comision')?.disable();
     else this.staffForm.get('comision')?.enable();
 
     this.isModalOpen.set(true);
   }
 
-  cerrarModal() {
-     this.isModalOpen.set(false);
-     this.isUploading.set(false);
+  cerrarModal() { 
+    this.isModalOpen.set(false); 
+    this.isUploading.set(false); 
   }
 
   async guardarMiembro() {
-    // Si el formulario es inválido, detiene el proceso
     if (this.staffForm.invalid) { this.staffForm.markAllAsTouched(); return; }
-
     this.isUploading.set(true);
 
     const formValues = this.staffForm.getRawValue() as any;
@@ -121,8 +135,11 @@ export class StaffComponent {
     }
 
     const dataAguardar = {
-      ...formValues,
-      comision: formValues.rol === 'admin' ? null : formValues.comision,
+      nombre: formValues.nombre,
+      email: formValues.email,
+      telefono: formValues.telefono,
+      rol: formValues.rol,
+      comision: formValues.rol === 'admin' || formValues.rol === 'recepcion' ? null : formValues.comision,
       avatar_url: finalAvatarUrl
     };
 
@@ -130,12 +147,28 @@ export class StaffComponent {
       const id = this.miembroActualId();
       if (id) {
         await this.staffService.actualizarEmpleado(id, dataAguardar);
-        this.toastService.show('Personal actualizado en la nube');
+        this.toastService.show('Personal actualizado correctamente');
       }
     } else {
+      // NUEVO: CREAR LA CUENTA REAL EN SUPABASE AUTH
+      const { error } = await this.supabase.client.auth.signUp({
+        email: formValues.email,
+        password: formValues.password,
+        options: {
+          data: { full_name: formValues.nombre, telefono: formValues.telefono }
+        }
+      });
+
+      if (error) {
+        this.toastService.show('Error al registrar credenciales: ' + error.message, 'error');
+        this.isUploading.set(false);
+        return;
+      }
+
+      // Si se crea en Auth, lo guardamos en la tabla empleados
       const nuevo: Empleado = { id: Date.now(), ...dataAguardar, activo: true };
       await this.staffService.agregarEmpleado(nuevo);
-      this.toastService.show('Personal registrado en la nube');
+      this.toastService.show(`Registrado. Clave: ${formValues.password}`);
     }
 
     this.cerrarModal();
@@ -146,7 +179,7 @@ export class StaffComponent {
     this.confirmConfig.set({
       isOpen: true,
       title: estadoActual ? 'Desactivar Acceso' : 'Reactivar Acceso',
-      message: `¿Estás seguro de ${accion} el acceso de "${nombre}"?`,
+      message: `¿Es seguro de ${accion} el acceso de "${nombre}"?`,
       type: estadoActual ? 'danger' : 'info',
       confirmText: estadoActual ? 'Desactivar' : 'Reactivar',
       action: () => {

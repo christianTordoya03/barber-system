@@ -8,6 +8,7 @@ import { TurnosService } from '../../../core/services/turnos';
 import { ToastService } from '../../../core/services/toast';
 import { StaffService } from '../../../core/services/staff';
 import { CatalogoService } from '../../../core/services/catalogo';
+import { SupabaseService } from '../../../core/supabase/supabase';
 
 @Component({
   selector: 'app-cobros',
@@ -21,9 +22,11 @@ export class CobrosComponent implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private staffService = inject(StaffService);
   private catalogoService = inject(CatalogoService);
+  private supabase = inject(SupabaseService);
 
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
+  esAdmin = signal<boolean>(false);
 
   hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
 
@@ -35,7 +38,7 @@ export class CobrosComponent implements OnInit, OnDestroy {
   now = signal(Date.now());
   intervalId: any;
 
-  ngOnInit() {
+  async ngOnInit() {
     this.intervalId = setInterval(() => {
       this.now.set(Date.now());
       const fechaActualReal = this.formatDateToDDMMYYYY(new Date());
@@ -43,6 +46,16 @@ export class CobrosComponent implements OnInit, OnDestroy {
         this.hoyStr.set(fechaActualReal);
       }
     }, 10000);
+
+    const { data: { user } } = await this.supabase.client.auth.getUser();
+    if (user) {
+      const { data } = await this.supabase.client
+        .from('empleados')
+        .select('rol')
+        .eq('email', user.email)
+        .maybeSingle();
+      this.esAdmin.set(data?.rol?.toLowerCase() === 'admin');
+    }
   }
 
   ngOnDestroy() {
@@ -382,15 +395,37 @@ export class CobrosComponent implements OnInit, OnDestroy {
   }
 
   anularCobro(id: number) {
-    const turno = this.turnosLista().find(t => t.id === id);
-    const esPendiente = turno?.estado === 'pending' || turno?.estado === 'in_progress' || turno?.estado === 'finished';
+    // Asegúrate de usar el arreglo correcto de turnos que tengas en cobros.ts (turnosLista o similar)
+    const turno = this.turnosService.turnos().find(t => t.id === id);
+    
+    // BLOQUEO ANTIFUGA
+    if (turno && (turno.estado === 'in_progress' || turno.estado === 'finished') && !this.esAdmin()) {
+      this.toastService.show('Seguridad: Solo el administrador puede cancelar un servicio en curso.', 'error');
+      return;
+    }
+
+    const esPendiente = turno?.estado === 'pending' || turno?.estado === 'in_progress';
+    
     this.confirmConfig.set({
       isOpen: true,
       title: esPendiente ? 'Cancelar Turno' : 'Anular Cobro',
-      message: esPendiente ? '¿Es seguro de cancelar este servicio?' : '¿Es seguro de anular este registro? Se restará de la caja.',
-      type: 'danger', confirmText: esPendiente ? 'Sí, Cancelar' : 'Sí, Anular',
+      message: esPendiente ? '¿Es seguro de cancelar este servicio?' : '¿Es seguro de anular este registro?',
+      type: 'danger', 
+      confirmText: esPendiente ? 'Sí, Cancelar' : 'Sí, Anular',
       action: () => {
         this.turnosService.actualizarTurno(id, { estado: 'annulled' });
+        
+        // Liberar al barbero y reiniciar reloj si estaba en curso/terminado
+        if (turno && turno.barbero && (turno.estado === 'in_progress' || turno.estado === 'finished')) {
+          const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
+          if (barberoObj) {
+            this.staffService.actualizarEmpleado(barberoObj.id, { 
+              estado_asistencia: 'disponible',
+              ultima_vez_disponible: new Date().toISOString()
+            });
+          }
+        }
+        
         this.toastService.show(esPendiente ? 'Turno cancelado exitosamente' : 'Cobro anulado exitosamente');
         this.cerrarConfirmacion();
       }

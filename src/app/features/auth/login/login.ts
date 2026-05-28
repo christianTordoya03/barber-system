@@ -56,7 +56,7 @@ export class LoginComponent {
       // NORMALIZAR ROL PARA EVITAR ERRORES DE MAYÚSCULAS/MINÚSCULAS
       const rolNormalizado = empleado?.rol?.toLowerCase();
 
-      if (rolNormalizado === 'admin') {
+      if (rolNormalizado === 'admin' || rolNormalizado === 'recepcion') {
         this.router.navigate(['/admin/dashboard']);
       } else if (rolNormalizado === 'barbero') {
         this.router.navigate(['/barbero/dashboard']);

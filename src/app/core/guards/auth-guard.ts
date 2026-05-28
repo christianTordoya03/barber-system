@@ -25,7 +25,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
   const urlDestino = state.url;
 
   // Bloquear accesos cruzados (Barbero queriendo entrar a Admin y viceversa)
-  if (urlDestino.includes('/admin') && rol !== 'admin') {
+  if (urlDestino.includes('/admin') && rol !== 'admin' && rol !== 'recepcion') {
     router.navigate(['/login']); 
     return false;
   }

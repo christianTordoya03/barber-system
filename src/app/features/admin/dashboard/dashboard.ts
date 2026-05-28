@@ -11,6 +11,7 @@ import { ToastService } from '../../../core/services/toast';
 import { StaffService } from '../../../core/services/staff';
 import { CatalogoService } from '../../../core/services/catalogo';
 import { OrdenAtencionComponent } from '../../../shared/ui/orden-atencion/orden-atencion';
+import { SupabaseService } from '../../../core/supabase/supabase';
 
 @Component({
   selector: 'app-dashboard',
@@ -24,12 +25,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private staffService = inject(StaffService);
   private catalogoService = inject(CatalogoService);
+  private supabase = inject(SupabaseService);
 
   now = signal(Date.now());
   intervalId: any;
 
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
+  esAdmin = signal<boolean>(false);
 
   hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
 
@@ -38,7 +41,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   currentPage = signal<number>(1);
   pageSize = 10; 
 
-  ngOnInit() {
+  async ngOnInit() {
     this.intervalId = setInterval(() => {
       this.now.set(Date.now());
       const fechaActualReal = this.formatDateToDDMMYYYY(new Date());
@@ -47,6 +50,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.staffService.cargarEmpleados();
       }
     }, 10000);
+
+    const { data: { user } } = await this.supabase.client.auth.getUser();
+    if (user) {
+      const { data } = await this.supabase.client.from('empleados').select('rol').eq('email', user.email).maybeSingle();
+      this.esAdmin.set(data?.rol?.toLowerCase() === 'admin');
+    }
   }
 
   ngOnDestroy() {
@@ -135,7 +144,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ultimosMovimientos = computed(() => {
     const hoyVal = this.getValorFecha(this.hoyStr());
     const filtrados = this.turnosService.turnos().filter(t => {
-      if (t.estado === 'annulled') return false; 
+      // if (t.estado === 'annulled') return false; 
 
       const turnoVal = this.getValorFecha(t.fecha);
       if (turnoVal > hoyVal) return false; 
@@ -147,7 +156,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (estado === 'finished') return 1;    
       if (estado === 'in_progress') return 2; 
       if (estado === 'pending') return 3;     
-      if (estado === 'completed') return 4;   
+      if (estado === 'completed') return 4;
+      if (estado === 'annulled') return 5;   
       return 5;
     };
 
@@ -341,6 +351,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   abrirModalEditar(id: number) {
     const mov = this.ultimosMovimientos().find(m => m.id === id);
+    const turno = this.turnosService.turnos().find(t => t.id === id);
+    if (turno && turno.estado === 'completed' && !this.esAdmin()) {
+      this.toastService.show('Seguridad: Acción denegada. El ticket ya fue cobrado y está cerrado.', 'error');
+      return;
+    }
     if (mov) {
       if (mov.estado === 'pending' || mov.estado === 'in_progress' || mov.estado === 'finished') {
         this.editPendienteForm.patchValue({ id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto }, { emitEvent: false });
@@ -369,22 +384,48 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   anularCobro(id: number) {
-    const turno = this.ultimosMovimientos().find(t => t.id === id);
-    const esPendiente = turno?.estado === 'pending' || turno?.estado === 'in_progress' || turno?.estado === 'finished';
+    const turno = this.turnosService.turnos().find(t => t.id === id);
+
+    // 1. EL CANDADO PERFECTO: Cubre En Curso, Por Cobrar y COMPLETADO (Pagado)
+    if (turno && (turno.estado === 'in_progress' || turno.estado === 'finished' || turno.estado === 'completed') && !this.esAdmin()) {
+      this.toastService.show('Seguridad: Acción denegada. Solo el Administrador puede anular operaciones iniciadas o cobradas.', 'error');
+      return;
+    }
+
+    const esPendiente = turno?.estado === 'pending' || turno?.estado === 'in_progress';
+
     this.confirmConfig.set({
       isOpen: true,
       title: esPendiente ? 'Cancelar Turno' : 'Anular Cobro',
-      message: esPendiente ? '¿Es seguro de cancelar este servicio en curso?' : '¿Es seguro de anular este registro? Se restará de tu caja.',
-      type: 'danger', confirmText: esPendiente ? 'Sí, Cancelar' : 'Sí, Anular',
+      message: esPendiente ? '¿Es seguro de cancelar este servicio?' : '¿Es seguro de anular este ingreso de caja?',
+      type: 'danger', 
+      confirmText: esPendiente ? 'Sí, Cancelar' : 'Sí, Anular',
       action: () => {
+        // Cancelamos el turno en la base de datos
         this.turnosService.actualizarTurno(id, { estado: 'annulled' });
-        this.toastService.show(esPendiente ? 'Turno cancelado exitosamente' : 'Cobro anulado exitosamente');
+        
+        // 2. LIBERAR BARBERO Y ACTUALIZAR RELOJ (Si estaba en curso o por cobrar)
+        if (turno && turno.barbero && (turno.estado === 'in_progress' || turno.estado === 'finished')) {
+          const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
+          if (barberoObj) {
+            this.staffService.actualizarEmpleado(barberoObj.id, { 
+              estado_asistencia: 'disponible',
+              ultima_vez_disponible: new Date().toISOString()
+            });
+          }
+        }
+        
+        this.toastService.show('Acción completada correctamente');
         this.cerrarConfirmacion();
       }
     });
   }
 
   restaurarCobro(id: number) {
+    if (!this.esAdmin()) {
+      this.toastService.show('Seguridad: Solo el administrador puede restaurar registros anulados.', 'error');
+      return;
+    }
     this.confirmConfig.set({
       isOpen: true, title: 'Restaurar Cobro', message: '¿Deseas deshacer la anulación y devolver el registro a la caja?', type: 'info', confirmText: 'Sí, Restaurar',
       action: () => {

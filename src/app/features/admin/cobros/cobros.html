@@ -44,53 +44,58 @@
           <div class="flex justify-between items-center mb-2">
             <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400">Forma de pago</label>
             <label class="flex items-center space-x-2 text-xs text-blue-600 dark:text-blue-400 cursor-pointer">
-              <input type="checkbox" formControlName="esPagoMixto" class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500 bg-transparent">
+              <input type="checkbox" formControlName="esPagoMixto"
+                class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500 bg-transparent">
               <span class="font-bold">Pago Dividido</span>
             </label>
           </div>
-          
-          @if (!cobroForm.get('esPagoMixto')?.value) {
-            <select formControlName="formaPago"
-              class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors cursor-pointer appearance-none">
-              <option value="" disabled selected>Seleccione...</option>
-              <option value="Efectivo">Efectivo</option>
-              <option value="Tarjeta">Tarjeta</option>
-              <option value="Yape">Yape</option>
-              <option value="Yape JK">Yape JK</option>
-              <option value="Transferencia">Transferencia</option>
-            </select>
-          } @else {
-            <div class="space-y-3">
-              <div class="flex gap-2">
-                <select formControlName="formaPago" class="block w-1/2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 px-3 text-zinc-900 dark:text-white sm:text-sm appearance-none">
-                  <option value="" disabled selected>Método 1</option>
-                  <option value="Efectivo">Efectivo</option>
-                  <option value="Tarjeta">Tarjeta</option>
-                  <option value="Yape">Yape</option>
-                  <option value="Yape JK">Yape JK</option>
-                  <option value="Transferencia">Transferencia</option>
-                </select>
-                <div class="relative w-1/2">
-                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500 font-bold">S/</span>
-                  <input type="number" formControlName="montoPago1" placeholder="0.00" class="block w-full pl-8 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 text-zinc-900 dark:text-white sm:text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-              </div>
 
-              <div class="flex gap-2">
-                <select formControlName="formaPago2" class="block w-1/2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 px-3 text-zinc-900 dark:text-white sm:text-sm appearance-none">
-                  <option value="" disabled selected>Método 2</option>
-                  <option value="Efectivo">Efectivo</option>
-                  <option value="Tarjeta">Tarjeta</option>
-                  <option value="Yape">Yape</option>
-                  <option value="Yape JK">Yape JK</option>
-                  <option value="Transferencia">Transferencia</option>
-                </select>
-                <div class="relative w-1/2">
-                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500 font-bold">S/</span>
-                  <input type="text" [value]="getMontoRestante() | number:'1.2-2'" disabled class="block w-full pl-8 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50 py-2.5 text-zinc-500 sm:text-sm cursor-not-allowed font-bold">
-                </div>
+          @if (!cobroForm.get('esPagoMixto')?.value) {
+          <select formControlName="formaPago"
+            class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors cursor-pointer appearance-none">
+            <option value="" disabled selected>Seleccione...</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Tarjeta">Tarjeta</option>
+            <option value="Yape">Yape</option>
+            <option value="Yape JK">Yape JK</option>
+            <option value="Transferencia">Transferencia</option>
+          </select>
+          } @else {
+          <div class="space-y-3">
+            <div class="flex gap-2">
+              <select formControlName="formaPago"
+                class="block w-1/2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 px-3 text-zinc-900 dark:text-white sm:text-sm appearance-none">
+                <option value="" disabled selected>Método 1</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Yape">Yape</option>
+                <option value="Yape JK">Yape JK</option>
+                <option value="Transferencia">Transferencia</option>
+              </select>
+              <div class="relative w-1/2">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500 font-bold">S/</span>
+                <input type="number" formControlName="montoPago1" placeholder="0.00"
+                  class="block w-full pl-8 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 text-zinc-900 dark:text-white sm:text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none">
               </div>
             </div>
+
+            <div class="flex gap-2">
+              <select formControlName="formaPago2"
+                class="block w-1/2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 px-3 text-zinc-900 dark:text-white sm:text-sm appearance-none">
+                <option value="" disabled selected>Método 2</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Yape">Yape</option>
+                <option value="Yape JK">Yape JK</option>
+                <option value="Transferencia">Transferencia</option>
+              </select>
+              <div class="relative w-1/2">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500 font-bold">S/</span>
+                <input type="text" [value]="getMontoRestante() | number:'1.2-2'" disabled
+                  class="block w-full pl-8 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50 py-2.5 text-zinc-500 sm:text-sm cursor-not-allowed font-bold">
+              </div>
+            </div>
+          </div>
           }
         </div>
 
@@ -122,19 +127,27 @@
     </form>
   </div>
 
-  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm relative transition-colors duration-300">
-    <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col sm:flex-row gap-3">
+  <div
+    class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm relative transition-colors duration-300">
+    <div
+      class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col sm:flex-row gap-3">
       <div class="w-full sm:w-1/3 md:max-w-xs">
-        <select [value]="searchBarbero()" (change)="onSearchBarbero($event)" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#151515] py-2 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer transition-colors appearance-none">
+        <select [value]="searchBarbero()" (change)="onSearchBarbero($event)"
+          class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#151515] py-2 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer transition-colors appearance-none">
           <option value="">-- Todos los barberos --</option>
           @for (b of barberos(); track b.id) { <option [value]="b.nombre">{{ b.nombre }}</option> }
         </select>
       </div>
       <div class="relative w-full sm:w-2/3 md:max-w-xs">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <svg class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </div>
-        <input type="text" [value]="searchTerm()" (input)="onSearchChange($event)" placeholder="Buscar cliente, servicio..." class="block w-full pl-10 pr-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-[#151515] text-zinc-900 dark:text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors shadow-sm">
+        <input type="text" [value]="searchTerm()" (input)="onSearchChange($event)"
+          placeholder="Buscar cliente, servicio..."
+          class="block w-full pl-10 pr-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-[#151515] text-zinc-900 dark:text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors shadow-sm">
       </div>
     </div>
     <div class="overflow-x-auto">
@@ -151,10 +164,12 @@
         </thead>
         <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50 bg-white dark:bg-[#111111]">
           @for (cobro of paginatedTurnos(); track cobro.id) {
-          <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors" [ngClass]="{'opacity-60 grayscale-[50%]': cobro.estado === 'annulled'}">
+          <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors"
+            [ngClass]="{'opacity-60 grayscale-[50%]': cobro.estado === 'annulled'}">
             <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400 font-medium">{{ cobro.fecha }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400">{{ cobro.barbero }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400" [class.line-through]="cobro.estado === 'annulled'">
+            <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400"
+              [class.line-through]="cobro.estado === 'annulled'">
               <div class="flex flex-col">
                 <div>
                   <span class="uppercase font-bold">{{ cobro.servicio }}</span>
@@ -163,51 +178,101 @@
                 @if (cobro.estado === 'in_progress') {
                 <div class="mt-2.5 w-full max-w-[220px]">
                   <div class="flex justify-between items-center mb-1">
-                    <span class="text-[10px] font-bold" [ngClass]="calcularProgreso(cobro) >= 100 ? 'text-red-500' : 'text-zinc-500'">{{ getTiempoRestante(cobro) }}</span>
-                    <span class="text-[10px] text-zinc-400 font-bold">{{ calcularProgreso(cobro) | number:'1.0-0' }}%</span>
+                    <span class="text-[10px] font-bold"
+                      [ngClass]="calcularProgreso(cobro) >= 100 ? 'text-red-500' : 'text-zinc-500'">{{
+                      getTiempoRestante(cobro) }}</span>
+                    <span class="text-[10px] text-zinc-400 font-bold">{{ calcularProgreso(cobro) | number:'1.0-0'
+                      }}%</span>
                   </div>
                   <div class="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                    <div class="bg-gradient-to-r from-emerald-500 to-emerald-400 h-1.5 rounded-full transition-all duration-1000 ease-linear" [style.width.%]="calcularProgreso(cobro)"></div>
+                    <div
+                      class="bg-gradient-to-r from-emerald-500 to-emerald-400 h-1.5 rounded-full transition-all duration-1000 ease-linear"
+                      [style.width.%]="calcularProgreso(cobro)"></div>
                   </div>
                 </div>
                 }
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-zinc-900 dark:text-white font-medium" [class.line-through]="cobro.estado === 'annulled'">
+            <td class="px-6 py-4 whitespace-nowrap text-zinc-900 dark:text-white font-medium"
+              [class.line-through]="cobro.estado === 'annulled'">
               S/ {{ cobro.monto | number:'1.2-2' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-400">
               @if (cobro.estado === 'completed') {
-              <span class="font-bold text-xs" [ngClass]="{'text-blue-500': cobro.metodoPago?.includes('+')}">{{ cobro.metodoPago }}</span>
+              <span class="font-bold text-xs" [ngClass]="{'text-blue-500': cobro.metodoPago?.includes('+')}">{{
+                cobro.metodoPago }}</span>
               } @else if (cobro.estado === 'pending') {
-              <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-600/20 dark:ring-blue-500/20">PENDIENTE</span>
+              <span
+                class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-600/20 dark:ring-blue-500/20">PENDIENTE</span>
               } @else if (cobro.estado === 'in_progress') {
-              <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-600/20 dark:ring-emerald-500/20 animate-pulse">EN CURSO</span>
+              <span
+                class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-600/20 dark:ring-emerald-500/20 animate-pulse">EN
+                CURSO</span>
               } @else if (cobro.estado === 'finished') {
-              <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 ring-purple-600/20 dark:ring-purple-500/20">POR COBRAR</span>
+              <span
+                class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 ring-purple-600/20 dark:ring-purple-500/20">POR
+                COBRAR</span>
               } @else {
               <span class="text-red-500 font-bold text-[10px] uppercase">Anulado</span>
               }
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right">
               <div class="flex justify-end space-x-1">
-                <button (click)="verDetalle(cobro.id)" class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors" title="Ver Detalle"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" /></svg></button>
+                <button (click)="verDetalle(cobro.id)"
+                  class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                  title="Ver Detalle"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
+                  </svg></button>
                 @if (cobro.estado === 'completed') {
-                <button (click)="abrirModalEditar(cobro.id)" class="p-1.5 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors" title="Editar"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                <button (click)="anularCobro(cobro.id)" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Anular"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                } @else if (cobro.estado === 'pending' || cobro.estado === 'in_progress' || cobro.estado === 'finished') {
-                <button (click)="abrirModalEditarPendiente(cobro.id)" class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors" title="Cambiar Barbero o Cliente"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                <button (click)="anularCobro(cobro.id)" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Cancelar Turno"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                @if (esAdmin()) {
+                <button (click)="abrirModalEditar(cobro.id)"
+                  class="p-1.5 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                  title="Editar"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg></button>
+                <button (click)="anularCobro(cobro.id)"
+                  class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                  title="Anular"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg></button>}
+                } @else if (cobro.estado === 'pending' || cobro.estado === 'in_progress' || cobro.estado === 'finished')
+                {
+                <button (click)="abrirModalEditarPendiente(cobro.id)"
+                  class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                  title="Cambiar Barbero o Cliente"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg></button>
+                <button (click)="anularCobro(cobro.id)"
+                  class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                  title="Cancelar Turno"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg></button>
                 } @else if (cobro.estado === 'annulled') {
-                <button (click)="restaurarCobro(cobro.id)" class="p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors" title="Restaurar cobro"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
+                @if (esAdmin()) {
+                <button (click)="restaurarCobro(cobro.id)"
+                  class="p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+                  title="Restaurar cobro"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg></button>}
                 }
               </div>
             </td>
           </tr>
           } @empty {
           <tr>
-            <td colspan="6" class="px-6 py-12 text-center text-zinc-500 border-t border-zinc-100 dark:border-zinc-800/50">
-              @if (searchTerm()) { No se encontraron resultados para "{{ searchTerm() }}". } @else { No hay historial de cobros. }
+            <td colspan="6"
+              class="px-6 py-12 text-center text-zinc-500 border-t border-zinc-100 dark:border-zinc-800/50">
+              @if (searchTerm()) { No se encontraron resultados para "{{ searchTerm() }}". } @else { No hay historial de
+              cobros. }
             </td>
           </tr>
           }
@@ -216,24 +281,34 @@
     </div>
 
     @if (turnosFiltradosBusqueda().length > 0) {
-    <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex items-center justify-between">
-      <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Página <span class="font-bold text-zinc-900 dark:text-white">{{ currentPage() }}</span> de <span class="font-bold text-zinc-900 dark:text-white">{{ totalPages() }}</span></p>
+    <div
+      class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex items-center justify-between">
+      <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Página <span
+          class="font-bold text-zinc-900 dark:text-white">{{ currentPage() }}</span> de <span
+          class="font-bold text-zinc-900 dark:text-white">{{ totalPages() }}</span></p>
       <div class="flex space-x-2">
-        <button (click)="prevPage()" [disabled]="currentPage() === 1" class="px-4 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Anterior</button>
-        <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="px-4 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Siguiente</button>
+        <button (click)="prevPage()" [disabled]="currentPage() === 1"
+          class="px-4 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Anterior</button>
+        <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+          class="px-4 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Siguiente</button>
       </div>
     </div>
     }
   </div>
 </div>
 
-<app-modal-detalle [isOpen]="isDetalleModalOpen()" [data]="detalleSeleccionado()" (onClose)="cerrarDetalle()"></app-modal-detalle>
-<app-modal-confirm [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title" [message]="confirmConfig().message" [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText" (onConfirm)="confirmConfig().action()" (onCancel)="cerrarConfirmacion()"></app-modal-confirm>
+<app-modal-detalle [isOpen]="isDetalleModalOpen()" [data]="detalleSeleccionado()"
+  (onClose)="cerrarDetalle()"></app-modal-detalle>
+<app-modal-confirm [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title" [message]="confirmConfig().message"
+  [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText" (onConfirm)="confirmConfig().action()"
+  (onCancel)="cerrarConfirmacion()"></app-modal-confirm>
 
 @if (isEditModalOpen()) {
 <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
-  <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" (click)="isEditModalOpen.set(false)"></div>
-  <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
+  <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity"
+    (click)="isEditModalOpen.set(false)"></div>
+  <div
+    class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
     <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
     <div class="p-6 sm:p-8">
       <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-6">Editar Cobro Completado</h3>
@@ -241,27 +316,33 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div class="col-span-1 sm:col-span-2">
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Cliente</label>
-            <input type="text" formControlName="cliente" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+            <input type="text" formControlName="cliente"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
           </div>
           <div class="col-span-1 sm:col-span-2">
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Servicio</label>
-            <select formControlName="servicio" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
+            <select formControlName="servicio"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
               @for (s of servicios(); track s.id) { <option [value]="s.nombre">{{ s.nombre }}</option> }
             </select>
           </div>
           <div class="col-span-1 sm:col-span-2">
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Barbero Asignado</label>
-            <select formControlName="barbero" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
+            <select formControlName="barbero"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
               @for (b of barberos(); track b.id) { <option [value]="b.nombre">{{ b.nombre }}</option> }
             </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto Final (S/)</label>
-            <input type="number" formControlName="monto" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
+            <input type="number" formControlName="monto" [readonly]="!esAdmin()"
+              [ngClass]="{'bg-zinc-200 dark:bg-zinc-800 opacity-70 cursor-not-allowed': !esAdmin()}"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-all">
           </div>
           <div>
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Método de Pago</label>
-            <input type="text" formControlName="metodoPago" list="metodosList" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+            <input type="text" formControlName="metodoPago" list="metodosList"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
             <datalist id="metodosList">
               <option value="Yape"></option>
               <option value="Yape JK"></option>
@@ -272,8 +353,10 @@
           </div>
         </div>
         <div class="flex space-x-3">
-          <button type="button" (click)="isEditModalOpen.set(false)" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
-          <button type="submit" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
+          <button type="button" (click)="isEditModalOpen.set(false)"
+            class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
+          <button type="submit"
+            class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
         </div>
       </form>
     </div>
@@ -283,8 +366,10 @@
 
 @if (isEditPendienteModalOpen()) {
 <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-0">
-  <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" (click)="isEditPendienteModalOpen.set(false)"></div>
-  <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
+  <div class="absolute inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity"
+    (click)="isEditPendienteModalOpen.set(false)"></div>
+  <div
+    class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
     <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
     <div class="p-6 sm:p-8">
       <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-6">Modificar Turno en Curso</h3>
@@ -292,28 +377,35 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div class="col-span-1 sm:col-span-2">
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Cliente</label>
-            <input type="text" formControlName="cliente" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
+            <input type="text" formControlName="cliente"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm">
           </div>
           <div class="col-span-1 sm:col-span-2">
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Servicio</label>
-            <select formControlName="servicio" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
+            <select formControlName="servicio"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
               @for (s of servicios(); track s.id) { <option [value]="s.nombre">{{ s.nombre }}</option> }
             </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Barbero Asignado</label>
-            <select formControlName="barbero" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
+            <select formControlName="barbero"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm appearance-none">
               @for (b of barberos(); track b.id) { <option [value]="b.nombre">{{ b.nombre }}</option> }
             </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto (S/)</label>
-            <input type="number" formControlName="monto" class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
+            <input type="number" formControlName="monto" [readonly]="!esAdmin()"
+              [ngClass]="{'bg-zinc-200 dark:bg-zinc-800 opacity-70 cursor-not-allowed': !esAdmin()}"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-all">
           </div>
         </div>
         <div class="flex space-x-3">
-          <button type="button" (click)="isEditPendienteModalOpen.set(false)" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
-          <button type="submit" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
+          <button type="button" (click)="isEditPendienteModalOpen.set(false)"
+            class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
+          <button type="submit"
+            class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">Guardar</button>
         </div>
       </form>
     </div>

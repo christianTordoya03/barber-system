@@ -29,7 +29,7 @@ export interface Empleado {
   nombre: string;
   email: string;
   telefono?: string;
-  rol: 'admin' | 'barbero';
+  rol: 'admin' | 'barbero' | 'recepcion';
   comision?: number | null;
   activo: boolean;
   avatar_url?: string | null;

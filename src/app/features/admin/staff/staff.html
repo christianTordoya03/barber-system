@@ -74,11 +74,11 @@
             <td class="px-6 py-4 whitespace-nowrap text-center">
               <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold ring-1 ring-inset"
                 [ngClass]="miembro.rol === 'admin' ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 ring-purple-600/20 dark:ring-purple-500/20' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-600/20 dark:ring-blue-500/20'">
-                {{ miembro.rol === 'admin' ? 'Administrador' : 'Barbero' }}
+                {{ miembro.rol === 'admin' ? 'Administrador' : (miembro.rol === 'recepcion' ? 'Recepción' : 'Barbero') }}
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-center font-bold">
-              @if (miembro.rol === 'admin') {
+              @if (miembro.rol === 'admin' || miembro.rol === 'recepcion') {
               <span class="text-zinc-400 dark:text-zinc-600">-</span>
               } @else {
               <span class="text-emerald-600 dark:text-emerald-400">{{ miembro.comision }}%</span>
@@ -217,6 +217,7 @@
               class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer transition-colors">
               <option value="barbero">Barbero</option>
               <option value="admin">Administrador</option>
+              <option value="recepcion">Recepción</option>
             </select>
           </div>
           <div>
@@ -229,6 +230,15 @@
               </div>
             </div>
           </div>
+
+          @if (!isEditing()) {
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Contraseña de acceso</label>
+            <input type="text" formControlName="password" placeholder="Escribe la clave para este usuario (Mín. 6 caracteres)"
+              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors">
+            <p class="text-[10px] text-zinc-500 mt-1">El empleado usará su correo y esta clave para entrar al sistema.</p>
+          </div>
+          }
         </div>
 
         <div class="pt-4 mt-2">

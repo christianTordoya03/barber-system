@@ -186,8 +186,10 @@
 
           <div>
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto Final (S/)</label>
-            <input type="number" formControlName="monto"
-              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
+            <input type="number" formControlName="monto" 
+                   [readonly]="!esAdmin()" 
+                   [ngClass]="{'bg-zinc-200 dark:bg-zinc-800 opacity-70 cursor-not-allowed': !esAdmin()}"
+                   class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-all">
           </div>
           <div>
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Método de Pago</label>
@@ -250,8 +252,10 @@
 
           <div>
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Monto (S/)</label>
-            <input type="number" formControlName="monto"
-              class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold">
+            <input type="number" formControlName="monto" 
+                   [readonly]="!esAdmin()" 
+                   [ngClass]="{'bg-zinc-200 dark:bg-zinc-800 opacity-70 cursor-not-allowed': !esAdmin()}"
+                   class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-all">
           </div>
         </div>
 

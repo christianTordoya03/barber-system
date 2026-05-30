@@ -108,6 +108,10 @@ export const routes: Routes = [
   // RUTAS DE AUTENTICACIÓN (Públicas)
   // =========================================================
   {
+    path: 'instalar',
+    loadComponent: () => import('./features/clientes/instalar/instalar').then(m => m.InstalarComponent)
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/auth/login/login').then(m => m.LoginComponent)
   },

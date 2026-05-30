@@ -4,46 +4,43 @@ import { Injectable, signal } from '@angular/core';
   providedIn: 'root'
 })
 export class PwaService {
-  // Guardará el evento nativo del celular Android
   private promptEvent: any;
   
-  // Señales reactivas para la interfaz
   public canInstall = signal<boolean>(false);
   public isIos = signal<boolean>(false);
 
   constructor() {
-    this.detectarDispositivo();
-    this.initPwaListener();
+    // Escudo: Verificamos que estamos en el navegador para evitar errores de consola
+    if (typeof window !== 'undefined' && typeof navigator !== 'undefined') {
+      this.detectarDispositivo();
+      this.initPwaListener();
+    }
   }
 
   private detectarDispositivo() {
-    // Verificamos si el cliente está usando un dispositivo de Apple
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const esApple = /iphone|ipad|ipod/.test(userAgent);
+    // Mejora: Detecta iPhones, iPods, y iPads (incluso los nuevos que se hacen pasar por Mac)
+    const esApple = /iphone|ipad|ipod/.test(userAgent) || (userAgent.includes('mac') && 'ontouchend' in document);
     this.isIos.set(esApple);
   }
 
   private initPwaListener() {
-    // Solo Android y Chrome disparan este evento mágico
     window.addEventListener('beforeinstallprompt', (event) => {
-      event.preventDefault(); // Ocultamos el banner feo del navegador
+      event.preventDefault(); 
       this.promptEvent = event; 
-      this.canInstall.set(true); // Encendemos nuestro botón personalizado
+      this.canInstall.set(true); // ¡Esto enciende tu botón azul!
     });
   }
 
   public async installApp() {
     if (!this.promptEvent) return;
 
-    // Lanzamos el modal nativo de instalación
     this.promptEvent.prompt();
-
-    // Esperamos la respuesta del cliente
     const choiceResult = await this.promptEvent.userChoice;
     
     if (choiceResult.outcome === 'accepted') {
-      console.log('El cliente instaló la app con éxito');
-      this.canInstall.set(false); // Ocultamos el botón
+      console.log('App instalada con éxito');
+      this.canInstall.set(false);
     }
     
     this.promptEvent = null;

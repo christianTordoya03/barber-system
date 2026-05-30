@@ -55,21 +55,6 @@
     </div>
   </div>
 
-  <div>
-    <h2 class="text-xs font-bold uppercase tracking-[0.15em] text-zinc-500 mb-4 ml-1">Beneficios y Promociones</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      @for (promo of promociones(); track promo.id) {
-        <div class="bg-[#111113] border border-zinc-900 rounded-2xl p-6 hover:border-amber-500/20 transition-all duration-300 group relative overflow-hidden flex flex-col justify-center shadow-[0_15px_30px_rgba(0,0,0,0.5)]">
-          <div class="absolute top-0 right-0 bg-amber-500 text-black text-[9px] font-black px-3 py-1.5 rounded-bl-xl uppercase tracking-widest shadow-sm">
-            {{ promo.descuento }}
-          </div>
-          <h3 class="text-white font-bold text-base tracking-wide mb-1.5 group-hover:text-amber-500 transition-colors mr-14">{{ promo.titulo }}</h3>
-          <p class="text-xs text-zinc-400 leading-relaxed pr-6">{{ promo.descripcion }}</p>
-        </div>
-      }
-    </div>
-  </div>
-
   @if (videoActivo()) {
     <div (click)="cerrarVideo()" class="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex flex-col justify-center items-center p-4 sm:p-8 animate-fade-in">
       

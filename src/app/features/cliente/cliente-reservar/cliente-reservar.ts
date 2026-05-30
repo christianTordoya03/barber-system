@@ -29,7 +29,9 @@ export class ClienteReservarComponent implements OnInit {
   reservaConfirmada = signal<boolean>(false);
   nombreUsuarioLogeado = signal<string>('Socio VIP');
 
-  servicios = this.catalogoService.servicios;
+  servicios = computed(() => 
+  this.catalogoService.servicios().filter(s => s.nombre !== 'Corte promo 20%')
+);
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
 
   barberoSeleccionado = signal<Empleado | null>(null);

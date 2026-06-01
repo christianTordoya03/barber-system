@@ -7,11 +7,13 @@
   <aside
     class="hidden md:flex flex-col w-64 bg-white dark:bg-[#111111] border-r border-zinc-200 dark:border-zinc-800 relative transition-colors duration-300">
     <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-gray-200 to-blue-600"></div>
-    <div class="h-20 flex items-center px-6 border-b border-zinc-200 dark:border-zinc-800 mt-1">
+    <div class="h-20 flex items-center px-6 border-b border-zinc-200 dark:border-zinc-800 mt-1 overflow-hidden">
       <img
         class="h-10 w-auto mr-3 object-contain invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten transition-all duration-300"
-        src="logo-marina305.png" alt="Logo">
-      <span class="font-bold text-lg tracking-wide text-zinc-900 dark:text-white">MARINA 305</span>
+        [src]="supabase.tenant()?.logo_url || 'logo-aureum.png'" [alt]="supabase.tenant()?.name || 'Logo'">
+      <span class="font-bold text-lg tracking-wide text-zinc-900 dark:text-white uppercase truncate">
+        {{ supabase.tenant()?.name || 'AUREUM LOGIC' }}
+      </span>
     </div>
 
     <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
@@ -129,11 +131,13 @@
     <header
       class="md:hidden flex items-center justify-center px-4 h-16 bg-white dark:bg-[#111111] border-b border-zinc-200 dark:border-zinc-800 shrink-0 relative transition-colors duration-300">
       <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-gray-200 to-blue-600"></div>
-      <div class="flex items-center mt-1">
+      <div class="flex items-center mt-1 w-full justify-center">
         <img
-          class="h-8 w-auto mr-2 invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten transition-all duration-300"
-          src="logo-marina305.png" alt="Logo">
-        <span class="font-bold text-base tracking-wide text-zinc-900 dark:text-white">MARINA 305</span>
+          class="h-8 w-auto mr-2 object-contain invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten transition-all duration-300"
+          [src]="supabase.tenant()?.logo_url || 'logo-aureum.png'" [alt]="supabase.tenant()?.name || 'Logo'">
+        <span class="font-bold text-base tracking-wide text-zinc-900 dark:text-white uppercase truncate">
+          {{ supabase.tenant()?.name || 'AUREUM LOGIC' }}
+        </span>
       </div>
     </header>
 

@@ -1,9 +1,9 @@
 <div
   class="fixed inset-0 pointer-events-none z-[-1] bg-zinc-100 dark:bg-[#070709] overflow-hidden transition-colors duration-500">
 
-  <img src="logo-marina305.png" class="absolute inset-0 w-full h-full object-cover object-center grayscale contrast-125
-              opacity-[0.08] mix-blend-multiply
-              dark:opacity-[0.12] dark:invert dark:mix-blend-screen" alt="Fondo Identidad Marina 305">
+  <img [src]="supabase.tenant()?.logo_url || 'logo-aureum.png'" 
+       class="absolute inset-0 w-full h-full object-cover object-center grayscale contrast-125 opacity-[0.08] mix-blend-multiply dark:opacity-[0.12] dark:invert dark:mix-blend-screen" 
+       [alt]="'Fondo Identidad ' + (supabase.tenant()?.name || 'Aureum')">
 
   <div
     class="absolute -top-40 -right-40 w-[800px] h-[800px] bg-slate-300/20 dark:bg-zinc-900/40 rounded-full blur-[130px] mix-blend-multiply dark:mix-blend-screen">
@@ -21,8 +21,9 @@
   <aside
     class="hidden md:flex flex-col w-64 lg:w-72 bg-white/60 dark:bg-[#121216]/60 backdrop-blur-xl border-r border-zinc-200/50 dark:border-zinc-800/50 sticky top-0 h-screen p-6 shadow-xl z-30">
     <div class="mb-10 px-2">
-      <h2 class="text-xl font-black tracking-wider text-zinc-900 dark:text-white uppercase">Marina <span
-          class="text-amber-500">305</span></h2>
+      <h2 class="text-xl font-black tracking-wider text-zinc-900 dark:text-white uppercase truncate">
+        {{ supabase.tenant()?.name || 'AUREUM LOGIC' }}
+      </h2>
     </div>
 
     <div class="flex-1 space-y-2">

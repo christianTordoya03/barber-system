@@ -13,7 +13,12 @@ export class StaffService {
   }
 
   async cargarEmpleados() {
-    const { data, error } = await this.supabase.client.from('empleados').select('*').order('id', { ascending: true });
+    const bsId = await this.supabase.obtenerBarbershopId();
+    const { data, error } = await this.supabase.client
+      .from('empleados')
+      .select('*')
+      .eq('barbershop_id', bsId) // <-- Filtro maestro
+      .order('id', { ascending: true });
 
     if (data) {
       const empleadosLista = data as Empleado[];

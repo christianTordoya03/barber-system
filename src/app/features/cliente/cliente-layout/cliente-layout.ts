@@ -11,7 +11,7 @@ import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-co
   templateUrl: './cliente-layout.html',
 })
 export class ClienteLayoutComponent implements OnInit {
-  private supabase = inject(SupabaseService);
+  public supabase = inject(SupabaseService);
   private router = inject(Router);
   
   // Señal para guardar el nombre real del cliente

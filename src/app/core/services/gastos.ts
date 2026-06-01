@@ -16,7 +16,8 @@ export class GastosService {
   }
 
   async cargarGastos() {
-    const { data } = await this.supabase.client.from('gastos').select('*').order('id', { ascending: false });
+    const bsId = await this.supabase.obtenerBarbershopId();
+    const { data } = await this.supabase.client.from('gastos').select('*').eq('barbershop_id', bsId).order('id', { ascending: false });
     if (data) {
       const lista = data as Gasto[];
       lista.sort((a, b) => {

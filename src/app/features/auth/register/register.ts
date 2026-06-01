@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -10,12 +10,13 @@ import { SupabaseService } from '../../../core/supabase/supabase';
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './register.html',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private supabase = inject(SupabaseService);
+  public supabase = inject(SupabaseService); // Cambiado a public para usarlo en el HTML
   private router = inject(Router);
 
   isLoading = signal<boolean>(false);
+  isTenantLoading = signal<boolean>(true); // Controla la animación de carga
   successMessage = signal<string | null>(null);
   showPassword = signal<boolean>(false);
 
@@ -26,6 +27,42 @@ export class RegisterComponent {
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
+  async ngOnInit() {
+    // Verificamos si ya tenemos cargada la barbería, si no, la buscamos
+    if (!this.supabase.tenant()) {
+      this.isTenantLoading.set(true); 
+      
+      const hostActual = window.location.hostname;
+      
+      // IMPORTANTE: Aquí ahora traemos el "id" también para poder ligar al cliente a esta barbería
+      let query = this.supabase.client
+        .from('barbershops')
+        .select('id, name, logo_url, color_tema');
+
+      // Lógica dinámica para local vs producción
+      if (hostActual === 'localhost') {
+        // ID por defecto para pruebas locales (Marina 305)
+        query = query.eq('id', '7d790667-8d0b-4c1d-835f-3fd39abc20bd'); 
+      } else {
+        query = query.eq('dominio', hostActual); 
+      }
+        
+      const { data, error } = await query.single();
+        
+      if (error) {
+        console.error('Error cargando la barbería en Registro:', error.message);
+      }
+
+      if (data) {
+        this.supabase.tenant.set(data);
+      }
+      
+      this.isTenantLoading.set(false); 
+    } else {
+      this.isTenantLoading.set(false);
+    }
+  }
+
   togglePassword() {
     this.showPassword.update(v => !v);
   }
@@ -35,13 +72,23 @@ export class RegisterComponent {
       this.registerForm.markAllAsTouched();
       return;
     }
+    
+    // Validamos que el tenant (la barbería) exista antes de registrar
+    const tenantData = this.supabase.tenant();
+    if (!tenantData || !tenantData.id) {
+      alert('Error: No se pudo identificar la barbería a la que te estás registrando.');
+      return;
+    }
+
     this.isLoading.set(true);
     this.successMessage.set(null);
 
     const { fullName, telefono, fechaNacimiento, password } = this.registerForm.getRawValue();
     
-    // EL TRUCO: Creamos el correo falso para Supabase auth
-    const emailFormateado = `${telefono.trim()}@marina305.com`;
+    // CORREO DINÁMICO: Extraemos el nombre de la barbería y lo volvemos un dominio
+    const tenantName = tenantData.name || 'aureumlogic';
+    const dominioDinamico = tenantName.toLowerCase().replace(/\s+/g, '') + '.com';
+    const emailFormateado = `${telefono.trim()}@${dominioDinamico}`;
 
     try {
       const { data, error } = await this.supabase.client.auth.signUp({
@@ -57,12 +104,13 @@ export class RegisterComponent {
       
       if (error) throw error;
 
-      // Guardamos en la base de datos de clientes con los campos que ya manejabas
+      // GUARDAR AL CLIENTE LIGADO A SU BARBERÍA (Multi-tenant)
       const { error: clienteError } = await this.supabase.client.from('clientes').insert({
         nombre: fullName,
         telefono: telefono,
         email: emailFormateado,
-        fecha_nacimiento: fechaNacimiento || null
+        fecha_nacimiento: fechaNacimiento || null,
+        barbershop_id: tenantData.id // <--- LA LLAVE MAESTRA
       });
 
       if (clienteError) {

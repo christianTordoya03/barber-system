@@ -14,9 +14,11 @@ export class ClientesService {
   }
 
   async cargarClientes() {
+    const bsId = await this.supabase.obtenerBarbershopId();
     const { data, error } = await this.supabase.client
       .from('clientes')
       .select('*')
+      .eq('barbershop_id', bsId)
       .order('id', { ascending: false });
 
     if (data) {

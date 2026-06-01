@@ -12,9 +12,10 @@ export class CatalogoService {
   constructor() { this.cargarDatos(); }
 
   async cargarDatos() {
+    const bsId = await this.supabase.obtenerBarbershopId();
     const [resServicios, resCategorias] = await Promise.all([
-      this.supabase.client.from('servicios').select('*').order('id', { ascending: false }),
-      this.supabase.client.from('categorias').select('*').order('id', { ascending: false })
+      this.supabase.client.from('servicios').select('*').eq('barbershop_id', bsId).order('id', { ascending: false }),
+      this.supabase.client.from('categorias').select('*').eq('barbershop_id', bsId).order('id', { ascending: false })
     ]);
     if (resServicios.data) this.servicios.set(resServicios.data as Servicio[]);
     if (resCategorias.data) this.categorias.set(resCategorias.data as Categoria[]);

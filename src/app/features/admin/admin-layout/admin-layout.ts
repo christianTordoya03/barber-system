@@ -11,14 +11,16 @@ import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-co
   templateUrl: './admin-layout.html',
 })
 export class AdminLayoutComponent implements OnInit{
-  private supabase = inject(SupabaseService);
+  public supabase = inject(SupabaseService);
   private router = inject(Router);
+  
   
   isMobileMenuOpen = signal<boolean>(false);
   confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });
   esAdmin = signal<boolean>(false);
 
   async ngOnInit() {
+    this.supabase.obtenerBarbershopId();
     const { data: { user } } = await this.supabase.client.auth.getUser();
     if (user) {
       const { data } = await this.supabase.client

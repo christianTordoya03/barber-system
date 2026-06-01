@@ -1,7 +1,15 @@
 <div class="min-h-screen bg-zinc-50 dark:bg-black flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-blue-500 selection:text-white transition-colors duration-300">
   
   <div class="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-    <img class="mx-auto h-56 w-auto object-contain transition-all duration-300 invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten" src="logo-marina305.png" alt="Marina 305 Barber Shop">
+    @if (isTenantLoading()) {
+      <div class="w-28 h-28 bg-zinc-200 dark:bg-zinc-900 animate-pulse drop-shadow-xl rounded-2xl mb-6"></div>
+    } @else {
+      <img 
+        [src]="supabase.tenant()?.logo_url || '/logo-aureum.png'" 
+        [alt]="supabase.tenant()?.name || 'Aureum Logic'" 
+        class="w-28 h-28 object-contain mx-auto mb-6 drop-shadow-xl rounded-2xl animate-fade-in"
+      >
+    }
   </div>
   
   <div class="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
@@ -10,8 +18,13 @@
       <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 via-gray-200 to-blue-600"></div>
              
       <div class="mb-8 text-center mt-2">
-        <h2 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Iniciar Sesión</h2>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Ingresa a tu cuenta de Marina 305</p>
+        @if (isTenantLoading()) {
+          <div class="h-8 w-48 bg-zinc-200 dark:bg-zinc-900 animate-pulse rounded-lg mx-auto mb-3"></div>
+          <div class="h-4 w-64 bg-zinc-200 dark:bg-zinc-900 animate-pulse rounded-md mx-auto"></div>
+        } @else {
+          <h2 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white animate-fade-in">Iniciar Sesión</h2>
+          <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1 animate-fade-in">Ingresa a tu cuenta de {{ supabase.tenant()?.name || 'Aureum Logic' }}</p>
+        }
       </div>
       
       <form class="space-y-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">

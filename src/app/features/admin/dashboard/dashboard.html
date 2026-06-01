@@ -15,9 +15,10 @@
       [width]="220" 
       [errorCorrectionLevel]="'H'" 
       [margin]="1"
-      
-      [colorDark]="'#0f172a'"   [colorLight]="'#ffffff'"  [elementType]="'canvas'"
-      [imageSrc]="'logo-marina305.png'" 
+      [colorDark]="supabase.tenant()?.color_tema || '#0f172a'"   
+      [colorLight]="'#ffffff'"  
+      [elementType]="'canvas'"
+      [imageSrc]="supabase.tenant()?.logo_url || 'logo-aureum.png'" 
       [imageHeight]="55"
       [imageWidth]="55">
     </qrcode>

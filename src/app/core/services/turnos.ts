@@ -13,7 +13,13 @@ export class TurnosService {
   }
 
   async cargarTurnos() {
-    const { data, error } = await this.supabase.client.from('turnos').select('*').order('id', { ascending: false });
+    const bsId = await this.supabase.obtenerBarbershopId(); // Obtenemos el ID de la barbería actual
+    const { data, error } = await this.supabase.client
+      .from('turnos')
+      .select('*')
+      .eq('barbershop_id', bsId) // <-- Filtro maestro
+      .order('id', { ascending: false });
+      
     if (!error && data) {
       this.turnos.set(data as Turno[]);
     }
@@ -23,10 +29,11 @@ export class TurnosService {
   async obtenerHorasOcupadas(nombreBarbero: string, fechaISO: string): Promise<string[]> {
     const [year, month, day] = fechaISO.split('-');
     const fechaFiltro = `${day}/${month}/${year}`;
-
+    const bsId = await this.supabase.obtenerBarbershopId();
     const { data, error } = await this.supabase.client
       .from('turnos')
       .select('fecha')
+      .eq('barbershop_id', bsId)
       .eq('barbero', nombreBarbero) // <-- Filtramos por texto, no por ID
       .like('fecha', `${fechaFiltro}%`) // <-- Compatibilidad absoluta
       .neq('estado', 'annulled'); 
@@ -46,15 +53,31 @@ export class TurnosService {
   }
 
   async agregarTurno(turno: Turno) {
-    const bsId = await this.supabase.obtenerBarbershopId();
-    const payload = { ...turno, barbershop_id: bsId }; // <-- Inyectamos el ID
+    // 1. Capturamos el ID de la barbería actual desde la señal global
+    const bsId = this.supabase.tenant()?.id; 
 
-    const { data, error } = await this.supabase.client.from('turnos').insert(payload).select().single();
+    // 2. Le inyectamos el ID al objeto del turno
+    const turnoParaGuardar = {
+      ...turno,
+      barbershop_id: bsId
+    };
+
+    // 3. Lo enviamos a Supabase con el dato completo
+    const { data, error } = await this.supabase.client
+      .from('turnos')
+      .insert(turnoParaGuardar)
+      .select()
+      .single();
+
     if (error) {
-      console.error('Error insertando turno:', error);
+      console.error('Error insertando turno', error);
       return null;
     }
-    return data;
+
+    if (data) {
+      this.turnos.update(ts => [data as Turno, ...ts]);
+      return data;
+    }
   }
 
   async actualizarTurno(id: number, cambios: Partial<Turno>) {

@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <title>Marina 305</title>
   <base href="/">
-  <!-- Meta especial para que se comporte como app en móviles -->
+
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Marina305"> <link rel="apple-touch-icon" href="logo-icon.jpg"> </head>
   <link rel="manifest" href="manifest.webmanifest">
 
   <script>
-    // Si el usuario ya eligió explícitamente 'dark' o es su primera vez en la app, inyectamos 'dark' de inmediato
     const temaGuardado = localStorage.getItem('theme');
     if (temaGuardado === 'dark' || !temaGuardado) {
       document.documentElement.classList.add('dark');
@@ -20,14 +20,11 @@
       document.documentElement.classList.remove('dark');
     }
   </script>
-  
-  <!-- Icono estándar para Android y PC -->
+
   <link rel="icon" type="image/x-icon" href="logo-icon.jpg">
   
-  <!-- ESTA ES LA ETIQUETA MÁGICA PARA IPHONE -->
   <link rel="apple-touch-icon" href="logo-icon.jpg">
-  
-  <!-- (Opcional) Nombre corto para cuando se instale en el iPhone -->
+
   <meta name="apple-mobile-web-app-title" content="Marina 305">
 </head>
 <body>

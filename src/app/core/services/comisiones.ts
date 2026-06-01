@@ -13,9 +13,11 @@ export class ComisionesService {
   }
 
   async cargarTodas() {
+    const bsId = await this.supabase.obtenerBarbershopId();
     const { data, error } = await this.supabase.client
       .from('comisiones')
       .select('*, empleados(nombre)')
+      .eq('barbershop_id', bsId)
       .order('id', { ascending: false });
 
     if (!error && data) {

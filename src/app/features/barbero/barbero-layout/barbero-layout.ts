@@ -12,7 +12,7 @@ import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-co
   templateUrl: './barbero-layout.html'
 })
 export class BarberoLayoutComponent implements OnInit {
-  private supabase = inject(SupabaseService);
+  public supabase = inject(SupabaseService);
   private router = inject(Router);
   private staffService = inject(StaffService); 
 

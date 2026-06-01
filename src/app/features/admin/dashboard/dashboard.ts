@@ -12,11 +12,12 @@ import { StaffService } from '../../../core/services/staff';
 import { CatalogoService } from '../../../core/services/catalogo';
 import { OrdenAtencionComponent } from '../../../shared/ui/orden-atencion/orden-atencion';
 import { SupabaseService } from '../../../core/supabase/supabase';
+// import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, TransactionCardComponent, ModalDetalleComponent, ModalCobroComponent, ModalConfirmComponent, ReactiveFormsModule, OrdenAtencionComponent],
+  imports: [CommonModule, RouterModule, TransactionCardComponent, ModalDetalleComponent, ModalCobroComponent, ModalConfirmComponent, ReactiveFormsModule, OrdenAtencionComponent, ],
   templateUrl: './dashboard.html',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
@@ -33,6 +34,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
   esAdmin = signal<boolean>(false);
+  // public qrUrl: string = 'https://barber-saas-sable.vercel.app/instalar';
 
   hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
 
@@ -66,6 +68,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const srv = this.servicios().find(s => s.nombre === nombreServicio);
     return srv?.duracion || 30;
   }
+
+  // descargarQR() {
+  //   // Buscamos el elemento canvas que genera la librería
+  //   const canvas = document.querySelector('qrcode canvas') as HTMLCanvasElement;
+    
+  //   if (canvas) {
+  //     // Convertimos el canvas a una URL de imagen
+  //     const imagenUrl = canvas.toDataURL('image/png');
+      
+  //     // Creamos un enlace invisible para forzar la descarga
+  //     const enlaceDescarga = document.createElement('a');
+  //     enlaceDescarga.href = imagenUrl;
+  //     enlaceDescarga.download = 'QR-Marina305-Instalacion.png';
+      
+  //     // Simulamos el clic y lo eliminamos
+  //     document.body.appendChild(enlaceDescarga);
+  //     enlaceDescarga.click();
+  //     document.body.removeChild(enlaceDescarga);
+  //   } else {
+  //     console.error('No se pudo encontrar el canvas del código QR');
+  //   }
+  // }
 
   calcularProgreso(turno: any): number {
     if (turno.estado !== 'in_progress' || !turno.horaInicio) return 0;

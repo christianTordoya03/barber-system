@@ -29,20 +29,18 @@ export class ComisionesService {
   }
 
   async agregarComision(comision: Omit<Comision, 'id' | 'created_at'>) {
+    const bsId = await this.supabase.obtenerBarbershopId();
     const payload = {
       empleado_id: Number(comision.empleado_id),
       tipo: comision.tipo,
       monto: Number(comision.monto),
       descripcion: comision.descripcion || null,
       fecha: comision.fecha,
-      estado: 'activo'
+      estado: 'activo',
+      barbershop_id: bsId
     };
 
-    const { data, error } = await this.supabase.client
-      .from('comisiones')
-      .insert(payload)
-      .select()
-      .single();
+    const { data, error } = await this.supabase.client.from('comisiones').insert(payload).select().single();
 
     if (!error) {
       await this.cargarTodas();
@@ -57,7 +55,7 @@ export class ComisionesService {
       .from('comisiones')
       .update(cambios)
       .eq('id', id);
-    
+
     if (!error) await this.cargarTodas();
     return !error;
   }
@@ -67,7 +65,7 @@ export class ComisionesService {
       .from('comisiones')
       .update({ estado: 'anulado' })
       .eq('id', id);
-    
+
     if (!error) await this.cargarTodas();
     return !error;
   }
@@ -77,7 +75,7 @@ export class ComisionesService {
       .from('comisiones')
       .update({ estado: 'activo' })
       .eq('id', id);
-    
+
     if (!error) await this.cargarTodas();
     return !error;
   }

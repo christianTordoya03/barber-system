@@ -1,5 +1,6 @@
 export interface Turno {
   id: number;
+  barbershop_id?: string;
   servicio: string;
   barbero: string;
   cliente: string;
@@ -14,6 +15,7 @@ export interface Turno {
 
 export interface Cliente {
   id?: number;
+  barbershop_id?: string;
   nombre: string;
   telefono: string;      // Campo clave para tus promociones
   email?: string;        // Opcional para el cliente, valioso para ti
@@ -26,6 +28,7 @@ export interface Cliente {
 
 export interface Empleado {
   id: number;
+  barbershop_id?: string;
   nombre: string;
   email: string;
   telefono?: string;
@@ -40,11 +43,13 @@ export interface Empleado {
 
 export interface Categoria {
   id: number;
+  barbershop_id?: string;
   nombre: string;
 }
 
 export interface Servicio {
   id: number;
+  barbershop_id?: string;
   nombre: string;
   categoria: string;
   descripcion?: string | null;
@@ -55,6 +60,7 @@ export interface Servicio {
 
 export interface Gasto {
   id: number;
+  barbershop_id?: string;
   descripcion: string;
   monto: number;
   metodoPago: string;
@@ -65,6 +71,7 @@ export interface Gasto {
 
 export interface TrabajoPortafolio {
   id: number;
+  barbershop_id?: string;
   empleado_id: number;
   url_imagen: string;
   fecha: string;
@@ -72,6 +79,7 @@ export interface TrabajoPortafolio {
 
 export interface Comision {
   id: number;
+  barbershop_id?: string;
   empleado_id: number;
   tipo: 'propina' | 'producto' | 'servicio_extra';
   monto: number;

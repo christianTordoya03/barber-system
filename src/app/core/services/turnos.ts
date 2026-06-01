@@ -46,7 +46,10 @@ export class TurnosService {
   }
 
   async agregarTurno(turno: Turno) {
-    const { data, error } = await this.supabase.client.from('turnos').insert(turno).select().single();
+    const bsId = await this.supabase.obtenerBarbershopId();
+    const payload = { ...turno, barbershop_id: bsId }; // <-- Inyectamos el ID
+
+    const { data, error } = await this.supabase.client.from('turnos').insert(payload).select().single();
     if (error) {
       console.error('Error insertando turno:', error);
       return null;

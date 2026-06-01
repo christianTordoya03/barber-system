@@ -50,9 +50,11 @@ export class GastosService {
   }
 
   async agregarGasto(nuevoGasto: Gasto) {
+    const bsId = await this.supabase.obtenerBarbershopId();
     this.gastos.update(lista => [nuevoGasto, ...lista]);
     const { id, ...bd } = nuevoGasto;
-    const { data, error } = await this.supabase.client.from('gastos').insert(bd).select().single();
+    const payload = { ...bd, barbershop_id: bsId };
+    const { data, error } = await this.supabase.client.from('gastos').insert(payload).select().single();
 
     if (error) {
       this.toast.show('Error al guardar el gasto', 'error');

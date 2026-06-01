@@ -22,9 +22,11 @@ export class CatalogoService {
 
   // --- SERVICIOS ---
   async agregarServicio(nuevoServicio: Servicio) {
+    const bsId = await this.supabase.obtenerBarbershopId();
     this.servicios.update(lista => [nuevoServicio, ...lista]);
     const { id, ...bd } = nuevoServicio;
-    const { data, error } = await this.supabase.client.from('servicios').insert(bd).select().single();
+    const payload = { ...bd, barbershop_id: bsId };
+    const { data, error } = await this.supabase.client.from('servicios').insert(payload).select().single();
     if (error) this.cargarDatos();
     else if (data) this.servicios.update(l => l.map(s => s.id === nuevoServicio.id ? (data as Servicio) : s));
   }
@@ -43,9 +45,11 @@ export class CatalogoService {
 
   // --- CATEGORÍAS ---
   async agregarCategoria(nueva: Categoria) {
+    const bsId = await this.supabase.obtenerBarbershopId();
     this.categorias.update(lista => [nueva, ...lista]);
     const { id, ...bd } = nueva;
-    const { data, error } = await this.supabase.client.from('categorias').insert(bd).select().single();
+    const payload = { ...bd, barbershop_id: bsId };
+    const { data, error } = await this.supabase.client.from('categorias').insert(payload).select().single();
     if (error) this.cargarDatos();
     else if (data) this.categorias.update(l => l.map(c => c.id === nueva.id ? (data as Categoria) : c));
   }

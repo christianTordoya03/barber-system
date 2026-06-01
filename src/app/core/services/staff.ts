@@ -74,9 +74,11 @@ export class StaffService {
   }
 
   async agregarEmpleado(nuevoEmpleado: Empleado) {
+    const bsId = await this.supabase.obtenerBarbershopId();
     this.empleados.update(lista => [...lista, nuevoEmpleado]);
     const { id, ...empleadoParaBD } = nuevoEmpleado;
-    const { data, error } = await this.supabase.client.from('empleados').insert(empleadoParaBD).select().single();
+    const payload = { ...empleadoParaBD, barbershop_id: bsId };
+    const { data, error } = await this.supabase.client.from('empleados').insert(payload).select().single();
 
     if (error) this.cargarEmpleados();
     else if (data) this.empleados.update(lista => lista.map(e => e.id === nuevoEmpleado.id ? (data as Empleado) : e));
@@ -118,7 +120,9 @@ export class StaffService {
   }
 
   async agregarTrabajoPortafolio(trabajo: Omit<TrabajoPortafolio, 'id'>) {
-    const { data } = await this.supabase.client.from('portafolio').insert(trabajo).select().single();
+    const bsId = await this.supabase.obtenerBarbershopId();
+    const payload = { ...trabajo, barbershop_id: bsId };
+    const { data } = await this.supabase.client.from('portafolio').insert(payload).select().single();
     return data;
   }
 

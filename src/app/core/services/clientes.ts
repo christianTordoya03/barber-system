@@ -5,7 +5,7 @@ import { Cliente } from '../models/marina';
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
   private supabase = inject(SupabaseService);
-  
+
   // Señal reactiva para mantener la lista de clientes disponible en la app
   clientes = signal<Cliente[]>([]);
 
@@ -18,7 +18,7 @@ export class ClientesService {
       .from('clientes')
       .select('*')
       .order('id', { ascending: false });
-      
+
     if (data) {
       this.clientes.set(data as Cliente[]);
     }
@@ -36,18 +36,20 @@ export class ClientesService {
     if (existente) {
       // Si el cliente ya existe pero le faltaba su cumpleaños, podemos actualizarlo
       if (!existente['cumpleanos']) {
-          await this.supabase.client.from('clientes').update({ cumpleanos: cumpleanos }).eq('id', existente.id);
+        await this.supabase.client.from('clientes').update({ cumpleanos: cumpleanos }).eq('id', existente.id);
       }
-      return existente; 
+      return existente;
     }
 
+    const bsId = await this.supabase.obtenerBarbershopId();
     const { data: nuevo, error: insertError } = await this.supabase.client
       .from('clientes')
-      .insert([{ 
-        nombre_completo: nombre, 
-        telefono: whatsapp, 
-        cumpleanos: cumpleanos, 
-        estado: 'activo' 
+      .insert([{
+        nombre_completo: nombre,
+        telefono: whatsapp,
+        cumpleanos: cumpleanos,
+        estado: 'activo',
+        barbershop_id: bsId // <-- Inyectamos
       }])
       .select()
       .single();
@@ -57,9 +59,11 @@ export class ClientesService {
   }
 
   async agregarCliente(nuevoCliente: Cliente) {
+    const bsId = await this.supabase.obtenerBarbershopId();
+    const payload = { ...nuevoCliente, barbershop_id: bsId };
     const { data, error } = await this.supabase.client
       .from('clientes')
-      .insert(nuevoCliente)
+      .insert(payload)
       .select()
       .single();
 
@@ -67,7 +71,7 @@ export class ClientesService {
       console.error('Error al agregar cliente:', error);
       throw error;
     }
-    
+
     if (data) {
       this.clientes.update(lista => [data as Cliente, ...lista]);
       return data as Cliente;

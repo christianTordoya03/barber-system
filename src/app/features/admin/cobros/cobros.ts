@@ -319,7 +319,6 @@ export class CobrosComponent implements OnInit, OnDestroy {
     const formVals = this.cobroForm.getRawValue();
     let formaPagoFinal = formVals.formaPago;
 
-    // LÓGICA DE PAGO DIVIDIDO (EFECTIVO + TARJETA)
     if (formVals.esPagoMixto) {
       if (!formVals.formaPago || !formVals.formaPago2 || formVals.montoPago1 <= 0) {
         this.toastService.show('Complete todos los métodos y montos para el pago dividido', 'error');
@@ -329,16 +328,19 @@ export class CobrosComponent implements OnInit, OnDestroy {
       formaPagoFinal = `${formVals.formaPago} (S/ ${formVals.montoPago1}) + ${formVals.formaPago2} (S/ ${monto2})`;
     }
 
+    // ¡CAMBIO CLAVE AQUÍ! Buscar el turno en la lista TOTAL antes de que desaparezca de las listas filtradas
+    const turno = this.turnosService.turnos().find(t => t.id === Number(formVals.turnoId));
+
+    // Ahora sí, actualizamos el turno
     this.turnosService.actualizarTurno(Number(formVals.turnoId), { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: formaPagoFinal });
     
-    // SOLUCIÓN: LIBERAR BARBERO Y REINICIAR SU RELOJ A LA HORA ACTUAL
-    const turno = this.turnosParaCobrar().find(t => t.id === Number(formVals.turnoId));
+    // Liberar al barbero
     if (turno && turno.barbero) {
       const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
       if (barberoObj) {
         this.staffService.actualizarEmpleado(barberoObj.id, { 
           estado_asistencia: 'disponible',
-          ultima_vez_disponible: new Date().toISOString() // <-- ¡Esta es la línea mágica que faltaba!
+          ultima_vez_disponible: new Date().toISOString() 
         });
       }
     }

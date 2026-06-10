@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Marina 305</title>
+  
+  <title>Cargando App...</title>
   <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Marina305"> <link rel="apple-touch-icon" href="logo-icon.jpg"> </head>
+  <meta name="apple-mobile-web-app-title" content="Reservas"> 
+  
   <link rel="manifest" href="manifest.webmanifest">
 
   <script>
@@ -21,14 +23,39 @@
     }
   </script>
 
-  <link rel="icon" type="image/x-icon" href="logo-icon.jpg">
+  <link id="app-favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22/>">
+  <link id="apple-icon" rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22/>">
   
-  <link rel="apple-touch-icon" href="logo-icon.jpg">
-
-  <meta name="apple-mobile-web-app-title" content="Marina 305">
+  <style>
+    body { margin: 0; background-color: #070708; } /* Fondo oscuro por defecto */
+    .pre-loader-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+    }
+    .pre-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: #f59e0b; /* Color ámbar neutral */
+      animation: pre-spin 1s ease-in-out infinite;
+    }
+    @keyframes pre-spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <app-root></app-root>
+  
+  <app-root>
+    <div class="pre-loader-container">
+      <div class="pre-spinner"></div>
+    </div>
+  </app-root>
+
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>
 </html>

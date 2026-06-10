@@ -28,27 +28,28 @@ export class LoginComponent implements OnInit {
     if (!this.supabase.tenant()) {
       this.isTenantLoading.set(true); 
       
-      // 1. Leemos la URL actual de la barra del navegador
       const hostActual = window.location.hostname;
       
       let query = this.supabase.client
         .from('barbershops')
-        .select('id, name, logo_url, color_tema');
+        .select('id, name, logo_url, color_tema, instagram_url, facebook_url, tiktok_url');
 
-      // 2. LÓGICA SAAS: Si estamos programando en local, forzamos un ID. 
-      // Si estamos en internet, buscamos por la columna dominio.
-      if (hostActual === 'localhost') {
-        // AQUÍ DEJAS EL ID DE TU DEMO O DE MARINA MIENTRAS PROGRAMAS
+      // 🔥 EL ESCUDO PROTECTOR 🔥
+      if (hostActual === 'localhost' || hostActual === '127.0.0.1') {
+        // ID por defecto para pruebas locales (Marina 305)
         query = query.eq('id', '7d790667-8d0b-4c1d-835f-3fd39abc20bd'); 
-      } else {
-        // Esto funcionará automáticamente cuando agregues la columna 'dominio' a tu BD
+      } else if (hostActual === 'aureum.localhost') {
+        // Búsqueda dinámica para la demo local
         query = query.eq('dominio', hostActual); 
+      } else {
+        // PRODUCCIÓN (Fallback seguro a Marina 305)
+        query = query.eq('id', '7d790667-8d0b-4c1d-835f-3fd39abc20bd'); 
       }
         
       const { data, error } = await query.single();
         
       if (error) {
-        console.error('Error cargando el tenant (¿Falta la columna dominio?):', error.message);
+        console.error('Error cargando el tenant:', error.message);
       }
 
       if (data) {
@@ -75,12 +76,21 @@ export class LoginComponent implements OnInit {
     const inputId = this.loginForm.getRawValue().identificador.trim();
     const password = this.loginForm.getRawValue().password;
 
-    // 3. CORREO DINÁMICO: Limpiamos el nombre del tenant para usarlo como dominio de email
+    // LIMPIEZA DEL DOMINIO DINÁMICO (Sin espacios ni tildes)
     const tenantName = this.supabase.tenant()?.name || 'aureumlogic';
-    const dominioDinamico = tenantName.toLowerCase().replace(/\s+/g, '') + '.com';
+    const dominioDinamico = tenantName
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quita tildes
+      .replace(/[^a-z0-9]/g, '') // Quita caracteres especiales y espacios
+      + '.com';
 
-    // Si escribe un correo, lo usa. Si escribe un celular, le adjunta el dominio dinámico.
-    const correo = inputId.includes('@') ? inputId : `${inputId}@${dominioDinamico}`;
+    let correo = inputId;
+
+    // Si NO escribió un '@', asumimos que es celular y lo limpiamos
+    if (!inputId.includes('@')) {
+      const telefonoLimpio = inputId.replace(/[^0-9]/g, ''); // Deja solo números
+      correo = `${telefonoLimpio}@${dominioDinamico}`;
+    }
 
     try {
       const { data, error } = await this.supabase.client.auth.signInWithPassword({ 

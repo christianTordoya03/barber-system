@@ -90,7 +90,15 @@ export class TurnosService {
       .channel('turnos_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'turnos' }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          this.turnos.update(t => [payload.new as Turno, ...t]);
+          this.turnos.update(t => {
+            // Check if the record already exists
+            const yaExiste = t.some(item => item.id === payload.new['id']);
+            if (yaExiste) {
+              return t; // If it exists, do not modify the array
+            }
+            // If it doesn't exist, add it
+            return [payload.new as Turno, ...t];
+          });
         } else if (payload.eventType === 'UPDATE') {
           this.turnos.update(t => t.map(item => (item.id === payload.new['id'] ? (payload.new as Turno) : item)));
         } else if (payload.eventType === 'DELETE') {

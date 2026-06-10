@@ -80,14 +80,31 @@ export class StaffService {
 
   async agregarEmpleado(nuevoEmpleado: Empleado) {
     const bsId = await this.supabase.obtenerBarbershopId();
+    
+    // 1. Actualización optimista en la UI
     this.empleados.update(lista => [...lista, nuevoEmpleado]);
+    
+    // 2. Preparamos el payload
     const { id, ...empleadoParaBD } = nuevoEmpleado;
     const payload = { ...empleadoParaBD, barbershop_id: bsId };
-    const { data, error } = await this.supabase.client.from('empleados').insert(payload).select().single();
+    
+    // 3. Petición a Supabase
+    const { data, error } = await this.supabase.client
+        .from('empleados')
+        .insert(payload)
+        .select()
+        .single();
 
-    if (error) this.cargarEmpleados();
-    else if (data) this.empleados.update(lista => lista.map(e => e.id === nuevoEmpleado.id ? (data as Empleado) : e));
-  }
+    // 4. Manejo del resultado
+    if (error) {
+        console.error("Fallo exacto en Supabase:", error); // AQUÍ VEREMOS LA VERDAD
+        // Si tienes un toast service, úsalo aquí: 
+        // this.toast.error(error.message);
+        this.cargarEmpleados(); // Deshacemos el cambio visual
+    } else if (data) {
+        this.empleados.update(lista => lista.map(e => e.id === nuevoEmpleado.id ? (data as Empleado) : e));
+    }
+}
 
   async actualizarEmpleado(id: number, cambios: Partial<Empleado>) {
     this.empleados.update(lista => lista.map(e => e.id === id ? { ...e, ...cambios } : e));
@@ -99,7 +116,7 @@ export class StaffService {
   async obtenerPortafolio(empleadoId: number) {
     const { data } = await this.supabase.client
       .from('portafolio')
-      .select('*')
+      .select('*, empleados(nombre)')
       .eq('empleado_id', empleadoId)
       .order('id', { ascending: false });
     return data || [];

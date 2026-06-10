@@ -17,7 +17,7 @@ import { SupabaseService } from '../../../core/supabase/supabase';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, TransactionCardComponent, ModalDetalleComponent, ModalCobroComponent, ModalConfirmComponent, ReactiveFormsModule, OrdenAtencionComponent, ],
+  imports: [CommonModule, RouterModule, TransactionCardComponent, ModalDetalleComponent, ModalCobroComponent, ModalConfirmComponent, ReactiveFormsModule, OrdenAtencionComponent],
   templateUrl: './dashboard.html',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
@@ -34,14 +34,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
   esAdmin = signal<boolean>(false);
-  // public qrUrl: string = 'https://barber-saas-sable.vercel.app/instalar';
+  // public qrUrl: string = 'https://sistema.marina305.net/instalar';
 
   hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
 
   searchTerm = signal<string>('');
-  searchBarbero = signal<string>(''); 
+  searchBarbero = signal<string>('');
   currentPage = signal<number>(1);
-  pageSize = 10; 
+  pageSize = 10;
 
   async ngOnInit() {
     this.intervalId = setInterval(() => {
@@ -70,19 +70,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   // descargarQR() {
-  //   // Buscamos el elemento canvas que genera la librería
+  //   //   // Buscamos el elemento canvas que genera la librería
   //   const canvas = document.querySelector('qrcode canvas') as HTMLCanvasElement;
-    
   //   if (canvas) {
-  //     // Convertimos el canvas a una URL de imagen
+  //     //     // Convertimos el canvas a una URL de imagen
   //     const imagenUrl = canvas.toDataURL('image/png');
-      
-  //     // Creamos un enlace invisible para forzar la descarga
+
+  //     //     // Creamos un enlace invisible para forzar la descarga
   //     const enlaceDescarga = document.createElement('a');
   //     enlaceDescarga.href = imagenUrl;
   //     enlaceDescarga.download = 'QR-Marina305-Instalacion.png';
-      
-  //     // Simulamos el clic y lo eliminamos
+
+  //     //     // Simulamos el clic y lo eliminamos
   //     document.body.appendChild(enlaceDescarga);
   //     enlaceDescarga.click();
   //     document.body.removeChild(enlaceDescarga);
@@ -95,6 +94,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (turno.estado !== 'in_progress' || !turno.horaInicio) return 0;
     const duracionMinutos = this.getDuracionServicio(turno.servicio);
     const inicioMs = new Date(turno.horaInicio).getTime();
+    if (isNaN(inicioMs)) return 0; // <- Agrega esta línea salvavidas
+
     const transcurridoMin = (this.now() - inicioMs) / 60000;
     let prog = (transcurridoMin / duracionMinutos) * 100;
     return Math.min(Math.max(prog, 0), 100);
@@ -134,13 +135,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const timePart = fechaStr.includes(',') ? fechaStr.split(',')[1].trim() : fechaStr.split(' ')[1]?.trim() || '';
     const match = timePart.match(/(\d{1,2}):(\d{2})/);
     if (!match) return 0;
-    
+
     let hours = parseInt(match[1], 10);
     const minutes = parseInt(match[2], 10);
-    
+
     if (timePart.toLowerCase().includes('p') && hours < 12) hours += 12;
     if (timePart.toLowerCase().includes('a') && hours === 12) hours = 0;
-    
+
     return (hours * 60) + minutes;
   }
 
@@ -149,7 +150,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const d = this.parseDateStr(fechaStr);
     const timePart = fechaStr.includes(',') ? fechaStr.split(',')[1].trim() : fechaStr.split(' ')[1]?.trim() || '';
     const match = timePart.match(/(\d{1,2}):(\d{2})/);
-    
+
     if (!d || !match) return fechaStr; // Si algo falla, devuelve el original
 
     let hours = parseInt(match[1], 10);
@@ -171,27 +172,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
       // if (t.estado === 'annulled') return false; 
 
       const turnoVal = this.getValorFecha(t.fecha);
-      if (turnoVal > hoyVal) return false; 
-      if (turnoVal === hoyVal) return true; 
+      if (turnoVal > hoyVal) return false;
+      if (turnoVal === hoyVal) return true;
       return (t.estado === 'pending' || t.estado === 'in_progress' || t.estado === 'finished');
     });
 
     const getPriority = (estado: string) => {
-      if (estado === 'finished') return 1;    
-      if (estado === 'in_progress') return 2; 
-      if (estado === 'pending') return 3;     
+      if (estado === 'finished') return 1;
+      if (estado === 'in_progress') return 2;
+      if (estado === 'pending') return 3;
       if (estado === 'completed') return 4;
-      if (estado === 'annulled') return 5;   
+      if (estado === 'annulled') return 5;
       return 5;
     };
 
     return filtrados.sort((a, b) => {
       const pA = getPriority(a.estado);
       const pB = getPriority(b.estado);
-      
+
       // 1. Primero por Estado
       if (pA !== pB) return pA - pB;
-      
+
       // 2. Desempate
       if (a.estado === 'completed') {
         return b.id - a.id; // Los cobrados, el más reciente arriba
@@ -200,8 +201,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         const minA = this.obtenerMinutosDesdeFecha(a.fecha);
         const minB = this.obtenerMinutosDesdeFecha(b.fecha);
         if (minA !== minB) return minA - minB;
-        
-        return a.id - b.id; 
+
+        return a.id - b.id;
       }
     });
   });
@@ -227,7 +228,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const term = this.searchTerm().toLowerCase();
     const barberoFiltro = this.searchBarbero();
     let lista = this.ultimosMovimientos();
-    
+
     if (barberoFiltro) lista = lista.filter(t => t.barbero === barberoFiltro);
     if (term) lista = lista.filter(t => t.cliente?.toLowerCase().includes(term) || t.servicio?.toLowerCase().includes(term));
     return lista;
@@ -250,14 +251,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   });
 
   dineroEnCaja = computed(() => this.turnosParaMetricas().filter(t => t.estado === 'completed').reduce((total, turno) => total + (turno.monto || 0), 0));
-  
+
   cortesRealizados = computed(() => this.turnosParaMetricas().filter(t => t.estado === 'completed').length);
-  
+
   comisionesAPagar = computed(() => {
     const completados = this.turnosParaMetricas().filter(t => t.estado === 'completed');
     return completados.reduce((total, turno) => {
       const b = this.barberos().find(x => x.nombre === turno.barbero);
-      const porcentaje = b?.comision || 50; 
+      const porcentaje = b?.comision || 50;
       return total + ((turno.monto || 0) * (porcentaje / 100));
     }, 0);
   });
@@ -268,7 +269,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isModalCobroOpen = signal<boolean>(false);
   cobroSeleccionado = signal<any>(null);
 
-  confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });
+  confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => { } });
 
   isEditModalOpen = signal<boolean>(false);
   editForm = this.fb.nonNullable.group({
@@ -297,9 +298,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!turno) return;
 
     // 1. Verificamos si el barbero ya tiene otro turno en estado "in_progress"
-    const tieneEnCurso = this.turnosService.turnos().some(t => 
-      t.barbero === turno.barbero && 
-      t.estado === 'in_progress' && 
+    const tieneEnCurso = this.turnosService.turnos().some(t =>
+      t.barbero === turno.barbero &&
+      t.estado === 'in_progress' &&
       t.id !== id
     );
 
@@ -325,7 +326,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         isOpen: true,
         title: 'Barbero Ocupado',
         message: `El barbero ${turno.barbero} ya tiene un servicio en curso. ¿Estás seguro de iniciar otro al mismo tiempo?`,
-        type: 'info', 
+        type: 'info',
         confirmText: 'Sí, Iniciar de todos modos',
         action: ejecutarInicio
       });
@@ -348,13 +349,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const id = this.cobroSeleccionado()?.id;
     if (id) {
       this.turnosService.actualizarTurno(id, { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: metodo });
-      
+
       // SOLUCIÓN: LIBERAR BARBERO Y REINICIAR SU RELOJ A LA HORA ACTUAL
       const turno = this.ultimosMovimientos().find(t => t.id === id);
       if (turno && turno.barbero) {
         const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
         if (barberoObj) {
-          this.staffService.actualizarEmpleado(barberoObj.id, { 
+          this.staffService.actualizarEmpleado(barberoObj.id, {
             estado_asistencia: 'disponible',
             ultima_vez_disponible: new Date().toISOString() // <-- ¡Esta es la línea mágica que faltaba!
           });
@@ -370,7 +371,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const mov = this.ultimosMovimientos().find(m => m.id === id);
     if (mov) { this.detalleSeleccionado.set(mov); this.isDetalleModalOpen.set(true); }
   }
-  
+
   cerrarDetalle() { this.isDetalleModalOpen.set(false); }
 
   abrirModalEditar(id: number) {
@@ -422,23 +423,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
       isOpen: true,
       title: esPendiente ? 'Cancelar Turno' : 'Anular Cobro',
       message: esPendiente ? '¿Es seguro de cancelar este servicio?' : '¿Es seguro de anular este ingreso de caja?',
-      type: 'danger', 
+      type: 'danger',
       confirmText: esPendiente ? 'Sí, Cancelar' : 'Sí, Anular',
       action: () => {
         // Cancelamos el turno en la base de datos
         this.turnosService.actualizarTurno(id, { estado: 'annulled' });
-        
+
         // 2. LIBERAR BARBERO Y ACTUALIZAR RELOJ (Si estaba en curso o por cobrar)
         if (turno && turno.barbero && (turno.estado === 'in_progress' || turno.estado === 'finished')) {
           const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
           if (barberoObj) {
-            this.staffService.actualizarEmpleado(barberoObj.id, { 
+            this.staffService.actualizarEmpleado(barberoObj.id, {
               estado_asistencia: 'disponible',
               ultima_vez_disponible: new Date().toISOString()
             });
           }
         }
-        
+
         this.toastService.show('Acción completada correctamente');
         this.cerrarConfirmacion();
       }

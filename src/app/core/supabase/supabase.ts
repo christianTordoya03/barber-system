@@ -8,9 +8,17 @@ import { environment } from '../../../environments/environment';
 export class SupabaseService {
   public client: SupabaseClient;
   private barbershopIdCache: string | null = null;
-  
+
   // NUEVO: Señal que guardará la marca dinámica del cliente actual
-  public tenant = signal<{id: string, name: string, logo_url: string, color_tema: string} | null>(null);
+  public tenant = signal<{
+    id: string;
+    name: string;
+    logo_url: string;
+    color_tema: string;
+    instagram_url?: string; // El signo de interrogación significa que es opcional
+    facebook_url?: string;
+    tiktok_url?: string;
+  } | null>(null);
 
   constructor() {
     this.client = createClient(environment.supabaseUrl, environment.supabaseKey);
@@ -25,7 +33,7 @@ export class SupabaseService {
     // Buscamos si es empleado o cliente
     let bsId = null;
     const { data: emp } = await this.client.from('empleados').select('barbershop_id').eq('email', session.user.email).maybeSingle();
-    
+
     if (emp?.barbershop_id) {
       bsId = emp.barbershop_id;
     } else {
@@ -37,18 +45,18 @@ export class SupabaseService {
       this.barbershopIdCache = bsId;
       await this.cargarDatosTenant(bsId); // <-- Llamamos a la función que carga el logo
     }
-    
+
     return this.barbershopIdCache;
   }
 
   // NUEVO: Descarga el logo y nombre de la barbería
   private async cargarDatosTenant(id: string) {
-    if (this.tenant()) return; 
-    
+    if (this.tenant()) return;
+
     const { data } = await this.client
       .from('barbershops')
       // Solo agregamos "id, " al inicio del select
-      .select('id, name, logo_url, color_tema') 
+      .select('id, name, logo_url, color_tema')
       .eq('id', id)
       .single();
 

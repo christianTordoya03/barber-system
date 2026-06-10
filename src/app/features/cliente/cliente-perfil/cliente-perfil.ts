@@ -238,7 +238,7 @@ export class ClientePerfilComponent implements OnInit, OnDestroy {
     this.isCancelModalOpen.set(false); 
     if (this.citaActiva()) {
       try {
-        await this.supabase.client.from('turnos').update({ estado: 'Cancelado' }).eq('id', this.citaActiva().id);
+        await this.supabase.client.from('turnos').update({ estado: 'annulled' }).eq('id', this.citaActiva().id);
         this.citaActiva.set(null);
         this.enviarNotificacionPush('Cita Cancelada 🚫', 'Tu cita fue cancelada. ¡Te esperamos pronto!');
         this.toast.show('Cita cancelada correctamente.', 'success'); 

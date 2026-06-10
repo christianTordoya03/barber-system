@@ -12,7 +12,7 @@ import { SupabaseService } from '../../../core/supabase/supabase';
 })
 export class RegisterComponent implements OnInit {
   private fb = inject(FormBuilder);
-  public supabase = inject(SupabaseService); // Cambiado a public para usarlo en el HTML
+  public supabase = inject(SupabaseService); 
   private router = inject(Router);
 
   isLoading = signal<boolean>(false);
@@ -34,17 +34,20 @@ export class RegisterComponent implements OnInit {
       
       const hostActual = window.location.hostname;
       
-      // IMPORTANTE: Aquí ahora traemos el "id" también para poder ligar al cliente a esta barbería
       let query = this.supabase.client
         .from('barbershops')
-        .select('id, name, logo_url, color_tema');
+        .select('id, name, logo_url, color_tema, instagram_url, facebook_url, tiktok_url');
 
-      // Lógica dinámica para local vs producción
-      if (hostActual === 'localhost') {
+      // 🔥 EL ESCUDO PROTECTOR 🔥
+      if (hostActual === 'localhost' || hostActual === '127.0.0.1') {
         // ID por defecto para pruebas locales (Marina 305)
         query = query.eq('id', '7d790667-8d0b-4c1d-835f-3fd39abc20bd'); 
-      } else {
+      } else if (hostActual === 'aureum.localhost') {
+        // Búsqueda dinámica para la demo local
         query = query.eq('dominio', hostActual); 
+      } else {
+        // PRODUCCIÓN (Fallback seguro a Marina 305)
+        query = query.eq('id', '7d790667-8d0b-4c1d-835f-3fd39abc20bd'); 
       }
         
       const { data, error } = await query.single();
@@ -85,10 +88,19 @@ export class RegisterComponent implements OnInit {
 
     const { fullName, telefono, fechaNacimiento, password } = this.registerForm.getRawValue();
     
-    // CORREO DINÁMICO: Extraemos el nombre de la barbería y lo volvemos un dominio
+    // 1. Limpiamos el celular: dejamos SOLO NÚMEROS
+    const telefonoLimpio = telefono.replace(/[^0-9]/g, '');
+
+    // 2. Limpiamos el nombre de la barbería: sin tildes, espacios ni símbolos
     const tenantName = tenantData.name || 'aureumlogic';
-    const dominioDinamico = tenantName.toLowerCase().replace(/\s+/g, '') + '.com';
-    const emailFormateado = `${telefono.trim()}@${dominioDinamico}`;
+    const dominioDinamico = tenantName
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+      .replace(/[^a-z0-9]/g, '') 
+      + '.com';
+
+    // 3. Generamos un correo perfectamente válido siempre
+    const emailFormateado = `${telefonoLimpio}@${dominioDinamico}`;
 
     try {
       const { data, error } = await this.supabase.client.auth.signUp({

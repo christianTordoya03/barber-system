@@ -81,8 +81,23 @@ export class TurnosService {
   }
 
   async actualizarTurno(id: number, cambios: Partial<Turno>) {
-    const { error } = await this.supabase.client.from('turnos').update(cambios).eq('id', id);
-    if (error) console.error('Error actualizando turno:', error);
+    // 1. ACTUALIZACIÓN OPTIMISTA (La clave de la reactividad)
+    // Esto cambia la información localmente al instante para que la pantalla no se quede congelada.
+    this.turnos.update(turnosActuales => 
+      turnosActuales.map(t => t.id === id ? { ...t, ...cambios } : t)
+    );
+
+    // 2. Ejecutar la actualización real en la base de datos de Supabase
+    const { error } = await this.supabase.client
+      .from('turnos')
+      .update(cambios)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error actualizando turno en Supabase:', error);
+      // Si llega a fallar la red, recargamos los datos para evitar datos falsos en pantalla
+      this.cargarTurnos(); 
+    }
   }
 
   private escucharTurnosRealTime() {

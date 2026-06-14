@@ -1,12 +1,13 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TurnosService } from '../../../core/services/turnos';
 import { StaffService } from '../../../core/services/staff';
 import { GastosService } from '../../../core/services/gastos';
+import { ComisionesService } from '../../../core/services/comisiones';
+import { SupabaseService } from '../../../core/supabase/supabase';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { ComisionesService } from '../../../core/services/comisiones';
 
 @Component({
   selector: 'app-lista-empleado',
@@ -14,11 +15,12 @@ import { ComisionesService } from '../../../core/services/comisiones';
   imports: [CommonModule, FormsModule],
   templateUrl: './lista-empleado.html',
 })
-export class ListaEmpleadoComponent {
+export class ListaEmpleadoComponent implements OnInit {
   private turnosService = inject(TurnosService);
   private staffService = inject(StaffService);
   private gastosService = inject(GastosService);
   private comisionesService = inject(ComisionesService);
+  private supabase = inject(SupabaseService); // <-- Inyectado
 
   hoyStrHtml = (() => {
     const d = new Date();
@@ -28,28 +30,38 @@ export class ListaEmpleadoComponent {
   fechaInicio = signal<string>(this.hoyStrHtml);
   fechaFin = signal<string>(this.hoyStrHtml);
   nombreEmpleadoReporte = signal<string>('');
-  empleados = this.staffService.empleados;
-  
+
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero'));
-  
+
   filtroAplicado = signal({
     empleado: '',
     inicio: this.hoyStrHtml,
     fin: this.hoyStrHtml
   });
 
-  // 1. CÁLCULO DE SERVICIOS (Reactivo)
+  // Nueva variable para almacenar ventas
+  ventasTotales = signal<any[]>([]);
+
+  async ngOnInit() {
+    const bsId = await this.supabase.obtenerBarbershopId();
+    if (bsId) {
+      const { data } = await this.supabase.client
+        .from('ventas_productos')
+        .select('*, productos(nombre)')
+        .eq('barbershop_id', bsId);
+      this.ventasTotales.set(data || []);
+    }
+  }
+
+  // 1. CÁLCULO DE SERVICIOS
   turnosEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
     if (!filtro.empleado) return [];
-    
     const inicioStr = filtro.inicio.replace(/-/g, '');
     const finStr = filtro.fin.replace(/-/g, '');
-
     return this.turnosService.turnos().filter(t => {
       if (t.estado !== 'completed' || t.barbero !== filtro.empleado) return false;
       if (!t.fecha) return false;
-      
       let itemStr = '';
       const match = t.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (match) {
@@ -60,120 +72,111 @@ export class ListaEmpleadoComponent {
           itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
         }
       }
-
-      if (itemStr) {
-        return itemStr >= inicioStr && itemStr <= finStr;
-      }
-      return false;
+      return itemStr >= inicioStr && itemStr <= finStr;
     });
   });
 
-  // 2. NUEVO: CÁLCULO DE PROPINAS Y COMISIONES EXTRAS (Reactivo)
+  // 2. CÁLCULO DE PROPINAS Y EXTRAS
   comisionesEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
     if (!filtro.empleado) return [];
-
-    const empleadoObj = this.barberos().find(e => e.nombre === filtro.empleado);
-    if (!empleadoObj) return [];
-
+    const empObj = this.barberos().find(e => e.nombre === filtro.empleado);
+    if (!empObj) return [];
     const inicioStr = filtro.inicio.replace(/-/g, '');
     const finStr = filtro.fin.replace(/-/g, '');
-
     return this.comisionesService.comisiones().filter(c => {
-      if (c.estado === 'anulado' || Number(c.empleado_id) !== empleadoObj.id) return false;
+      if (c.estado === 'anulado' || Number(c.empleado_id) !== empObj.id) return false;
       if (!c.fecha) return false;
-
       let itemStr = '';
       const match = c.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (match) {
         itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
       } else {
         const matchISO = c.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
-        if (matchISO) {
-          itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
-        }
+        if (matchISO) itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
       }
-
-      if (itemStr) {
-        return itemStr >= inicioStr && itemStr <= finStr;
-      }
-      return false;
+      return itemStr >= inicioStr && itemStr <= finStr;
     });
   });
 
-  // 3. CÁLCULO DE ADELANTOS (Reactivo)
-  adelantosEmpleado = computed(() => {
+  // 3. NUEVO: CÁLCULO DE VENTAS DE PRODUCTOS
+  ventasEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
     if (!filtro.empleado) return [];
-
-    const empleadoObj = this.barberos().find(e => e.nombre === filtro.empleado);
-    if (!empleadoObj) return [];
-
+    const empObj = this.barberos().find(e => e.nombre === filtro.empleado);
+    if (!empObj) return [];
     const inicioStr = filtro.inicio.replace(/-/g, '');
     const finStr = filtro.fin.replace(/-/g, '');
 
-    return this.gastosService.gastos().filter(g => {
-      if (g.estado === 'anulado' || g.empleado_id !== empleadoObj.id) return false;
-      if (!g.fecha) return false;
-
-      let itemStr = '';
-      const match = g.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (match) {
-        itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
-      } else {
-        const matchISO = g.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
-        if (matchISO) {
-          itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
-        }
-      }
-
-      if (itemStr) {
-        return itemStr >= inicioStr && itemStr <= finStr;
-      }
-      return false;
+    return this.ventasTotales().filter(v => {
+      if (v.empleado_id !== empObj.id || v.estado === 'anulado') return false;
+      const dateObj = new Date(v.fecha_venta);
+      const day = dateObj.getDate().toString().padStart(2, '0');
+      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+      const year = dateObj.getFullYear().toString();
+      const itemStr = `${year}${month}${day}`;
+      return itemStr >= inicioStr && itemStr <= finStr;
     });
   });
 
-  // 4. MATEMÁTICA FINAL INTEGRADA
+  // 4. CÁLCULO DE ADELANTOS
+  adelantosEmpleado = computed(() => {
+    const filtro = this.filtroAplicado();
+    if (!filtro.empleado) return [];
+    const empObj = this.barberos().find(e => e.nombre === filtro.empleado);
+    if (!empObj) return [];
+    const inicioStr = filtro.inicio.replace(/-/g, '');
+    const finStr = filtro.fin.replace(/-/g, '');
+    return this.gastosService.gastos().filter(g => {
+      if (g.estado === 'anulado' || g.empleado_id !== empObj.id) return false;
+      if (!g.fecha) return false;
+      let itemStr = '';
+      const match = g.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (match) itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
+      else {
+        const matchISO = g.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (matchISO) itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
+      }
+      return itemStr >= inicioStr && itemStr <= finStr;
+    });
+  });
+
+  // MATEMÁTICA FINAL
   totalGeneradoEmpleado = computed(() => this.turnosEmpleado().reduce((acc, t) => acc + Number(t.monto), 0));
-  
   porcentajeComisionEmpleado = computed(() => {
     const emp = this.barberos().find(e => e.nombre === this.filtroAplicado().empleado);
     return emp?.comision || 0;
   });
-
   comisionNetaEmpleado = computed(() => (this.totalGeneradoEmpleado() * this.porcentajeComisionEmpleado()) / 100);
-  
-  totalComisionesExtraEmpleado = computed(() => this.comisionesEmpleado().reduce((acc, c) => acc + Number(c.monto), 0));
+
+  // Incluimos las comisiones del inventario nuevo
+  totalComisionesProductos = computed(() => this.ventasEmpleado().reduce((acc, v) => acc + Number(v.monto_comision), 0));
+  totalComisionesExtraEmpleado = computed(() => this.comisionesEmpleado().reduce((acc, c) => acc + Number(c.monto), 0) + this.totalComisionesProductos());
 
   totalAdelantosEmpleado = computed(() => this.adelantosEmpleado().reduce((acc, g) => acc + Number(g.monto), 0));
 
   pagoFinalEmpleado = computed(() => (this.comisionNetaEmpleado() + this.totalComisionesExtraEmpleado()) - this.totalAdelantosEmpleado());
 
   buscar() {
-    const emp = typeof this.nombreEmpleadoReporte === 'function' ? this.nombreEmpleadoReporte() : this.nombreEmpleadoReporte;
-    const ini = typeof this.fechaInicio === 'function' ? this.fechaInicio() : this.fechaInicio;
-    const fin = typeof this.fechaFin === 'function' ? this.fechaFin() : this.fechaFin;
-
     this.filtroAplicado.set({
-      empleado: String(emp),
-      inicio: String(ini),
-      fin: String(fin)
+      empleado: this.nombreEmpleadoReporte(),
+      inicio: this.fechaInicio(),
+      fin: this.fechaFin()
     });
   }
 
   getResumenFinanciero(emp: any) {
     const hoy = new Date().toLocaleDateString('es-PE');
-    const turnosHoy = this.turnosService.turnos().filter(t => 
-      t.barbero === emp.nombre && 
+    const turnosHoy = this.turnosService.turnos().filter(t =>
+      t.barbero === emp.nombre &&
       (t.estado === 'completed' || t.estado === 'finished') &&
       t.fecha.includes(hoy)
     );
     const comisionCortes = turnosHoy.reduce((acc, t) => acc + (Number(t.monto) * (emp.comision || 50) / 100), 0);
-    const extras = this.comisionesService.comisiones().filter(c => 
+    const extras = this.comisionesService.comisiones().filter(c =>
       Number(c.empleado_id) === emp.id && c.estado !== 'anulado' && c.fecha === hoy
     ).reduce((acc, c) => acc + Number(c.monto), 0);
-    const deuda = this.gastosService.gastos().filter(g => 
+    const deuda = this.gastosService.gastos().filter(g =>
       g.empleado_id === emp.id && g.estado === 'activo'
     ).reduce((acc, g) => acc + Number(g.monto), 0);
 

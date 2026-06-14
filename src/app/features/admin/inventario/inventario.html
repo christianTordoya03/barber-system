@@ -1,0 +1,282 @@
+<div class="max-w-6xl mx-auto animate-fade-in-up p-4 sm:p-6">
+  
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
+    <div>
+      <h1 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Inventario</h1>
+      <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Gestiona tus productos, stock y registra ventas rápidas.</p>
+    </div>
+    <button (click)="abrirModalCrear()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm py-2.5 px-5 rounded-lg shadow-md shadow-blue-500/30 transform active:scale-95 transition-all flex items-center gap-2 justify-center cursor-pointer">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+      </svg>
+      Añadir Producto
+    </button>
+  </div>
+
+  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm relative transition-colors duration-300">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-left text-sm">
+        <thead class="bg-zinc-50 dark:bg-zinc-900/50">
+          <tr>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Producto</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Stock</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Costo Unit.</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Precio Venta</th>
+            <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+          <tr *ngFor="let producto of inventarioService.productos$ | async" class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300 transition-colors">
+            <td class="px-6 py-4 font-medium">{{ producto.nombre }}</td>
+            <td class="px-6 py-4">
+              <span class="px-2.5 py-1 rounded-md text-xs font-bold"
+                    [ngClass]="{'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400': producto.stock > 5,
+                               'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400': producto.stock > 0 && producto.stock <= 5,
+                               'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400': producto.stock === 0}">
+                {{ producto.stock }} unds.
+              </span>
+            </td>
+            <td class="px-6 py-4">S/ {{ producto.costo_unitario | number:'1.2-2' }}</td>
+            <td class="px-6 py-4 font-bold">S/ {{ producto.precio_venta | number:'1.2-2' }}</td>
+            
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+              <div class="flex items-center justify-end gap-2">
+                <button (click)="abrirModalVenta(producto)" [disabled]="producto.stock === 0" class="text-blue-600 dark:text-blue-400 font-bold px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer mr-1">
+                  Vender
+                </button>
+                
+                <button (click)="abrirModalEditarProd(producto)" class="p-1.5 text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-lg transition-colors cursor-pointer" title="Editar Producto">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+
+                <button (click)="eliminarProducto(producto)" class="p-1.5 text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-lg transition-colors cursor-pointer" title="Eliminar Producto">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+
+          </tr>
+          <tr *ngIf="(inventarioService.productos$ | async)?.length === 0">
+            <td colspan="5" class="px-6 py-16 text-center text-zinc-500 border-b-0">
+              <svg class="mx-auto h-12 w-12 text-zinc-300 dark:text-zinc-700 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+              <p class="text-sm font-medium text-zinc-600 dark:text-zinc-400">No tienes productos registrados</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="mt-12">
+    <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-4">Historial de Movimientos</h3>
+    <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm transition-colors duration-300">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-left text-sm">
+          <thead class="bg-zinc-50 dark:bg-zinc-900/50">
+            <tr>
+              <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Fecha / Hora</th>
+              <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Producto</th>
+              <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Cant.</th>
+              <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Vendedor</th>
+              <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Método</th>
+              <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Monto Total</th>
+              <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+            @for (venta of historialVentas(); track venta.id) {
+            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors" [ngClass]="{'opacity-50 grayscale bg-zinc-50/50 dark:bg-zinc-900/20': venta.estado === 'anulado'}">
+              <td class="px-6 py-4 text-zinc-500 whitespace-nowrap">{{ venta.fecha_venta | date:'dd/MM/yyyy, hh:mm a' }}</td>
+              <td class="px-6 py-4 font-bold text-zinc-900 dark:text-white whitespace-nowrap" [class.line-through]="venta.estado === 'anulado'">
+                {{ venta.productos?.nombre }}
+              </td>
+              <td class="px-6 py-4 text-zinc-700 dark:text-zinc-300">{{ venta.cantidad }} und.</td>
+              <td class="px-6 py-4 text-blue-500 font-bold whitespace-nowrap">{{ venta.empleados?.nombre }}</td>
+              <td class="px-6 py-4 text-zinc-600 dark:text-zinc-400">{{ venta.metodo_pago }}</td>
+              <td class="px-6 py-4 font-bold" [ngClass]="venta.estado === 'anulado' ? 'text-zinc-400 line-through' : 'text-emerald-600 dark:text-emerald-400'">
+                S/ {{ (venta.precio_venta_historico * venta.cantidad) | number:'1.2-2' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                @if (venta.estado !== 'anulado') {
+                  <div class="flex items-center justify-end gap-2">
+                    <button (click)="abrirModalEditar(venta)" class="px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-lg transition-colors cursor-pointer">
+                      Editar
+                    </button>
+                    <button (click)="anularVenta(venta.id)" class="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-lg transition-colors cursor-pointer">
+                      Anular
+                    </button>
+                  </div>
+                } @else {
+                  <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500 bg-zinc-200 dark:bg-zinc-800 rounded-md">Anulado</span>
+                }
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="7" class="px-6 py-12 text-center text-zinc-500">No hay ventas registradas.</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModalCrear" class="fixed inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm z-[110] flex justify-center items-center p-4 sm:p-0 animate-fade-in">
+  <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-sm shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+    <div class="px-6 sm:px-8 py-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center mt-2">
+      <h3 class="text-xl font-bold text-zinc-900 dark:text-white">Nuevo Producto</h3>
+      <button (click)="cerrarModalCrear()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors cursor-pointer">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    
+    <div class="p-6 sm:px-8 space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Nombre del Producto</label>
+        <input type="text" [(ngModel)]="nuevoProducto.nombre" placeholder="Ej. Minoxidil" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-colors outline-none">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Stock Inicial</label>
+          <input type="number" [(ngModel)]="nuevoProducto.stock" min="0" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-colors outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Costo (S/)</label>
+          <input type="number" [(ngModel)]="nuevoProducto.costo_unitario" min="0" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-colors outline-none">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Precio Venta (S/)</label>
+        <input type="number" [(ngModel)]="nuevoProducto.precio_venta" min="0" class="block w-full rounded-xl border border-blue-200 dark:border-blue-900/30 bg-blue-50 dark:bg-blue-900/10 py-3 px-4 text-blue-900 dark:text-blue-400 shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-lg font-black transition-colors outline-none">
+      </div>
+    </div>
+    
+    <div class="px-6 sm:px-8 py-5 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3">
+      <button (click)="cerrarModalCrear()" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer">Cancelar</button>
+      <button (click)="guardarProducto()" [disabled]="procesandoCreacion" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-70 flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer">
+        <span *ngIf="procesandoCreacion" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+        {{ procesandoCreacion ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModalEditarProd && productoAEditar" class="fixed inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm z-[110] flex justify-center items-center p-4 sm:p-0 animate-fade-in">
+  <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-sm shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+    <div class="px-6 sm:px-8 py-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center mt-2">
+      <h3 class="text-xl font-bold text-zinc-900 dark:text-white">Editar Producto</h3>
+      <button (click)="cerrarModalEditarProd()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors cursor-pointer">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    
+    <div class="p-6 sm:px-8 space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Nombre del Producto</label>
+        <input type="text" [(ngModel)]="productoAEditar.nombre" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-colors outline-none">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Stock Actual</label>
+          <input type="number" [(ngModel)]="productoAEditar.stock" min="0" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-colors outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Costo (S/)</label>
+          <input type="number" [(ngModel)]="productoAEditar.costo_unitario" min="0" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-colors outline-none">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Precio Venta (S/)</label>
+        <input type="number" [(ngModel)]="productoAEditar.precio_venta" min="0" class="block w-full rounded-xl border border-blue-200 dark:border-blue-900/30 bg-blue-50 dark:bg-blue-900/10 py-3 px-4 text-blue-900 dark:text-blue-400 shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-lg font-black transition-colors outline-none">
+      </div>
+    </div>
+    
+    <div class="px-6 sm:px-8 py-5 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3">
+      <button (click)="cerrarModalEditarProd()" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer">Cancelar</button>
+      <button (click)="guardarEdicionProd()" [disabled]="procesandoEdicionProd" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-70 flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer">
+        <span *ngIf="procesandoEdicionProd" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+        {{ procesandoEdicionProd ? 'Guardando...' : 'Actualizar Producto' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModalEditar && ventaAEditar" class="fixed inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm z-[110] flex justify-center items-center p-4 sm:p-0 animate-fade-in">
+  <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up">
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+    <div class="px-6 sm:px-8 py-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center mt-2">
+      <h3 class="text-xl font-bold text-zinc-900 dark:text-white">Editar Venta</h3>
+      <button (click)="cerrarModalEditar()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors cursor-pointer">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    
+    <div class="p-6 sm:px-8 overflow-y-auto custom-scrollbar">
+      <div class="mb-6 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 p-4 rounded-2xl flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">Producto Vendido</p>
+          <p class="text-lg font-black text-zinc-900 dark:text-white">{{ ventaAEditar.productos.nombre }}</p>
+        </div>
+      </div>
+
+      <div class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Cantidad</label>
+          <input type="number" [(ngModel)]="datosEdicion.cantidad" (change)="validarCantidadEdicion()" min="1" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Vendedor</label>
+          <select [(ngModel)]="datosEdicion.empleado_id" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm outline-none appearance-none">
+            @for (empleado of empleadosActivos(); track empleado.id) { <option [ngValue]="empleado.id">{{ empleado.nombre }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Comisión (%)</label>
+          <input type="number" [(ngModel)]="datosEdicion.porcentaje_comision" min="0" max="100" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Método de Pago</label>
+          <select [(ngModel)]="datosEdicion.metodo_pago" class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm outline-none appearance-none">
+            <option value="Efectivo">Efectivo</option> <option value="Yape">Yape</option> <option value="Yape JK">Yape JK</option> <option value="Tarjeta">Tarjeta</option> <option value="Transferencia">Transferencia</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-6 border-t border-zinc-100 dark:border-zinc-800 pt-5">
+        <h4 class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Nuevos Totales</h4>
+        <div class="space-y-2.5 text-sm">
+          <div class="flex justify-between items-center">
+            <span class="text-zinc-500 dark:text-zinc-400">Total Venta:</span>
+            <span class="font-bold text-zinc-900 dark:text-white">S/ {{ edicionTotalVenta | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-zinc-500 dark:text-zinc-400">Comisión del vendedor:</span>
+            <span class="font-medium text-orange-600 dark:text-orange-400">- S/ {{ edicionMontoComision | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between items-center pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80">
+            <span class="font-bold text-zinc-900 dark:text-white">Nueva Ganancia Neta:</span>
+            <span class="font-black text-emerald-600 dark:text-emerald-400 text-base">S/ {{ edicionGananciaNeta | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="px-6 sm:px-8 py-5 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3">
+      <button (click)="cerrarModalEditar()" [disabled]="procesandoEdicion" class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 cursor-pointer">Cancelar</button>
+      <button (click)="guardarEdicionVenta()" [disabled]="procesandoEdicion || !datosEdicion.empleado_id" class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer">
+        @if (procesandoEdicion) { <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span> Procesando... } @else { Actualizar Venta }
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-modal-venta-producto *ngIf="mostrarModalVenta && productoSeleccionado" [producto]="productoSeleccionado" [barbershopId]="barbershopId" (cerrar)="cerrarModalVenta()"></app-modal-venta-producto>
+<app-modal-confirm [isOpen]="confirmConfig().isOpen" [title]="confirmConfig().title" [message]="confirmConfig().message" [type]="confirmConfig().type" [confirmText]="confirmConfig().confirmText" (onConfirm)="confirmConfig().action()" (onCancel)="cerrarConfirmacion()"></app-modal-confirm>

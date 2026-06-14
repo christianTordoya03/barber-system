@@ -77,6 +77,11 @@ export const routes: Routes = [
       {
         path: 'reportes',
         loadComponent: () => import('./features/admin/reportes/reportes').then(m => m.ReportesComponent)
+      },
+      // NUEVA RUTA DE INVENTARIO AÑADIDA AQUÍ
+      {
+        path: 'inventario',
+        loadComponent: () => import('./features/admin/inventario/inventario').then(m => m.InventarioComponent)
       }
     ]
   },

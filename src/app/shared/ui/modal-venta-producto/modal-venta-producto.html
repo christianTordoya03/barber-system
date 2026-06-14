@@ -1,0 +1,135 @@
+<!-- Fondo oscuro (Backdrop) -->
+<div class="fixed inset-0 bg-zinc-900/40 dark:bg-black/80 backdrop-blur-sm z-[110] flex justify-center items-center p-4 sm:p-0 animate-fade-in">
+  
+  <!-- Contenedor del Modal -->
+  <div class="relative bg-white dark:bg-[#111111] rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up">
+    
+    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+
+    <!-- Cabecera -->
+    <div class="px-6 sm:px-8 py-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center mt-2">
+      <h3 class="text-xl font-bold text-zinc-900 dark:text-white">Registrar Venta</h3>
+      <button (click)="cerrarModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors cursor-pointer">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Cuerpo del Modal -->
+    <div class="p-6 sm:px-8 overflow-y-auto custom-scrollbar">
+      
+      <!-- Info del Producto -->
+      <div class="mb-6 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 p-4 rounded-2xl flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">Producto a vender</p>
+          <p class="text-lg font-black text-zinc-900 dark:text-white">{{ producto.nombre }}</p>
+        </div>
+        <div class="text-right">
+          <p class="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">Stock actual</p>
+          <p class="font-black text-blue-700 dark:text-blue-400">{{ producto.stock }} unds.</p>
+        </div>
+      </div>
+
+      <!-- Formulario -->
+      <div class="space-y-5">
+        
+        <!-- Cantidad -->
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Cantidad a vender</label>
+          <input 
+            type="number" 
+            [(ngModel)]="cantidad" 
+            (change)="validarCantidad()"
+            min="1" 
+            [max]="producto.stock"
+            class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-colors outline-none">
+        </div>
+
+        <!-- Empleado -->
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">¿Quién realiza la venta?</label>
+          <select 
+            [(ngModel)]="empleadoSeleccionado"
+            class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors outline-none cursor-pointer appearance-none">
+            <option [ngValue]="null" disabled selected>Selecciona un empleado...</option>
+            @for (empleado of empleadosActivos(); track empleado.id) {
+              <option [ngValue]="empleado.id">
+                {{ empleado.nombre }} ({{ empleado.rol }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <!-- Comisión -->
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Comisión para el empleado (%)</label>
+          <div class="relative">
+            <input 
+              type="number" 
+              [(ngModel)]="porcentajeComision" 
+              min="0" max="100"
+              class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 pl-4 pr-10 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm font-bold transition-colors outline-none">
+            <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-zinc-500 font-bold">%</span>
+          </div>
+        </div>
+
+        <!-- Método de Pago -->
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Método de Pago</label>
+          <select 
+            [(ngModel)]="metodoPago"
+            class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 py-3 px-4 text-zinc-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 sm:text-sm transition-colors outline-none cursor-pointer appearance-none">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Yape">Yape</option>
+            <option value="Yape JK">Yape JK</option>
+            <option value="Tarjeta">Tarjeta</option>
+            <option value="Transferencia">Transferencia</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Resumen de Transacción -->
+      <div class="mt-6 border-t border-zinc-100 dark:border-zinc-800 pt-5">
+        <h4 class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Resumen de la Venta</h4>
+        <div class="space-y-2.5 text-sm">
+          <div class="flex justify-between items-center">
+            <span class="text-zinc-500 dark:text-zinc-400">Total a cobrar al cliente:</span>
+            <span class="font-bold text-zinc-900 dark:text-white">S/ {{ totalVenta | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-zinc-500 dark:text-zinc-400">Comisión del vendedor:</span>
+            <span class="font-medium text-orange-600 dark:text-orange-400">- S/ {{ montoComision | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between items-center pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80">
+            <span class="font-bold text-zinc-900 dark:text-white">Tu Ganancia Neta:</span>
+            <span class="font-black text-emerald-600 dark:text-emerald-400 text-base">S/ {{ gananciaNeta | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Pie del Modal (Botones) -->
+    <div class="px-6 sm:px-8 py-5 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3">
+      <button 
+        (click)="cerrarModal()" 
+        [disabled]="procesando"
+        class="flex-1 py-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 cursor-pointer">
+        Cancelar
+      </button>
+      <button 
+        (click)="confirmarVenta()" 
+        [disabled]="procesando || !empleadoSeleccionado"
+        class="flex-1 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer">
+        @if (procesando) {
+          <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span> Procesando...
+        } @else {
+          Confirmar Venta
+        }
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -79,9 +79,18 @@
           <td class="px-6 py-2.5 font-medium">Total Transferencia:</td>
           <td class="px-6 py-2.5 text-right">S/ {{ totalTransferencia() | number:'1.2-2' }}</td>
         </tr>
+
         <tr class="bg-blue-50/50 dark:bg-blue-900/10 text-blue-800 dark:text-blue-400 font-bold border-t border-blue-100 dark:border-blue-900/30">
-          <td class="px-6 py-2.5">Total de Ingresos:</td>
+          <td class="px-6 py-2.5">Total Ingresos (Servicios):</td>
           <td class="px-6 py-2.5 text-right">S/ {{ totalIngresos() | number:'1.2-2' }}</td>
+        </tr>
+        <tr class="bg-blue-50/50 dark:bg-blue-900/10 text-blue-800 dark:text-blue-400 font-bold border-t border-blue-100 dark:border-blue-900/30">
+          <td class="px-6 py-2.5">Total Ingresos (Productos):</td>
+          <td class="px-6 py-2.5 text-right">+ S/ {{ totalIngresosProductos() | number:'1.2-2' }}</td>
+        </tr>
+        <tr class="bg-orange-50/30 dark:bg-orange-950/10 text-orange-800 dark:text-orange-400 font-bold border-t border-orange-100 dark:border-orange-900/20">
+          <td class="px-6 py-2.5">Costo de Inventario Vendido:</td>
+          <td class="px-6 py-2.5 text-right">- S/ {{ totalCostoProductos() | number:'1.2-2' }}</td>
         </tr>
 
         <tr class="bg-emerald-50/30 dark:bg-emerald-950/10 text-emerald-800 dark:text-emerald-400 font-bold border-y border-emerald-100 dark:border-emerald-900/20">
@@ -101,8 +110,9 @@
           <td class="px-6 py-2.5">Total (Efectivo) físico en caja:</td>
           <td class="px-6 py-2.5 text-right">S/ {{ totalCajaEfectivo() | number:'1.2-2' }}</td>
         </tr>
+
         <tr class="bg-zinc-100/50 dark:bg-zinc-800/50 text-zinc-800 dark:text-zinc-200 font-black text-base">
-          <td class="px-6 py-3">Total Neto Real:</td>
+          <td class="px-6 py-3">Total Neto Real (Ingresos - Gastos - Costos):</td>
           <td class="px-6 py-3 text-right">S/ {{ totalNeto() | number:'1.2-2' }}</td>
         </tr>
         } @else {

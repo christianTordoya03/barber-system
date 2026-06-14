@@ -74,6 +74,23 @@
             <td colspan="2" class="px-6 py-12 text-center text-zinc-500">No hay registros para este filtro.</td>
           </tr>
           }
+          @if (ventasEmpleado().length > 0) {
+        <tr class="bg-blue-50/40 dark:bg-blue-950/10">
+          <td colspan="2" class="px-6 py-2.5 font-bold text-blue-700 dark:text-blue-400 uppercase text-xs tracking-wider border-t border-zinc-200 dark:border-zinc-800">
+            Comisiones por Venta de Inventario
+          </td>
+        </tr>
+        @for (venta of ventasEmpleado(); track venta.id) {
+        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300 transition-colors">
+          <td class="px-6 py-3 pl-8 text-sm">
+            <span class="text-xs text-zinc-400 mr-2">{{ venta.fecha_venta | date:'dd/MM/yyyy' }}</span>
+            <span class="font-semibold">{{ venta.productos?.nombre }}</span>
+            <span class="text-zinc-500 text-xs ml-1">(Cant: {{ venta.cantidad }} | Com: {{ venta.porcentaje_comision }}%)</span>
+          </td>
+          <td class="px-6 py-3 text-right text-blue-600 font-bold">+ S/ {{ venta.monto_comision | number:'1.2-2' }}</td>
+        </tr>
+        }
+        }
         }
 
         @if (turnosEmpleado().length > 0) {
@@ -115,6 +132,7 @@
           <td class="px-6 py-3 text-right text-lg font-black text-emerald-600">+ S/ {{ totalComisionesExtraEmpleado() | number:'1.2-2' }}</td>
         </tr>
         }
+        
 
         @if (adelantosEmpleado().length > 0) {
         <tr class="bg-red-50/50 dark:bg-red-900/10">

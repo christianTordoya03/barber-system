@@ -58,21 +58,32 @@ export class BarberoHistorialComponent implements OnInit {
   }
 
   turnosFiltrados = computed(() => {
-    if (!this.hasSearched()) return [];
-    const filtro = this.filtroAplicado();
-    const inicioStr = filtro.inicio.replace(/-/g, '');
-    const finStr = filtro.fin.replace(/-/g, '');
+  if (!this.hasSearched()) return [];
+  const filtro = this.filtroAplicado();
+  const inicioStr = filtro.inicio.replace(/-/g, '');
+  const finStr = filtro.fin.replace(/-/g, '');
 
-    return this.turnosService.turnos().filter(t => {
-      if (t.barbero !== this.nombreCompleto() || (t.estado !== 'completed' && t.estado !== 'finished')) return false;
-      const d = this.parseDateStr(t.fecha);
-      if (d) {
-        const itemStr = `${d.year}${d.month}${d.day}`;
-        return itemStr >= inicioStr && itemStr <= finStr;
-      }
-      return false;
-    }).reverse();
+  return this.turnosService.turnos().filter(t => {
+    if (t.barbero !== this.nombreCompleto() || (t.estado !== 'completed' && t.estado !== 'finished')) return false;
+    const d = this.parseDateStr(t.fecha);
+    if (d) {
+      const itemStr = `${d.year}${d.month}${d.day}`;
+      return itemStr >= inicioStr && itemStr <= finStr;
+    }
+    return false;
+  }).sort((a, b) => {
+    // NUEVO: Convertir la fecha real de la BD a un valor de tiempo
+    const parsearFecha = (fechaStr: string) => {
+      if (!fechaStr) return 0;
+      const [fecha, hora] = fechaStr.split(', ');
+      const [dia, mes, anio] = fecha.split('/');
+      return new Date(`${anio}-${mes}-${dia}T${hora || '00:00:00'}`).getTime();
+    };
+    
+    // Orden descendente real (más recientes primero)
+    return parsearFecha(b.fecha) - parsearFecha(a.fecha);
   });
+});
 
   comisionesFiltradas = computed(() => {
     if (!this.hasSearched()) return [];

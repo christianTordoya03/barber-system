@@ -278,27 +278,41 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
   });
 
   turnosAgenda = computed(() => {
-    return this.misTurnosTotales()
-      .filter(t => this.esFechaIgual(t.fecha, this.fechaSeleccionadaStr()))
-      .sort((a, b) => {
-        const prioridad = (estado: string) => {
-          switch (estado) {
-            case 'in_progress': return 1;
-            case 'pending':     return 2;
-            case 'finished':    return 3;
-            case 'completed':   return 4;
-            case 'annulled':    return 5;
-            default:            return 6;
-          }
-        };
-        const pA = prioridad(a.estado);
-        const pB = prioridad(b.estado);
-        if (pA !== pB) return pA - pB;
-        const compHora = this.extraerHora(a.fecha).localeCompare(this.extraerHora(b.fecha));
-        if (compHora !== 0) return compHora;
-        return a.id - b.id;
-      });
-  });
+  return this.misTurnosTotales()
+    .filter(t => this.esFechaIgual(t.fecha, this.fechaSeleccionadaStr()))
+    .sort((a, b) => {
+      const prioridad = (estado: string) => {
+        switch (estado) {
+          case 'in_progress': return 1;
+          case 'pending':     return 2;
+          case 'finished':    return 3;
+          case 'completed':   return 4;
+          case 'annulled':    return 5;
+          default:            return 6;
+        }
+      };
+      const pA = prioridad(a.estado);
+      const pB = prioridad(b.estado);
+      if (pA !== pB) return pA - pB;
+
+      // CORRECCIÓN: Ordenar por tiempo numérico, no por texto
+      const parsearFecha = (fechaStr: string) => {
+        if (!fechaStr) return 0;
+        const [fecha, hora] = fechaStr.split(', ');
+        const [dia, mes, anio] = fecha.split('/');
+        return new Date(`${anio}-${mes}-${dia}T${hora || '00:00:00'}`).getTime();
+      };
+
+      const tiempoA = parsearFecha(a.fecha);
+      const tiempoB = parsearFecha(b.fecha);
+
+      // Desempate por ID si ocurre exactamente en el mismo segundo
+      if (tiempoA === tiempoB) return a.id - b.id;
+      
+      // Orden ascendente (las citas más tempranas del día arriba)
+      return tiempoA - tiempoB; 
+    });
+});
 
   dineroGeneradoHoy = computed(() => {
     const terminados = this.turnosDeHoy().filter(t => t.estado === 'finished' || t.estado === 'completed');

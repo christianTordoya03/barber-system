@@ -167,45 +167,49 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ultimosMovimientos = computed(() => {
-    const hoyVal = this.getValorFecha(this.hoyStr());
-    const filtrados = this.turnosService.turnos().filter(t => {
-      // if (t.estado === 'annulled') return false; 
+  const hoyVal = this.getValorFecha(this.hoyStr());
+  const filtrados = this.turnosService.turnos().filter(t => {
+    const turnoVal = this.getValorFecha(t.fecha);
+    if (turnoVal > hoyVal) return false;
+    if (turnoVal === hoyVal) return true;
+    return (t.estado === 'pending' || t.estado === 'in_progress' || t.estado === 'finished');
+  });
 
-      const turnoVal = this.getValorFecha(t.fecha);
-      if (turnoVal > hoyVal) return false;
-      if (turnoVal === hoyVal) return true;
-      return (t.estado === 'pending' || t.estado === 'in_progress' || t.estado === 'finished');
-    });
-
+  return filtrados.sort((a, b) => {
     const getPriority = (estado: string) => {
       if (estado === 'finished') return 1;
       if (estado === 'in_progress') return 2;
       if (estado === 'pending') return 3;
       if (estado === 'completed') return 4;
-      if (estado === 'annulled') return 5;
+      if (estado === 'annulled') return 5; // <-- Anulados se quedan al fondo
       return 5;
     };
 
-    return filtrados.sort((a, b) => {
-      const pA = getPriority(a.estado);
-      const pB = getPriority(b.estado);
+    const pA = getPriority(a.estado);
+    const pB = getPriority(b.estado);
 
-      // 1. Primero por Estado
-      if (pA !== pB) return pA - pB;
+    // 1. Respetar la prioridad primero
+    if (pA !== pB) return pA - pB;
 
-      // 2. Desempate
-      if (a.estado === 'completed') {
-        return b.id - a.id; // Los cobrados, el más reciente arriba
-      } else {
-        // <-- NUEVO: ORDEN CRONOLÓGICO REAL PARA LOS PENDIENTES
-        const minA = this.obtenerMinutosDesdeFecha(a.fecha);
-        const minB = this.obtenerMinutosDesdeFecha(b.fecha);
-        if (minA !== minB) return minA - minB;
+    // 2. Si son del mismo estado, usamos el orden cronológico REAL
+    const valDiaA = this.getValorFecha(a.fecha);
+    const valDiaB = this.getValorFecha(b.fecha);
+    const minA = this.obtenerMinutosDesdeFecha(a.fecha);
+    const minB = this.obtenerMinutosDesdeFecha(b.fecha);
 
-        return a.id - b.id;
-      }
-    });
+    if (a.estado === 'completed' || a.estado === 'annulled') {
+      // Orden Descendente (El más reciente arriba, dentro de su propio grupo)
+      if (valDiaA !== valDiaB) return valDiaB - valDiaA;
+      if (minA !== minB) return minB - minA;
+      return b.id - a.id; // Desempate por ID si ocurre en el mismo minuto exacto
+    } else {
+      // Orden Ascendente (El más antiguo arriba para los pendientes)
+      if (valDiaA !== valDiaB) return valDiaA - valDiaB;
+      if (minA !== minB) return minA - minB;
+      return a.id - b.id; 
+    }
   });
+});
 
   onSearchChange(event: Event) {
     const target = event.target as HTMLInputElement;

@@ -159,11 +159,20 @@ export class CobrosComponent implements OnInit, OnDestroy {
       
       if (pA !== pB) return pA - pB;
       
+      // --- CORRECCIÓN: ORDENAMIENTO CRONOLÓGICO REAL ---
+      const valDiaA = this.getValorFecha(a.fecha);
+      const valDiaB = this.getValorFecha(b.fecha);
+      const minA = this.obtenerMinutosDesdeFecha(a.fecha);
+      const minB = this.obtenerMinutosDesdeFecha(b.fecha);
+
       if (a.estado === 'completed' || a.estado === 'annulled') {
-        return b.id - a.id; 
+        // Los completados/anulados: El más reciente arriba (Descendente)
+        if (valDiaA !== valDiaB) return valDiaB - valDiaA;
+        if (minA !== minB) return minB - minA;
+        return b.id - a.id; // Desempate por ID si tienen exactamente el mismo minuto
       } else {
-        const minA = this.obtenerMinutosDesdeFecha(a.fecha);
-        const minB = this.obtenerMinutosDesdeFecha(b.fecha);
+        // Los pendientes/en_curso: El más antiguo arriba (Ascendente para atenderlos primero)
+        if (valDiaA !== valDiaB) return valDiaA - valDiaB;
         if (minA !== minB) return minA - minB;
         return a.id - b.id; 
       }

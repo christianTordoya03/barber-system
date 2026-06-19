@@ -6,24 +6,33 @@ export interface Turno {
   cliente: string;
   cliente_id?: number;
   monto: number;
-  estado: 'pending' | 'in_progress' | 'finished' | 'completed' | 'annulled';
+  // Añadimos 'pending_confirmation' para aislar las reservas hechas por la web pública
+  estado: 'pending_confirmation' | 'pending' | 'in_progress' | 'finished' | 'completed' | 'annulled';
   fecha: string;
   metodoPago?: string | null;
   horaInicio?: string | null;
   notas?: string;
+  // Para medir la efectividad de la web vs presencial
+  origen?: 'web' | 'local'; 
 }
 
 export interface Cliente {
   id?: number;
   barbershop_id?: string;
-  nombre: string;
-  telefono: string;      // Campo clave para tus promociones
-  email?: string;        // Opcional para el cliente, valioso para ti
-  fecha_nacimiento?: string; // Para enviar promociones de cumpleaños
+  nombre: string;         
+  telefono: string;       
+  email?: string;
+  fecha_nacimiento?: string; 
   avatar_url?: string;
-  puntos_acumulados?: number;
-  notas_tecnicas?: string; // Notas de cortes anteriores (visibles para barberos)
+  
+  // Motor de Fidelización y Retención
+  puntos_acumulados?: number; 
+  visitas_totales?: number;   
+  ultima_visita?: string;     
+  
+  notas_tecnicas?: string;
   fecha_registro?: string;
+  estado?: string;
 }
 
 export interface Empleado {

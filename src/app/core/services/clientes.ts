@@ -26,33 +26,45 @@ export class ClientesService {
     }
   }
 
-  // Añade esto dentro de tu clase ClientesService
-  // AÑADIR ESTA FUNCIÓN AL FINAL DE LA CLASE
-  async upsertClienteExpress(nombre: string, whatsapp: string, cumpleanos: string) {
-    const { data: existente, error: searchError } = await this.supabase.client
+  async upsertClienteExpress(nombreIngresado: string, whatsapp: string, fechaNacimiento: string) {
+    if (!whatsapp || whatsapp.trim() === '') return null; // Prevención de búsquedas en blanco
+
+    const { data: existente } = await this.supabase.client
       .from('clientes')
       .select('*')
-      .eq('telefono', whatsapp)
-      .single();
+      .eq('telefono', whatsapp.trim())
+      .maybeSingle();
+
+    // 1. Limpiamos la fecha para evitar el error de Supabase (invalid input syntax for type date: "")
+    const fechaLimpia = fechaNacimiento && fechaNacimiento.trim() !== '' ? fechaNacimiento : null;
 
     if (existente) {
-      // Si el cliente ya existe pero le faltaba su cumpleaños, podemos actualizarlo
-      if (!existente['cumpleanos']) {
-        await this.supabase.client.from('clientes').update({ cumpleanos: cumpleanos }).eq('id', existente.id);
+      // 2. Usamos la fecha limpia para la actualización
+      if (!existente['fecha_nacimiento'] && fechaLimpia) {
+        await this.supabase.client.from('clientes').update({ fecha_nacimiento: fechaLimpia }).eq('id', existente.id);
       }
       return existente;
     }
 
     const bsId = await this.supabase.obtenerBarbershopId();
+    
+    // 3. Armamos el paquete de datos base sin la fecha
+    const payload: any = {
+      nombre: nombreIngresado,
+      telefono: whatsapp.trim(),
+      barbershop_id: bsId,
+      visitas_totales: 0,
+      puntos_acumulados: 0
+    };
+
+    // 4. Solo inyectamos la fecha si realmente tiene un valor válido
+    if (fechaLimpia) {
+      payload.fecha_nacimiento = fechaLimpia;
+    }
+
     const { data: nuevo, error: insertError } = await this.supabase.client
       .from('clientes')
-      .insert([{
-        nombre_completo: nombre,
-        telefono: whatsapp,
-        cumpleanos: cumpleanos,
-        estado: 'activo',
-        barbershop_id: bsId // <-- Inyectamos
-      }])
+      .insert([payload])
       .select()
       .single();
 
@@ -82,11 +94,13 @@ export class ClientesService {
   }
 
   async buscarClientePorTelefono(telefono: string): Promise<Cliente | null> {
+    if (!telefono || telefono.trim() === '') return null; // Prevención de búsquedas en blanco
+    
     const { data, error } = await this.supabase.client
       .from('clientes')
       .select('*')
-      .eq('telefono', telefono)
-      .single();
+      .eq('telefono', telefono.trim())
+      .maybeSingle(); // maybeSingle evita errores si devuelve 0 filas
 
     return data ? (data as Cliente) : null;
   }
@@ -102,5 +116,27 @@ export class ClientesService {
       console.error('Error al actualizar cliente:', error);
       this.cargarClientes();
     }
+  }
+
+  // Motor de Fidelización
+  async registrarVisitaYSumarPuntos(clienteId: number, puntosActuales: number, visitasTotales: number = 0) {
+    // Si llega a 5, el próximo (el actual que se está pagando) canjea la promo y reinicia el contador a 0
+    const nuevosPuntos = puntosActuales >= 5 ? 0 : puntosActuales + 1;
+    const nuevasVisitas = visitasTotales + 1;
+
+    const { error } = await this.supabase.client
+      .from('clientes')
+      .update({ 
+        puntos_acumulados: nuevosPuntos,
+        visitas_totales: nuevasVisitas,
+        ultima_visita: new Date().toISOString()
+      })
+      .eq('id', clienteId);
+
+    if (!error) {
+      this.cargarClientes(); 
+      return true;
+    }
+    return false;
   }
 }

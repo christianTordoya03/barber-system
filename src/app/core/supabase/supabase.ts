@@ -25,28 +25,33 @@ export class SupabaseService {
   }
 
   async obtenerBarbershopId(): Promise<string | null> {
-    if (this.barbershopIdCache) return this.barbershopIdCache;
-
-    const { data: { session } } = await this.client.auth.getSession();
-    if (!session?.user?.email) return null;
-
-    // Buscamos si es empleado o cliente
-    let bsId = null;
-    const { data: emp } = await this.client.from('empleados').select('barbershop_id').eq('email', session.user.email).maybeSingle();
-
-    if (emp?.barbershop_id) {
-      bsId = emp.barbershop_id;
-    } else {
-      const { data: cli } = await this.client.from('clientes').select('barbershop_id').eq('email', session.user.email).maybeSingle();
-      if (cli?.barbershop_id) bsId = cli.barbershop_id;
+    // 1. PRIMER FILTRO: Si estamos en el Wizard Web, usamos el ID cargado
+    const tenantActual = this.tenant();
+    if (tenantActual && tenantActual.id) {
+      return tenantActual.id;
     }
 
-    if (bsId) {
-      this.barbershopIdCache = bsId;
-      await this.cargarDatosTenant(bsId); // <-- Llamamos a la función que carga el logo
+    // 2. SEGUNDO FILTRO: Intentamos buscar sesión de Admin (Con Try/Catch antibalas)
+    try {
+      const { data: session } = await this.client.auth.getSession();
+      if (session?.session?.user) {
+        const { data: empleado } = await this.client
+          .from('empleados')
+          .select('barbershop_id')
+          .eq('email', session.session.user.email)
+          .maybeSingle();
+        
+        if (empleado?.barbershop_id) {
+          return empleado.barbershop_id;
+        }
+      }
+    } catch (e) {
+      // Si el navegador lanza el error "NavigatorLockAcquireTimeoutError", lo atrapamos silenciosamente
+      console.warn("Ignorando error de bloqueo del navegador", e);
     }
 
-    return this.barbershopIdCache;
+    // 3. PARACAÍDAS: Código neutral si no hay sesión ni tenant aún
+    return '00000000-0000-0000-0000-000000000000';
   }
 
   // NUEVO: Descarga el logo y nombre de la barbería

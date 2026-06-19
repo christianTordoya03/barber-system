@@ -3,6 +3,7 @@
     'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50': status() === 'pending',
     'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50': status() === 'in_progress',
     'bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-900/50': status() === 'finished',
+    'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/40': status() === 'pending_confirmation',
     'bg-zinc-50 dark:bg-red-950/10 border-zinc-200 dark:border-red-900/30 opacity-60 grayscale-[50%]': status() === 'annulled'
   }">
   
@@ -11,11 +12,12 @@
            'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400': status() === 'pending',
            'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400': status() === 'in_progress',
            'bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400': status() === 'finished',
+           'bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400': status() === 'pending_confirmation',
            'bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400': status() === 'completed' && type() === 'income',
            'bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400': status() === 'completed' && type() === 'expense',
            'bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400': status() === 'annulled'
          }">
-      @if (status() === 'pending' || status() === 'in_progress') {
+      @if (status() === 'pending' || status() === 'in_progress' || status() === 'pending_confirmation') {
         <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
       } @else if (status() === 'finished') {
         <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -35,10 +37,11 @@
                 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 ring-blue-600/20 dark:ring-blue-500/30': status() === 'pending',
                 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 ring-emerald-600/20 dark:ring-emerald-500/30 animate-pulse': status() === 'in_progress',
                 'bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 ring-purple-600/20 dark:ring-purple-500/30': status() === 'finished',
+                'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 ring-orange-600/20 dark:ring-orange-500/30': status() === 'pending_confirmation',
                 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 ring-green-600/20 dark:ring-green-500/20': status() === 'completed',
                 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 ring-red-600/20 dark:ring-red-500/20': status() === 'annulled'
               }">
-          {{ status() === 'pending' ? 'PENDIENTE' : status() === 'in_progress' ? 'EN CURSO' : status() === 'finished' ? 'POR COBRAR' : status() === 'completed' ? 'Completado' : 'ANULADO' }}
+          {{ status() === 'pending' ? 'PENDIENTE' : status() === 'in_progress' ? 'EN CURSO' : status() === 'finished' ? 'POR COBRAR' : status() === 'pending_confirmation' ? 'WEB (POR CONFIRMAR)' : status() === 'completed' ? 'Completado' : 'ANULADO' }}
         </span>
 
         @if (status() === 'completed' && paymentMethod()) {
@@ -61,9 +64,9 @@
   </div>
 
   <div class="flex items-center justify-end w-full sm:w-auto space-x-2 sm:space-x-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/60 sm:pt-0 sm:border-0 shrink-0">
-    @if (status() === 'pending' || status() === 'in_progress' || status() === 'finished') {
+    @if (status() === 'pending' || status() === 'in_progress' || status() === 'finished' || status() === 'pending_confirmation') {
       
-      @if (status() === 'pending') {
+      @if (status() === 'pending' || status() === 'pending_confirmation') {
         <button (click)="onStart.emit()" title="Iniciar Turno" class="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-800 transition-all cursor-pointer">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />

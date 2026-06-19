@@ -3,9 +3,9 @@
   <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" (click)="onClose.emit()"></div>
   <div class="relative bg-[#111111] rounded-3xl border border-zinc-800 w-full max-w-md shadow-2xl overflow-hidden animate-fade-in-up">
     
-    <!-- Línea superior dinámica según los 5 estados -->
     <div class="absolute top-0 inset-x-0 h-1" [ngClass]="{
         'bg-gradient-to-r from-red-600 to-red-400': data().estado === 'annulled',
+        'bg-gradient-to-r from-orange-500 to-orange-400': data().estado === 'pending_confirmation',
         'bg-gradient-to-r from-blue-600 to-blue-400': data().estado === 'pending',
         'bg-gradient-to-r from-emerald-500 to-emerald-400': data().estado === 'in_progress',
         'bg-gradient-to-r from-purple-600 to-purple-400': data().estado === 'finished',
@@ -19,17 +19,17 @@
           <p class="text-xs text-zinc-500">ID: #{{ data().id.toString().padStart(6, '0') }}</p>
         </div>
         <button (click)="onClose.emit()"
-          class="text-zinc-500 hover:text-white bg-zinc-900 rounded-full p-2 transition-colors">
+          class="text-zinc-500 hover:text-white bg-zinc-900 rounded-full p-2 transition-colors cursor-pointer">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
       
-      <!-- Estado Badge dinámico actualizado -->
       <div class="flex justify-center mb-6 mt-6">
         <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset" [ngClass]="{
                 'bg-red-500/10 text-red-400 ring-red-500/20': data().estado === 'annulled',
+                'bg-orange-500/10 text-orange-400 ring-orange-500/20': data().estado === 'pending_confirmation',
                 'bg-blue-500/10 text-blue-400 ring-blue-500/20': data().estado === 'pending',
                 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20 animate-pulse': data().estado === 'in_progress',
                 'bg-purple-500/10 text-purple-400 ring-purple-500/20': data().estado === 'finished',
@@ -38,11 +38,11 @@
           {{ data().estado === 'completed' ? 'PAGADO COMPLETADO' : 
              data().estado === 'finished' ? 'TICKET POR COBRAR' : 
              data().estado === 'in_progress' ? 'SERVICIO EN CURSO' : 
+             data().estado === 'pending_confirmation' ? 'SOLICITUD WEB' : 
              data().estado === 'pending' ? 'TICKET PENDIENTE' : 'TICKET ANULADO' }}
         </span>
       </div>
       
-      <!-- Info del Ticket -->
       <div class="space-y-4">
         <div class="flex justify-between border-b border-zinc-800/50 pb-3">
           <span class="text-sm text-zinc-400">Servicio</span>
@@ -54,7 +54,7 @@
         </div>
         <div class="flex justify-between border-b border-zinc-800/50 pb-3">
           <span class="text-sm text-zinc-400">Cliente</span>
-          <span class="text-sm font-medium text-white">{{ data().cliente || 'Cliente de paso' }}</span>
+          <span class="text-sm font-medium text-white">{{ data().cliente || 'Cliente marina 305' }}</span>
         </div>
         <div class="flex justify-between border-b border-zinc-800/50 pb-3">
           <span class="text-sm text-zinc-400">Fecha y Hora</span>
@@ -64,9 +64,15 @@
           <span class="text-sm text-zinc-400">Método de Pago</span>
           <span class="text-sm font-medium text-white">{{ data().metodoPago || 'Pendiente' }}</span>
         </div>
+        
+        @if (data().notas) {
+          <div class="flex flex-col border-b border-zinc-800/50 pb-3 pt-1">
+            <span class="text-sm text-zinc-400 mb-1">Notas / Contacto</span>
+            <span class="text-sm font-medium text-blue-400 italic">{{ data().notas }}</span>
+          </div>
+        }
       </div>
       
-      <!-- Total -->
       <div class="mt-6 p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex justify-between items-center">
         <span class="text-sm font-bold text-zinc-300">Total Registrado</span>
         <span class="text-2xl font-black text-white" [class.line-through]="data().estado === 'annulled'">S/ {{

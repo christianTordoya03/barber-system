@@ -133,6 +133,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/update-password/update-password').then(m => m.UpdatePasswordComponent)
   },
 
+  // =========================================================
+  // RUTAS PÚBLICAS DE RESERVA (Sin AuthGuard)
+  // =========================================================
+  {
+    path: 'reserva/:barbershop_slug',
+    loadComponent: () => import('./features/public/booking-wizard/booking-wizard').then(m => m.BookingWizardComponent)
+  },
+
   // Redirección por defecto si la ruta no existe o entran a la raíz
   {
     path: '',

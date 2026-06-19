@@ -9,6 +9,7 @@ import { ToastService } from '../../../core/services/toast';
 import { StaffService } from '../../../core/services/staff';
 import { CatalogoService } from '../../../core/services/catalogo';
 import { SupabaseService } from '../../../core/supabase/supabase';
+import { ClientesService } from '../../../core/services/clientes';
 
 @Component({
   selector: 'app-cobros',
@@ -23,10 +24,12 @@ export class CobrosComponent implements OnInit, OnDestroy {
   private staffService = inject(StaffService);
   private catalogoService = inject(CatalogoService);
   private supabase = inject(SupabaseService);
+  private clientesService = inject(ClientesService);
 
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
   esAdmin = signal<boolean>(false);
+  clienteAsociado = signal<any>(null);
 
   hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
 
@@ -278,8 +281,19 @@ export class CobrosComponent implements OnInit, OnDestroy {
 
     this.cobroForm.get('turnoId')?.valueChanges.subscribe(id => {
       const turno = this.turnosParaCobrar().find(t => t.id === Number(id));
-      if (turno) { this.servicioSeleccionado.set(turno.servicio); this.precioSeleccionado.set(turno.monto); } 
-      else { this.servicioSeleccionado.set(''); this.precioSeleccionado.set(null); }
+      if (turno) { 
+        this.servicioSeleccionado.set(turno.servicio); 
+        this.precioSeleccionado.set(turno.monto); 
+        
+        // NUEVO: Buscar si este cliente está en nuestra base de datos de fidelización
+        const cliente = this.clientesService.clientes().find(c => c.nombre === turno.cliente);
+        this.clienteAsociado.set(cliente || null);
+      } 
+      else { 
+        this.servicioSeleccionado.set(''); 
+        this.precioSeleccionado.set(null); 
+        this.clienteAsociado.set(null);
+      }
     });
     
     this.editForm.get('servicio')?.valueChanges.subscribe(nombreServicio => {
@@ -342,7 +356,19 @@ export class CobrosComponent implements OnInit, OnDestroy {
 
     // Ahora sí, actualizamos el turno
     this.turnosService.actualizarTurno(Number(formVals.turnoId), { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: formaPagoFinal });
-    
+    const clienteAsoc = this.clienteAsociado();
+    if (clienteAsoc && clienteAsoc.id) {
+      const puntos = clienteAsoc.puntos_acumulados || 0;
+      const visitas = clienteAsoc.visitas_totales || 0;
+      
+      if (puntos >= 5) {
+        this.toastService.show(`¡Corte gratis canjeado para ${clienteAsoc.nombre}! Sellos reiniciados.`, 'success');
+      } else {
+        this.toastService.show(`Genial, ${clienteAsoc.nombre} ahora tiene ${puntos + 1} sello(s).`, 'success');
+      }
+      // Sumamos en la base de datos de fondo
+      this.clientesService.registrarVisitaYSumarPuntos(clienteAsoc.id, puntos, visitas);
+    }
     // Liberar al barbero
     if (turno && turno.barbero) {
       const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
@@ -358,6 +384,7 @@ export class CobrosComponent implements OnInit, OnDestroy {
     this.cobroForm.reset({ barberoFiltro: '', turnoId: '', formaPago: '', esPagoMixto: false, formaPago2: '', montoPago1: 0 });
     this.servicioSeleccionado.set(''); 
     this.precioSeleccionado.set(null);
+    this.clienteAsociado.set(null);
   }
   
 

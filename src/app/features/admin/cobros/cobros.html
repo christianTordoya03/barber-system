@@ -16,7 +16,46 @@
 
     <form [formGroup]="cobroForm" (ngSubmit)="realizarCobro()" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
+        @if (clienteAsociado()) {
+        <div class="col-span-1 md:col-span-2 lg:col-span-3 mb-2 animate-fade-in-up">
+          @if ((clienteAsociado()?.puntos_acumulados || 0) >= 5) {
+          <div
+            class="bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl p-4 flex items-center justify-between shadow-lg shadow-orange-500/20 text-white border border-orange-400">
+            <div class="flex items-center">
+              <div class="bg-white/20 p-2 rounded-lg mr-4 shadow-inner">
+                <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-black text-lg drop-shadow-md">¡6to Corte Gratis Disponible!</h4>
+                <p class="text-sm font-medium text-orange-50 drop-shadow">Este cliente llenó sus 5 sellos en visitas
+                  anteriores.</p>
+              </div>
+            </div>
+          </div>
+          } @else {
+          <div
+            class="bg-blue-900/10 dark:bg-blue-500/5 border border-blue-500/20 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              @for (s of [1,2,3,4,5]; track s) {
+              <div
+                class="h-6 w-6 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-black transition-all"
+                [ngClass]="s <= (clienteAsociado()?.puntos_acumulados || 0) ? 'bg-blue-600 text-white shadow-md shadow-blue-500/40 ring-2 ring-blue-400/30 ring-offset-1 ring-offset-[#111111]' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600'">
+                {{ s }}
+              </div>
+              }
+            </div>
+            <div class="text-left sm:text-right">
+              <p class="text-sm font-black text-blue-600 dark:text-blue-400 uppercase tracking-wide">Progreso: {{
+                clienteAsociado()?.puntos_acumulados || 0 }}/5 Sellos</p>
+              <p class="text-[10px] text-zinc-500 font-medium">Se sumará 1 sello al cobrar este servicio.</p>
+            </div>
+          </div>
+          }
+        </div>
+        }
         <div>
           <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Filtrar por Barbero</label>
           <select formControlName="barberoFiltro"

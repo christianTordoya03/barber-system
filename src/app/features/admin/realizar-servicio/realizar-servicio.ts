@@ -177,7 +177,7 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
         id: Date.now(),
         servicio: servicio?.nombre || 'Servicio Estándar',
         barbero: barbero?.nombre || 'Barbero',
-        cliente: formValues.clienteNombre?.trim() || 'Cliente de paso',
+        cliente: formValues.clienteNombre?.trim() || 'Cliente marina 305',
         monto: servicio?.precio || 0,
         estado: iniciarYa ? 'in_progress' : 'pending',
         horaInicio: iniciarYa ? new Date().toISOString() : undefined,

@@ -9,6 +9,7 @@ import { ModalDetalleComponent } from '../../../shared/ui/modal-detalle/modal-de
 import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-confirm';
 import { Turno, Empleado } from '../../../core/models/marina';
 import { RouterModule } from '@angular/router';
+import { WhatsappService } from '../../../core/services/whatsapp';
 
 @Component({
   selector: 'app-admin-agenda',
@@ -22,9 +23,13 @@ export class AgendaComponent implements OnInit, OnDestroy {
   private staffService = inject(StaffService);
   private catalogoService = inject(CatalogoService);
   private toastService = inject(ToastService);
+  private whatsappService = inject(WhatsappService);
 
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
+  solicitudesWeb = computed(() => 
+    this.turnosService.turnos().filter(t => t.estado === 'pending_confirmation')
+  );
 
   obtenerFechaActual() {
     const d = new Date();
@@ -159,6 +164,40 @@ export class AgendaComponent implements OnInit, OnDestroy {
     }
     return resultado;
   });
+
+  confirmarSolicitudWeb(turno: Turno) {
+    // 1. Lo pasamos a 'pending' para que entre a la agenda oficial del barbero
+    this.turnosService.actualizarTurno(turno.id, { estado: 'pending' });
+    
+    // 2. Extraemos el teléfono que guardamos temporalmente en la nota en el Wizard
+    const match = turno.notas?.match(/\(Telf:\s*([0-9+]+)\)/);
+    const telefono = match ? match[1] : '';
+
+    // 3. Obtenemos la plantilla y reemplazamos los datos
+    // Si no hay plantilla en BD, usamos un texto por defecto elegante
+    const plantilla = this.whatsappService.obtenerPlantilla('confirmacion') || 
+      'Hola {nombre} ✂️ Tu cita en Marina 305 para tu {servicio} el {fecha} a las {hora} con {barbero} ha sido confirmada. ¡Te esperamos!';
+    
+    const mensaje = this.whatsappService.generarMensaje(plantilla, {
+      clienteNombre: turno.cliente || 'amigo',
+      servicio: turno.servicio,
+      barbero: turno.barbero,
+      fecha: this.extraerFechaCorta(turno.fecha),
+      hora: this.extraerHora(turno.fecha)
+    });
+
+    
+
+    // 4. Disparamos WhatsApp y avisamos al usuario
+    this.whatsappService.enviarMensaje(telefono, mensaje);
+    this.toastService.show('Reserva confirmada. Abriendo WhatsApp...', 'success');
+  }
+
+  rechazarSolicitudWeb(turno: Turno) {
+    // Si la rechazan, se anula y libera el espacio automáticamente
+    this.turnosService.actualizarTurno(turno.id, { estado: 'annulled' });
+    this.toastService.show('Solicitud web rechazada', 'success');
+  }
 
   turnosTotalesRango = computed(() => {
     return this.barberosConAgenda().reduce((acc, item) => acc.concat(item.turnos), [] as Turno[]);

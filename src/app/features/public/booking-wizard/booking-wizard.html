@@ -1,0 +1,295 @@
+<div class="min-h-screen bg-[#070709] flex flex-col items-center py-6 px-4 sm:px-6 font-sans selection:bg-blue-500 selection:text-white transition-colors duration-300">
+  
+  @if (isLoading()) {
+    <div class="flex flex-col items-center justify-center flex-1 animate-pulse">
+      <div class="h-16 w-16 bg-zinc-900 rounded-3xl mb-4"></div>
+      <div class="h-4 w-32 bg-zinc-900 rounded-md"></div>
+    </div>
+  } @else {
+    <div class="w-full max-w-lg relative z-10 flex flex-col min-h-[85vh]">
+      
+      <div class="text-center mb-6 animate-fade-in shrink-0">
+        <img [src]="supabase.tenant()?.logo_url || '/logo-aureum.png'" 
+             class="h-16 w-auto mx-auto object-contain drop-shadow-xl rounded-2xl mb-3 invert dark:invert-0 mix-blend-multiply dark:mix-blend-lighten"
+             [alt]="supabase.tenant()?.name">
+        <h1 class="text-xl font-black text-white tracking-tight uppercase">{{ supabase.tenant()?.name }}</h1>
+        <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Reserva en segundos</p>
+      </div>
+
+      @if (!reservaConfirmada()) {
+        <div class="flex items-center justify-between mb-6 px-2 animate-fade-in-up shrink-0">
+          <button type="button" (click)="pasoActual() > 1 ? irAPaso(pasoActual() - 1) : null" 
+                  class="text-sm font-bold flex items-center transition-colors cursor-pointer"
+                  [ngClass]="pasoActual() > 1 ? 'text-zinc-400 hover:text-white' : 'text-transparent pointer-events-none'">
+            <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            Atrás
+          </button>
+          <div class="flex gap-1.5">
+            <div class="h-1.5 rounded-full transition-all duration-300" [ngClass]="pasoActual() >= 1 ? 'w-6 bg-blue-600' : 'w-2 bg-zinc-800'"></div>
+            <div class="h-1.5 rounded-full transition-all duration-300" [ngClass]="pasoActual() >= 2 ? 'w-6 bg-blue-600' : 'w-2 bg-zinc-800'"></div>
+            <div class="h-1.5 rounded-full transition-all duration-300" [ngClass]="pasoActual() >= 3 ? 'w-6 bg-blue-600' : 'w-2 bg-zinc-800'"></div>
+            <div class="h-1.5 rounded-full transition-all duration-300" [ngClass]="pasoActual() >= 4 ? 'w-6 bg-blue-600' : 'w-2 bg-zinc-800'"></div>
+            <div class="h-1.5 rounded-full transition-all duration-300" [ngClass]="pasoActual() >= 5 ? 'w-6 bg-blue-600' : 'w-2 bg-zinc-800'"></div>
+          </div>
+          <div class="w-12"></div>
+        </div>
+      }
+
+      <div class="flex-1 w-full relative flex flex-col">
+        
+        @if (pasoActual() === 1) {
+          <div class="animate-fade-in-up flex-1 flex flex-col justify-center pb-20">
+            <div class="bg-[#111111] p-6 sm:p-8 rounded-3xl border border-zinc-800 shadow-sm text-center">
+              <div class="h-16 w-16 bg-blue-600/10 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+              </div>
+              <h2 class="text-2xl font-black text-white mb-2">Ingresa tu WhatsApp</h2>
+              <p class="text-sm text-zinc-500 mb-6">Lo usaremos para confirmar tu cita y acumular tus puntos de cortes gratis.</p>
+              
+              <div class="relative mb-6 text-left">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-5 text-zinc-400 font-bold text-lg">+51</span>
+                
+                <input type="tel" 
+                       [ngModel]="telefonoCliente()" 
+                       (ngModelChange)="onTelefonoChange($event)"
+                       (keydown.enter)="telefonoCliente().length === 9 ? validarTelefono() : null"
+                       maxlength="9"
+                       placeholder="987654321" 
+                       class="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4 pl-16 pr-4 text-white focus:ring-2 focus:ring-blue-600 transition-all font-black text-lg outline-none placeholder:text-zinc-700 tracking-wider">
+              </div>
+
+              <button type="button" (click)="validarTelefono()" 
+                      [disabled]="isCheckingPhone() || telefonoCliente().length !== 9"
+                      class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide flex justify-center items-center">
+                @if (isCheckingPhone()) {
+                  <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                } @else {
+                  Comenzar Reserva
+                }
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (pasoActual() === 2) {
+          <div class="animate-fade-in-up flex flex-col h-full w-full">
+            <h2 class="text-xl font-bold text-white mb-4 ml-1 shrink-0">¿Qué servicio necesitas?</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto max-h-[60vh] pr-1 pb-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
+              
+              @for (serv of servicios(); track serv.id) {
+                <button type="button" (click)="seleccionarServicio(serv)" 
+                        class="group bg-[#111111] p-4 rounded-2xl border border-zinc-800 flex justify-between items-center cursor-pointer hover:border-blue-500 hover:bg-zinc-900/50 transition-all duration-200 active:scale-95 shadow-sm text-left">
+                  <div>
+                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">{{ serv.nombre }}</h4>
+                    <span class="text-[11px] text-zinc-500 font-medium">{{ serv.duracion }} min</span>
+                  </div>
+                  <span class="text-sm font-black text-white bg-zinc-800 px-3 py-1.5 rounded-lg group-hover:bg-blue-600 transition-colors shrink-0">S/ {{ serv.precio }}</span>
+                </button>
+              } @empty {
+                <!-- Si la lista llega vacía, mostramos esta tarjeta en lugar de la pantalla negra -->
+                <div class="col-span-full flex flex-col items-center justify-center py-12 bg-zinc-900/30 rounded-3xl border border-zinc-800/50">
+                  <svg class="h-12 w-12 text-zinc-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                  <p class="text-zinc-400 font-bold">No hay servicios disponibles</p>
+                  <p class="text-zinc-600 text-xs mt-1">Revisa el RLS o el link de la barbería</p>
+                </div>
+              }
+
+            </div>
+          </div>
+        }
+
+        @if (pasoActual() === 3) {
+          <div class="animate-fade-in-up flex flex-col h-full w-full">
+            <h2 class="text-xl font-bold text-white mb-4 ml-1 shrink-0">¿Con quién te atiendes?</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto max-h-[60vh] pr-1 pb-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
+              
+              <button type="button" (click)="seleccionarBarbero(null)" 
+                      class="group bg-[#111111] p-4 rounded-2xl border border-zinc-800 flex items-center space-x-3 cursor-pointer hover:border-blue-500 hover:bg-zinc-900/50 transition-all duration-200 active:scale-95 shadow-sm text-left">
+                <div class="h-12 w-12 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white group-hover:text-blue-400">Cualquiera</h4>
+                  <p class="text-[10px] text-zinc-500">El primero disponible</p>
+                </div>
+              </button>
+
+              @for (barbero of barberos(); track barbero.id) {
+                <button type="button" (click)="seleccionarBarbero(barbero)" 
+                        class="group bg-[#111111] p-4 rounded-2xl border border-zinc-800 flex items-center space-x-3 cursor-pointer hover:border-blue-500 hover:bg-zinc-900/50 transition-all duration-200 active:scale-95 shadow-sm text-left">
+                  <div class="h-12 w-12 rounded-full overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 flex items-center justify-center font-bold text-zinc-500">
+                    @if (barbero.avatar_url) {
+                      <img [src]="barbero.avatar_url" class="h-full w-full object-cover">
+                    } @else {
+                      {{ barbero.nombre.charAt(0) }}
+                    }
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400">{{ barbero.nombre }}</h4>
+                    <p class="text-[10px] text-zinc-500 line-clamp-1">{{ barbero.bio || 'Especialista' }}</p>
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (pasoActual() === 4) {
+          <div class="animate-fade-in-up flex flex-col h-full w-full">
+            
+            @if (subPasoCalendario() === 'dias') {
+              <div class="mb-4 ml-1 shrink-0">
+                <h2 class="text-xl font-bold text-white mb-1">¿Qué día?</h2>
+                <p class="text-sm text-zinc-500">Próximos días disponibles</p>
+              </div>
+
+              @if (diasDisponibles().length === 0) {
+                <div class="text-center py-10 bg-zinc-900/50 rounded-2xl border border-zinc-800">
+                  <p class="text-zinc-500 text-sm">Cargando calendario...</p>
+                </div>
+              } @else {
+                <div class="w-full grid grid-cols-3 gap-3 overflow-y-auto max-h-[60vh] pr-1 pb-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
+                  @for (dia of diasDisponibles(); track dia.strFormat) {
+                    <button type="button" (click)="seleccionarFecha(dia.strFormat)" 
+                            class="flex flex-col items-center justify-center py-5 px-2 rounded-2xl border transition-all cursor-pointer bg-[#111111] border-zinc-800 hover:border-blue-500 hover:bg-zinc-900 active:scale-95 shadow-sm">
+                      <span class="text-[11px] font-bold uppercase tracking-widest mb-1 text-orange-400">
+                        {{ dia.diaNombre }}
+                      </span>
+                      <span class="text-3xl font-black mb-1 text-white">
+                        {{ dia.diaNumero }}
+                      </span>
+                      <span class="text-[11px] font-medium text-zinc-500">
+                        {{ dia.esHoy ? 'Hoy' : dia.mesNombre }}
+                      </span>
+                    </button>
+                  }
+                </div>
+              }
+            }
+
+            @if (subPasoCalendario() === 'horas') {
+              <div class="flex items-center mb-5 ml-1 shrink-0">
+                <button type="button" (click)="volverADias()" class="mr-3 text-zinc-400 hover:text-white transition-colors bg-zinc-900 hover:bg-zinc-800 p-2 rounded-xl cursor-pointer">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <div>
+                  <h2 class="text-xl font-bold text-white leading-tight">Elige tu horario</h2>
+                  <p class="text-xs text-blue-400 font-bold mt-0.5">Fecha: {{ fechaSeleccionada() | date:'dd/MM/yyyy' }}</p>
+                </div>
+              </div>
+
+              <div class="w-full grid grid-cols-3 sm:grid-cols-4 gap-3 overflow-y-auto max-h-[55vh] pr-1 pb-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
+                @for (hora of horasDisponibles(); track hora) {
+                  <button type="button" (click)="seleccionarHora(hora)"
+                          [disabled]="horasOcupadas().includes(hora) || (fechaSeleccionada() === primerDiaStr() && hora < horaActualMilitarStr())"
+                          class="py-3.5 px-2 rounded-xl text-sm text-center transition-all font-bold select-none cursor-pointer"
+                          [ngClass]="{
+                            'bg-zinc-900/50 text-zinc-600 border border-zinc-800/50 cursor-not-allowed line-through': horasOcupadas().includes(hora) || (fechaSeleccionada() === primerDiaStr() && hora < horaActualMilitarStr()),
+                            'bg-[#111111] text-zinc-300 border border-zinc-800 hover:border-blue-500 hover:bg-blue-600/10 active:scale-95 shadow-sm': !horasOcupadas().includes(hora) && !(fechaSeleccionada() === primerDiaStr() && hora < horaActualMilitarStr())
+                          }">
+                    {{ '1970-01-01T' + hora | date:'hh:mm a' }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (pasoActual() === 5 && !reservaConfirmada()) {
+          <div class="animate-fade-in-up space-y-6 w-full">
+            <div class="flex items-center mb-2 ml-1">
+              <button type="button" (click)="irAPaso(4)" class="mr-3 text-zinc-400 hover:text-white transition-colors bg-zinc-900 hover:bg-zinc-800 p-2 rounded-xl cursor-pointer">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <h2 class="text-xl font-bold text-white">Confirma tu cita</h2>
+            </div>
+            
+            <div class="bg-[#111111] p-5 rounded-3xl border border-zinc-800 shadow-sm space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">WhatsApp</label>
+                <input type="text" [value]="'+51 ' + telefonoCliente()" disabled class="w-full bg-zinc-900/50 border border-zinc-800/50 rounded-xl py-3 px-4 text-zinc-400 font-bold outline-none cursor-not-allowed">
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">Tu Nombre <span class="text-red-500">*</span></label>
+                <input type="text" 
+                       [ngModel]="nombreCliente()" 
+                       (ngModelChange)="nombreCliente.set($event)"
+                       placeholder="¿Cómo te llamamos?" 
+                       class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 px-4 text-white focus:ring-2 transition-all font-bold outline-none placeholder:text-zinc-600"
+                       [ngClass]="(nombreCliente() || '').trim().length < 2 ? 'focus:ring-red-500/50 border-red-500/30' : 'focus:ring-blue-600'">
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">Nota (Opcional)</label>
+                <textarea [ngModel]="notaCliente()" 
+                          (ngModelChange)="notaCliente.set($event)"
+                          placeholder="Instrucciones para el barbero..." 
+                          class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 px-4 text-white focus:ring-2 focus:ring-blue-600 transition-all text-sm h-16 resize-none outline-none placeholder:text-zinc-600"></textarea>
+              </div>
+            </div>
+
+            <div class="bg-blue-900/10 border border-blue-500/20 p-5 rounded-2xl flex justify-between items-center">
+              <div class="space-y-1 text-sm">
+                <p class="text-white font-bold">{{ servicioSeleccionado()?.nombre }}</p>
+                <p class="text-zinc-400 text-xs">Con {{ barberoSeleccionado()?.nombre || 'el primero disponible' }}</p>
+                <p class="text-zinc-400 text-xs flex items-center mt-1">
+                  <svg class="h-3 w-3 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+                  {{ fechaSeleccionada() | date:'dd/MM/yyyy' }} a las {{ '1970-01-01T' + horaSeleccionada() | date:'hh:mm a' }}
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-[10px] text-zinc-500 font-bold uppercase mb-0.5">Total</p>
+                <p class="text-blue-400 font-black text-xl">S/ {{ servicioSeleccionado()?.precio }}</p>
+              </div>
+            </div>
+
+            <button type="button" (click)="confirmarReserva()" 
+                    [disabled]="isSaving() || nombreCliente().trim().length < 2"
+                    class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide flex justify-center items-center">
+              @if (isSaving()) {
+                <svg class="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Procesando...
+              } @else {
+                Confirmar Cita
+              }
+            </button>
+          </div>
+        }
+
+        @if (reservaConfirmada()) {
+          <div class="bg-[#111111] border border-zinc-800 rounded-3xl p-6 sm:p-8 text-center shadow-2xl animate-fade-in-up mt-4 w-full">
+            
+            <div class="h-20 w-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
+              <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            
+            <h2 class="text-3xl font-black text-white tracking-tight mb-2">¡Solicitud Enviada!</h2>
+            <p class="text-sm text-zinc-400 mb-8">Tu cita está <strong>pendiente de confirmación</strong>.<br>Te avisaremos por WhatsApp a la brevedad.</p>
+            
+            <div class="bg-blue-900/10 border border-blue-500/20 rounded-2xl p-5 mb-6 text-left hover:bg-blue-900/20 transition-colors shadow-inner">
+              <div class="flex items-start gap-4">
+                <div class="bg-blue-600/20 p-2.5 rounded-xl text-blue-500 shrink-0">
+                  <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                </div>
+                <div>
+                  <h4 class="text-white font-bold text-sm mb-1">Tu progreso y cortes gratis</h4>
+                  <p class="text-xs text-zinc-400 mb-3">Instala nuestra app o crea tu cuenta para ver cuántos sellos te faltan para tu próximo servicio gratuito.</p>
+                  
+                  <a href="https://sistema.marina305.net/register" class="inline-flex items-center text-[11px] font-black text-blue-400 hover:text-blue-300 uppercase tracking-widest transition-colors cursor-pointer">
+                    Crear mi cuenta
+                    <svg class="h-3 w-3 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            <button type="button" (click)="reiniciar()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 cursor-pointer text-sm">
+              Hacer otra reserva
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

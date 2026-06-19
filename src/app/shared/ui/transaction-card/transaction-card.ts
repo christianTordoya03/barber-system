@@ -11,14 +11,15 @@ export class TransactionCardComponent {
   title = input.required<string>();
   subtitle = input.required<string>();
   amount = input.required<number>();
-  status = input<'pending' | 'in_progress' | 'finished' | 'completed' | 'annulled'>('completed');
+  // 1. Agregamos 'pending_confirmation' a la firma del input
+  status = input<'pending_confirmation' | 'pending' | 'in_progress' | 'finished' | 'completed' | 'annulled'>('completed');
   type = input<'income' | 'expense'>('income');
   paymentMethod = input<string | undefined | null>(); 
 
   progress = input<number>(0);
   timeText = input<string>('');
 
-  onStart = output<void>(); // <-- NUEVO EVENTO
+  onStart = output<void>(); 
   onPay = output<void>();
   onEdit = output<void>();
   onAnnul = output<void>();

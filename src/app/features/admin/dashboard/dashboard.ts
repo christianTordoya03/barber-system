@@ -12,6 +12,7 @@ import { StaffService } from '../../../core/services/staff';
 import { CatalogoService } from '../../../core/services/catalogo';
 import { OrdenAtencionComponent } from '../../../shared/ui/orden-atencion/orden-atencion';
 import { SupabaseService } from '../../../core/supabase/supabase';
+import { ClientesService } from '../../../core/services/clientes';
 // import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
@@ -27,6 +28,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private staffService = inject(StaffService);
   private catalogoService = inject(CatalogoService);
   private supabase = inject(SupabaseService);
+  private clientesService = inject(ClientesService);
 
   now = signal(Date.now());
   intervalId: any;
@@ -352,16 +354,37 @@ export class DashboardComponent implements OnInit, OnDestroy {
   confirmarCobro(metodo: string) {
     const id = this.cobroSeleccionado()?.id;
     if (id) {
+      // 1. Cobrar el turno
       this.turnosService.actualizarTurno(id, { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: metodo });
 
-      // SOLUCIÓN: LIBERAR BARBERO Y REINICIAR SU RELOJ A LA HORA ACTUAL
       const turno = this.ultimosMovimientos().find(t => t.id === id);
+
+      // --- NUEVO: GATILLO DE FIDELIZACIÓN DESDE EL DASHBOARD ---
+      if (turno && turno.cliente) {
+        const clienteAsoc = this.clientesService.clientes().find(c => c.nombre === turno.cliente);
+
+        if (clienteAsoc && clienteAsoc.id) {
+          const puntos = clienteAsoc.puntos_acumulados || 0;
+          const visitas = clienteAsoc.visitas_totales || 0;
+
+          if (puntos >= 5) {
+            this.toastService.show(`¡Corte gratis canjeado para ${clienteAsoc.nombre}! Sellos reiniciados.`, 'success');
+          } else {
+            this.toastService.show(`Genial, ${clienteAsoc.nombre} ahora tiene ${puntos + 1} sello(s).`, 'success');
+          }
+          // Sumamos los puntos de fondo
+          this.clientesService.registrarVisitaYSumarPuntos(clienteAsoc.id, puntos, visitas);
+        }
+      }
+      // ---------------------------------------------------------
+
+      // SOLUCIÓN: LIBERAR BARBERO Y REINICIAR SU RELOJ A LA HORA ACTUAL
       if (turno && turno.barbero) {
         const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
         if (barberoObj) {
           this.staffService.actualizarEmpleado(barberoObj.id, {
             estado_asistencia: 'disponible',
-            ultima_vez_disponible: new Date().toISOString() // <-- ¡Esta es la línea mágica que faltaba!
+            ultima_vez_disponible: new Date().toISOString()
           });
         }
       }

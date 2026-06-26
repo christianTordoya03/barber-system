@@ -41,10 +41,27 @@
               }
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Cliente (Opcional)</label>
-            <input type="text" formControlName="clienteNombre" placeholder="Ej. Juan Pérez"
+          
+          <div class="relative">
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Cliente (Puedes buscar por nombre o teléfono)</label>
+            <input type="text" formControlName="clienteNombre" 
+                   (focus)="showClientDropdown.set(true)"
+                   (blur)="onBlurCliente()"
+                   autocomplete="off"
+                   placeholder="Buscar nombre o celular..."
               class="block w-full rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900 py-3.5 px-4 text-zinc-900 dark:text-white shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-800 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm">
+            
+            @if (showClientDropdown() && clientesFiltrados().length > 0) {
+              <ul class="absolute z-10 w-full mt-2 bg-white dark:bg-[#1A1A1A] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl max-h-48 overflow-y-auto animate-fade-in divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                @for (cliente of clientesFiltrados(); track cliente.id) {
+                  <li (mousedown)="seleccionarCliente(cliente)"
+                      class="px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer flex justify-between items-center transition-colors">
+                    <span class="font-bold text-sm text-zinc-900 dark:text-white">{{ cliente.nombre }}</span>
+                    <span class="text-xs text-zinc-500">{{ cliente.telefono || '' }}</span>
+                  </li>
+                }
+              </ul>
+            }
           </div>
         </div>
 
@@ -153,8 +170,7 @@
 
                 <div class="flex justify-between items-start pl-1">
                   <div class="truncate flex-1 pr-2">
-                    <h4 class="text-sm font-bold text-zinc-900 dark:text-white truncate">{{ turno.cliente || 'Cliente de
-                      paso' }}</h4>
+                    <h4 class="text-sm font-bold text-zinc-900 dark:text-white truncate">{{ turno.cliente || 'Cliente de paso' }}</h4>
 
                     <div class="flex items-center mt-0.5 space-x-2">
                       <p class="text-xs text-zinc-500 truncate">{{ turno.servicio }}</p>
@@ -171,8 +187,7 @@
                   </div>
                   @if (turno.estado === 'in_progress') {
                   <span
-                    class="animate-pulse bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">En
-                    Curso</span>
+                    class="animate-pulse bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">En Curso</span>
                   }
                 </div>
 

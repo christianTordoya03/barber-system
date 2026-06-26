@@ -75,7 +75,14 @@ export class TurnosService {
     }
 
     if (data) {
-      this.turnos.update(ts => [data as Turno, ...ts]);
+      // SOLUCIÓN ANTI-DUPLICADOS: Verificamos si el RealTime ya lo agregó
+      this.turnos.update(ts => {
+        const yaExiste = ts.some(t => t.id === data.id);
+        if (yaExiste) {
+          return ts; // Si ya está en la lista, no hacemos nada
+        }
+        return [data as Turno, ...ts]; // Si no está, lo agregamos
+      });
       return data;
     }
   }

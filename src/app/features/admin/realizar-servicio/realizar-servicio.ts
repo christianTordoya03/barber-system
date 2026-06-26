@@ -8,6 +8,7 @@ import { StaffService } from '../../../core/services/staff';
 import { Turno } from '../../../core/models/marina';
 import { OrdenAtencionComponent } from '../../../shared/ui/orden-atencion/orden-atencion';
 import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-confirm';
+import { SupabaseService } from '../../../core/supabase/supabase';
 
 @Component({
   selector: 'app-realizar-servicio',
@@ -21,6 +22,7 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private catalogoService = inject(CatalogoService);
   private staffService = inject(StaffService);
+  public supabase = inject(SupabaseService);
 
   isLoading = signal<boolean>(false);
   confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });
@@ -29,7 +31,22 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
 
-  // Fechas y horas por defecto (Ahora mismo)
+  // --- LÓGICA DEL BUSCADOR DE CLIENTES ---
+  clientesDb = signal<any[]>([]);
+  clienteSearchTerm = signal<string>('');
+  showClientDropdown = signal<boolean>(false);
+
+  clientesFiltrados = computed(() => {
+    const query = this.clienteSearchTerm().toLowerCase().trim();
+    if (query.length < 2) return []; // Solo busca si hay al menos 2 caracteres
+    
+    return this.clientesDb().filter(c =>
+      (c.nombre || '').toLowerCase().includes(query) ||
+      (c.telefono || '').includes(query)
+    ).slice(0, 5); // Máximo 5 sugerencias para no ensuciar la UI
+  });
+
+  // Fechas y horas por defecto
   hoyStrHtml = (() => {
     const d = new Date();
     return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
@@ -42,25 +59,52 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     servicioId: ['', Validators.required],
     fecha: [this.hoyStrHtml, Validators.required],
     hora: [this.horaActualStr, Validators.required],
-    iniciarInmediatamente: [false] // <-- NUEVO CHECKBOX
+    iniciarInmediatamente: [false]
   });
 
-  // Señales para reaccionar en la vista
   barberoSeleccionadoId = signal<string>('');
   fechaSeleccionada = signal<string>(this.hoyStrHtml);
 
   now = signal(Date.now());
   intervalId: any;
 
-  ngOnInit() {
+  async ngOnInit() {
     this.intervalId = setInterval(() => this.now.set(Date.now()), 10000);
-    // Escuchar cambios en el formulario en tiempo real
+    
     this.servicioForm.get('barberoId')?.valueChanges.subscribe(v => this.barberoSeleccionadoId.set(v));
     this.servicioForm.get('fecha')?.valueChanges.subscribe(v => this.fechaSeleccionada.set(v));
+    
+    // Escuchar el input del cliente para el autocompletado
+    this.servicioForm.get('clienteNombre')?.valueChanges.subscribe(v => {
+      this.clienteSearchTerm.set(v || '');
+      this.showClientDropdown.set(true);
+    });
+
+    await this.cargarClientes();
   }
 
   ngOnDestroy() {
     if (this.intervalId) clearInterval(this.intervalId);
+  }
+
+  async cargarClientes() {
+    try {
+      const { data, error } = await this.supabase.client.from('clientes').select('id, nombre, telefono');
+      if (data) this.clientesDb.set(data);
+    } catch (error) {
+      console.error('Error al cargar clientes:', error);
+    }
+  }
+
+  // Selección del autocompletado
+  seleccionarCliente(cliente: any) {
+    this.servicioForm.patchValue({ clienteNombre: cliente.nombre });
+    this.showClientDropdown.set(false);
+  }
+
+  onBlurCliente() {
+    // Timeout breve para permitir que el clic en la lista se registre antes de ocultarla
+    setTimeout(() => this.showClientDropdown.set(false), 200);
   }
 
   // --- LÓGICA DE LA MINI-AGENDA ---
@@ -105,7 +149,6 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
 
     return this.turnosService.turnos()
       .filter(t => {
-        // Ignoramos los anulados, los completados y finalizados. Solo vemos pendientes y en progreso
         if (t.barbero !== barberoObj.nombre) return false;
         if (t.estado !== 'pending' && t.estado !== 'in_progress') return false;
         
@@ -119,7 +162,7 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
 
   getDuracionServicio(nombreServicio: string): number {
     const srv = this.servicios().find(s => s.nombre === nombreServicio);
-    return srv?.duracion || 30; // 30 min por defecto
+    return srv?.duracion || 30;
   }
 
   getTiempoRestante(turno: Turno): string {
@@ -137,7 +180,6 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     }
   }
 
-  // NUEVA FUNCIÓN PARA LA BARRA DEL ADMIN
   calcularProgreso(turno: Turno): number {
     if (turno.estado !== 'in_progress' || !turno.horaInicio) return 0;
     const srv = this.servicios().find(s => s.nombre === turno.servicio);
@@ -171,12 +213,12 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     
     const iniciarYa = formValues.iniciarInmediatamente;
 
-    // Lógica que realmente guarda el turno en la Base de Datos
     const ejecutarGuardado = () => {
       const nuevoTurno: Turno = {
         id: Date.now(),
         servicio: servicio?.nombre || 'Servicio Estándar',
         barbero: barbero?.nombre || 'Barbero',
+        // Respetamos el default si viene vacío
         cliente: formValues.clienteNombre?.trim() || 'Cliente marina 305',
         monto: servicio?.precio || 0,
         estado: iniciarYa ? 'in_progress' : 'pending',
@@ -200,11 +242,10 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
       }, 800);
     };
 
-    // Validamos si marcó el checkbox Y el barbero ya está ocupado
     if (iniciarYa && barbero) {
       const tieneEnCurso = this.turnosService.turnos().some(t => t.barbero === barbero.nombre && t.estado === 'in_progress');
       if (tieneEnCurso) {
-        this.isLoading.set(false); // Quitamos el spinner temporalmente
+        this.isLoading.set(false);
         this.confirmConfig.set({
           isOpen: true,
           title: 'Barbero Ocupado',
@@ -213,14 +254,13 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
           confirmText: 'Sí, Iniciar',
           action: () => {
             this.isLoading.set(true);
-            ejecutarGuardado(); // Guardamos si dice que sí
+            ejecutarGuardado();
           }
         });
-        return; // Pausamos la ejecución aquí hasta que responda
+        return; 
       }
     }
 
-    // Si no está ocupado o no marcó el inicio rápido, se guarda normal
     ejecutarGuardado();
   }
 }

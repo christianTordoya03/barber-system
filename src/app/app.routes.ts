@@ -47,6 +47,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/agenda/agenda').then(m => m.AgendaComponent)
       },
       {
+        path: 'clientes',
+        loadComponent: () => import('./features/admin/crm-clientes/crm-clientes').then(m => m.CrmClientesComponent)
+      },
+      {
         path: 'cobros',
         loadComponent: () => import('./features/admin/cobros/cobros').then(m => m.CobrosComponent)
       },

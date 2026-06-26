@@ -351,34 +351,76 @@ export class DashboardComponent implements OnInit, OnDestroy {
     setTimeout(() => this.cobroSeleccionado.set(null), 300);
   }
 
-  confirmarCobro(metodo: string) {
+  async confirmarCobro(metodo: string) {
     const id = this.cobroSeleccionado()?.id;
     if (id) {
-      // 1. Cobrar el turno
-      this.turnosService.actualizarTurno(id, { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: metodo });
-
       const turno = this.ultimosMovimientos().find(t => t.id === id);
 
-      // --- NUEVO: GATILLO DE FIDELIZACIÓN DESDE EL DASHBOARD ---
-      if (turno && turno.cliente) {
-        const clienteAsoc = this.clientesService.clientes().find(c => c.nombre === turno.cliente);
+      // 1. LÓGICA DE CANJE: Si elije cobrar con Canje, el monto ingresado a caja es S/ 0.00
+      const montoFinal = metodo === 'Canje' ? 0 : (turno?.monto || 0);
 
-        if (clienteAsoc && clienteAsoc.id) {
-          const puntos = clienteAsoc.puntos_acumulados || 0;
-          const visitas = clienteAsoc.visitas_totales || 0;
+      // 2. Cobrar el turno
+      this.turnosService.actualizarTurno(id, { 
+        estado: 'completed', 
+        fecha: new Date().toLocaleString('es-PE'), 
+        metodoPago: metodo,
+        monto: montoFinal 
+      });
 
-          if (puntos >= 5) {
-            this.toastService.show(`¡Corte gratis canjeado para ${clienteAsoc.nombre}! Sellos reiniciados.`, 'success');
-          } else {
-            this.toastService.show(`Genial, ${clienteAsoc.nombre} ahora tiene ${puntos + 1} sello(s).`, 'success');
+      // 3. EL CEREBRO DE LA FIDELIZACIÓN (Conexión Directa a BD)
+      if (turno && turno.cliente && turno.cliente.trim() !== 'Cliente marina 305') {
+        try {
+          // Búsqueda directa a Supabase para evitar fallos de memoria local
+          const { data: clienteDB } = await this.supabase.client
+            .from('clientes')
+            .select('*')
+            .eq('nombre', turno.cliente.trim())
+            .maybeSingle();
+
+          if (clienteDB) {
+            const puntosActuales = clienteDB.puntos_acumulados || 0;
+            const visitasActuales = clienteDB.visitas_totales || 0;
+            
+            let nuevosPuntos = puntosActuales;
+            let mensajeToast = '';
+
+            if (metodo === 'Canje') {
+              // Cobra su premio: reiniciamos su tarjeta a 0
+              nuevosPuntos = 0;
+              mensajeToast = `¡🎁 Corte gratis canjeado para ${clienteDB.nombre}! Tarjeta reiniciada.`;
+            } else {
+              // Pago normal: suma 1 punto
+              nuevosPuntos = puntosActuales + 1;
+              if (nuevosPuntos >= 5) {
+                 mensajeToast = `¡Atención! ${clienteDB.nombre} llegó a 5 sellos. Su próximo corte es GRATIS 🎁.`;
+              } else {
+                 mensajeToast = `Genial, ${clienteDB.nombre} ahora tiene ${nuevosPuntos} sello(s).`;
+              }
+            }
+
+            // Disparamos la actualización real a la tabla clientes
+            await this.supabase.client.from('clientes')
+              .update({
+                visitas_totales: visitasActuales + 1,
+                puntos_acumulados: nuevosPuntos,
+                ultima_visita: new Date().toISOString() // Actualiza su última visita a HOY
+              })
+              .eq('id', clienteDB.id);
+
+            // Mostramos la alerta de éxito en pantalla
+            setTimeout(() => this.toastService.show(mensajeToast, 'success'), 500);
+            
+            // Si el servicio tiene la función, refrescamos el CRM en segundo plano
+            if (this.clientesService.cargarClientes) {
+              this.clientesService.cargarClientes();
+            }
           }
-          // Sumamos los puntos de fondo
-          this.clientesService.registrarVisitaYSumarPuntos(clienteAsoc.id, puntos, visitas);
+        } catch (error) {
+          console.error('Error al actualizar fidelización:', error);
         }
       }
-      // ---------------------------------------------------------
 
-      // SOLUCIÓN: LIBERAR BARBERO Y REINICIAR SU RELOJ A LA HORA ACTUAL
+      // 4. Liberar Barbero
       if (turno && turno.barbero) {
         const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
         if (barberoObj) {

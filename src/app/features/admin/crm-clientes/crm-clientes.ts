@@ -243,7 +243,7 @@ export class CrmClientesComponent implements OnInit {
 
     if (cliente.telefono) {
       const linkReserva = 'https://sistema.marina305.net/reserva/marina305';
-      const mensaje = `*¡Hola ${cliente.nombre}!* Bienvenido a *Marina 305*.\n\nTu tarjeta de fidelización ya está activa: cada 5 cortes, el 6to con *50% de descuento*.\n\nPara tu próxima cita, agéndala aquí:\n${linkReserva}`;
+      const mensaje = `*¡Hola!* Te saluda *Marina 305 Barber Shop*.\n\nA partir de hoy te estaremos compartiendo *promociones, novedades y beneficios exclusivos*.\n\n¿Quieres reservar tu próxima cita? Responde a este mensaje y con gusto te ayudamos.\n\nPara tu próxima cita, agéndala aquí:\n${linkReserva}`;
       
       // Abrimos WhatsApp en una nueva pestaña (seguro contra bloqueos porque el usuario hizo clic)
       window.open(`https://wa.me/${this.limpiarNumero(cliente.telefono)}?text=${encodeURIComponent(mensaje)}`, '_blank');
@@ -354,7 +354,7 @@ export class CrmClientesComponent implements OnInit {
     if (!telefono) return;
     const linkReserva = 'https://sistema.marina305.net/reserva/marina305';
     this.mostrarToggleIds.update(ids => [...new Set([...ids, clienteId])]);
-    const mensaje = `*¡Hola ${nombre}!* Bienvenido a *Marina 305*.\n\nTu tarjeta de fidelización ya está activa: cada 5 cortes, el 6to es *GRATIS*.\n\nPara tu próxima cita, agéndala aquí:\n${linkReserva}`;
+    const mensaje = `*¡Hola!* Te saluda *Marina 305 Barber Shop*.\n\nA partir de hoy te estaremos compartiendo *promociones, novedades y beneficios exclusivos*.\n\n¿Quieres reservar tu próxima cita? Responde a este mensaje y con gusto te ayudamos.\n\nPara tu próxima cita, agéndala aquí:\n${linkReserva}`;
     window.open(`https://wa.me/${this.limpiarNumero(telefono)}?text=${encodeURIComponent(mensaje)}`, '_blank');
   }
 

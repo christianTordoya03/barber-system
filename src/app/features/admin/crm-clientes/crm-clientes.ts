@@ -39,11 +39,21 @@ export class CrmClientesComponent implements OnInit {
     return this.clientesFiltrados().slice(startIndex, startIndex + this.pageSize);
   });
 
-  // --- MODO RÁFAGA (CREAR CLIENTES MASIVAMENTE) ---
+  // --- PLANTILLAS DE MENSAJES DINÁMICAS ---
+  isConfigMensajesOpen = signal<boolean>(false);
+  isSavingConfig = signal<boolean>(false);
+
+  mensajeBienvenidaTemplate = signal<string>(
+    `*¡Hola {{nombre}}!* Bienvenido a *Marina 305*.\n\nTu tarjeta de fidelización ya está activa: cada 5 cortes, el 6to es *GRATIS*.\n\nPara tu próxima cita, agéndala aquí:\nhttps://sistema.marina305.net/reserva/marina305`
+  );
+
+  mensajeRecuperacionTemplate = signal<string>(
+    `*¡Hola {{nombre}}!* Te extrañamos por *Marina 305*.\n\nHan pasado algunas semanas desde tu último corte y queríamos invitarte a refrescar tu estilo.\n\n¿Te gustaría agendar una cita para estos días?\nPuedes ver nuestros horarios aquí:\nhttps://sistema.marina305.net/reserva/marina305`
+  );
+
+  // --- MODO RÁFAGA ---
   isAddModalOpen = signal<boolean>(false);
   isSaving = signal<boolean>(false);
-  
-  // Arreglo dinámico para las filas de ingreso rápido
   bulkClientes = signal<{nombre: string, telefono: string}[]>(this.generarFilasVacias(5));
 
   // --- MODO COLA DE WHATSAPP ---
@@ -70,6 +80,55 @@ export class CrmClientesComponent implements OnInit {
 
   async ngOnInit() {
     await this.cargarClientes();
+    await this.cargarPlantillasMensajes();
+  }
+
+  async cargarPlantillasMensajes() {
+    try {
+      const bsId = this.supabase.tenant()?.id;
+      if (!bsId) return;
+
+      const { data, error } = await this.supabase.client
+        .from('configuraciones_mensajes')
+        .select('tipo, mensaje')
+        .eq('barbershop_id', bsId);
+
+      if (data && data.length > 0) {
+        data.forEach(cfg => {
+          if (cfg.tipo === 'bienvenida') this.mensajeBienvenidaTemplate.set(cfg.mensaje);
+          if (cfg.tipo === 'recuperacion') this.mensajeRecuperacionTemplate.set(cfg.mensaje);
+        });
+      }
+    } catch (error) {
+      console.error('Error cargando plantillas de mensajes:', error);
+    }
+  }
+
+  async guardarPlantillas() {
+    this.isSavingConfig.set(true);
+    try {
+      const bsId = this.supabase.tenant()?.id;
+      if (!bsId) return;
+
+      const loteUpsert = [
+        { barbershop_id: bsId, tipo: 'bienvenida', mensaje: this.mensajeBienvenidaTemplate() },
+        { barbershop_id: bsId, tipo: 'recuperacion', mensaje: this.mensajeRecuperacionTemplate() }
+      ];
+
+      const { error } = await this.supabase.client
+        .from('configuraciones_mensajes')
+        .upsert(loteUpsert, { onConflict: 'barbershop_id,tipo' });
+
+      if (error) throw error;
+
+      this.toast.show('Plantillas de mensajes guardadas con éxito', 'success');
+      this.isConfigMensajesOpen.set(false);
+    } catch (error) {
+      console.error(error);
+      this.toast.show('Error al guardar las plantillas', 'error');
+    } finally {
+      this.isSavingConfig.set(false);
+    }
   }
 
   async cargarClientes() {
@@ -135,7 +194,6 @@ export class CrmClientesComponent implements OnInit {
       actuales[index][campo] = valor;
     }
     
-    // Auto-crear una fila extra si el usuario escribe en la última fila
     if (index === actuales.length - 1 && actuales[index].nombre.trim().length > 0) {
       actuales.push({ nombre: '', telefono: '' });
     }
@@ -144,7 +202,6 @@ export class CrmClientesComponent implements OnInit {
   }
 
   async guardarClientesBulk() {
-    // Filtramos solo las filas que tengan al menos el nombre completo
     const validos = this.bulkClientes().filter(c => c.nombre.trim().length >= 2);
     
     if (validos.length === 0) {
@@ -152,35 +209,26 @@ export class CrmClientesComponent implements OnInit {
       return;
     }
 
-    // 1. Mapeamos todos los números de celular que ya existen en tu sistema local
-    const telefonosExistentes = this.clientes()
-      .map(c => c.telefono?.trim())
-      .filter(t => !!t);
-
-    // 2. Clasificamos los registros limpios de los duplicados
+    const telefonosExistentes = this.clientes().map(c => c.telefono?.trim()).filter(t => !!t);
     const duplicadosDetectados: string[] = [];
     const filtradosParaGuardar = [];
 
     for (const cliente of validos) {
       const telTrim = cliente.telefono?.trim();
-      
       if (telTrim && telefonosExistentes.includes(telTrim)) {
-        // Guardamos el nombre del repetido para avisar luego
         duplicadosDetectados.push(cliente.nombre);
       } else {
         filtradosParaGuardar.push(cliente);
       }
     }
 
-    // 3. Escenarios de control
     if (filtradosParaGuardar.length === 0) {
       this.toast.show('Todos los números ingresados ya existen en la base de datos', 'warning');
       return;
     }
 
-    // Si hay repetidos, lanzamos un aviso preventivo pero dejamos continuar al resto
     if (duplicadosDetectados.length > 0) {
-      this.toast.show(`Omitidos por número duplicado: ${duplicadosDetectados.join(', ')}`, 'warning');
+      this.toast.show(`Omitidos por duplicado: ${duplicadosDetectados.join(', ')}`, 'warning');
     }
 
     this.isSaving.set(true);
@@ -196,11 +244,7 @@ export class CrmClientesComponent implements OnInit {
         mensaje_bienvenida_enviado: false
       }));
 
-      // Enviamos solo el lote libre de duplicados
-      const { data, error } = await this.supabase.client
-        .from('clientes')
-        .insert(nuevos)
-        .select();
+      const { data, error } = await this.supabase.client.from('clientes').insert(nuevos).select();
 
       if (error) throw error;
 
@@ -242,19 +286,13 @@ export class CrmClientesComponent implements OnInit {
     }
 
     if (cliente.telefono) {
-      const linkReserva = 'https://sistema.marina305.net/reserva/marina305';
-      const mensaje = `*¡Hola!* Te saluda *Marina 305 Barber Shop*.\n\nA partir de hoy te estaremos compartiendo *promociones, novedades y beneficios exclusivos*.\n\n¿Quieres reservar tu próxima cita? Responde a este mensaje y con gusto te ayudamos.\n\nPara tu próxima cita, agéndala aquí:\n${linkReserva}`;
-      
-      // Abrimos WhatsApp en una nueva pestaña (seguro contra bloqueos porque el usuario hizo clic)
-      window.open(`https://wa.me/${this.limpiarNumero(cliente.telefono)}?text=${encodeURIComponent(mensaje)}`, '_blank');
-      
-      // Marcamos en la DB silenciosamente (sin toast de éxito para no inundar la pantalla)
+      const mensajeFormateado = this.mensajeBienvenidaTemplate().replace(/{{nombre}}/g, cliente.nombre);
+      window.open(`https://wa.me/${this.limpiarNumero(cliente.telefono)}?text=${encodeURIComponent(mensajeFormateado)}`, '_blank');
       await this.marcarMensajeEnviado(cliente.id, true, true);
     } else {
       this.toast.show(`Omitiendo a ${cliente.nombre} (No tiene celular)`, 'warning');
     }
 
-    // Avanzamos al siguiente o terminamos
     if (this.colaIndex() + 1 >= this.colaDeEnvio().length) {
       setTimeout(() => {
         this.toast.show('¡Cola de mensajes finalizada!', 'success');
@@ -265,7 +303,6 @@ export class CrmClientesComponent implements OnInit {
     }
   }
 
-  // --- EDICIÓN Y ELIMINACIÓN (Mantenido intacto) ---
   onEditTelefonoChange(valor: string) {
     const soloNumeros = valor.replace(/[^0-9]/g, '').slice(0, 9);
     this.editClienteTelefono.set(soloNumeros);
@@ -338,7 +375,7 @@ export class CrmClientesComponent implements OnInit {
     if (visitas === 0) return 'NUEVO';
     if (cliente.ultima_visita) {
       const diffDias = (new Date().getTime() - new Date(cliente.ultima_visita).getTime()) / (1000 * 3600 * 24);
-      return diffDias > 21 ? 'INACTIVO' : 'ACTIVO';
+      return diffDias > 28 ? 'INACTIVO' : 'ACTIVO';
     }
     return 'ACTIVO';
   }
@@ -352,17 +389,15 @@ export class CrmClientesComponent implements OnInit {
 
   abrirWhatsAppBienvenida(clienteId: number, telefono: string, nombre: string) {
     if (!telefono) return;
-    const linkReserva = 'https://sistema.marina305.net/reserva/marina305';
     this.mostrarToggleIds.update(ids => [...new Set([...ids, clienteId])]);
-    const mensaje = `*¡Hola!* Te saluda *Marina 305 Barber Shop*.\n\nA partir de hoy te estaremos compartiendo *promociones, novedades y beneficios exclusivos*.\n\n¿Quieres reservar tu próxima cita? Responde a este mensaje y con gusto te ayudamos.\n\nPara tu próxima cita, agéndala aquí:\n${linkReserva}`;
-    window.open(`https://wa.me/${this.limpiarNumero(telefono)}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    const mensajeFormateado = this.mensajeBienvenidaTemplate().replace(/{{nombre}}/g, nombre);
+    window.open(`https://wa.me/${this.limpiarNumero(telefono)}?text=${encodeURIComponent(mensajeFormateado)}`, '_blank');
   }
 
   abrirWhatsAppRecuperacion(clienteId: number, telefono: string, nombre: string) {
     if (!telefono) return;
-    const linkReserva = 'https://sistema.marina305.net/reserva/marina305';
-    const mensaje = `*¡Hola ${nombre}!* Te extrañamos por *Marina 305*.\n\nHan pasado algunas semanas desde tu último corte y queríamos invitarte a refrescar tu estilo.\n\n¿Te gustaría agendar una cita para estos días?\nPuedes ver nuestros horarios aquí:\n${linkReserva}`;
-    window.open(`https://wa.me/${this.limpiarNumero(telefono)}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    const mensajeFormateado = this.mensajeRecuperacionTemplate().replace(/{{nombre}}/g, nombre);
+    window.open(`https://wa.me/${this.limpiarNumero(telefono)}?text=${encodeURIComponent(mensajeFormateado)}`, '_blank');
   }
 
   async marcarMensajeEnviado(clienteId: any, enviado: boolean, silent = false) {

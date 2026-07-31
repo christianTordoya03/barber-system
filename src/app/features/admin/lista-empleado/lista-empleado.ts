@@ -203,31 +203,46 @@ export class ListaEmpleadoComponent implements OnInit {
 
     const bodyData: any[] = [];
 
-    // Sección: Servicios
+    // 1. Sección: Servicios
     if (this.turnosEmpleado().length > 0) {
       this.turnosEmpleado().forEach(t => bodyData.push([`${t.fecha.split(',')[0]} - ${t.servicio}`, `S/ ${Number(t.monto).toFixed(2)}`]));
       bodyData.push([{ content: 'Total Generado por el Barbero:', styles: { fontStyle: 'bold', fillColor: [240, 240, 240] } }, { content: `S/ ${this.totalGeneradoEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', fillColor: [240, 240, 240] } }]);
       bodyData.push([{ content: `Comisión a Pagar (${this.porcentajeComisionEmpleado()}%):`, styles: { fontStyle: 'bold', fillColor: [254, 243, 199] } }, { content: `S/ ${this.comisionNetaEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', fillColor: [254, 243, 199] } }]);
     }
 
-    // NUEVO: Sección Propinas / Extras
+    // 2. NUEVO: Sección Ventas de Inventario
+    if (this.ventasEmpleado().length > 0) {
+      bodyData.push([{ content: '--- COMISIONES POR VENTA DE INVENTARIO ---', colSpan: 2, styles: { halign: 'center', fillColor: [219, 234, 254], textColor: [30, 64, 175], fontStyle: 'bold' } }]);
+      this.ventasEmpleado().forEach(v => {
+        // Aseguramos el formato de fecha para evitar desfases
+        const dateObj = new Date(v.fecha_venta);
+        const fechaFmt = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
+        bodyData.push([`${fechaFmt} - ${v.productos?.nombre} (Cant: ${v.cantidad})`, `+ S/ ${Number(v.monto_comision).toFixed(2)}`]);
+      });
+      bodyData.push([{ content: 'Total Comisiones por Ventas:', styles: { fontStyle: 'bold', textColor: [30, 64, 175] } }, { content: `+ S/ ${this.totalComisionesProductos().toFixed(2)}`, styles: { fontStyle: 'bold', textColor: [30, 64, 175] } }]);
+    }
+
+    // 3. CORREGIDO: Sección Propinas / Extras
     if (this.comisionesEmpleado().length > 0) {
       bodyData.push([{ content: '--- PROPINAS Y COMISIONES EXTRAS ---', colSpan: 2, styles: { halign: 'center', fillColor: [209, 250, 229], textColor: [6, 95, 70], fontStyle: 'bold' } }]);
       this.comisionesEmpleado().forEach(c => {
         const desc = c.descripcion ? `(${c.descripcion})` : '';
         bodyData.push([`${c.fecha} - [${c.tipo.toUpperCase()}] ${desc}`, `+ S/ ${Number(c.monto).toFixed(2)}`]);
       });
-      bodyData.push([{ content: 'Total Propinas / Extras:', styles: { fontStyle: 'bold', textColor: [6, 95, 70] } }, { content: `+ S/ ${this.totalComisionesExtraEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', textColor: [6, 95, 70] } }]);
+      
+      // Sumamos estrictamente solo las propinas aquí, para no amontonar las ventas
+      const soloPropinas = this.comisionesEmpleado().reduce((acc, c) => acc + Number(c.monto), 0);
+      bodyData.push([{ content: 'Total Propinas Extras:', styles: { fontStyle: 'bold', textColor: [6, 95, 70] } }, { content: `+ S/ ${soloPropinas.toFixed(2)}`, styles: { fontStyle: 'bold', textColor: [6, 95, 70] } }]);
     }
 
-    // Sección: Adelantos
+    // 4. Sección: Adelantos
     if (this.adelantosEmpleado().length > 0) {
       bodyData.push([{ content: '--- ADELANTOS / GASTOS ---', colSpan: 2, styles: { halign: 'center', fillColor: [254, 226, 226], textColor: [220, 38, 38], fontStyle: 'bold' } }]);
       this.adelantosEmpleado().forEach(g => bodyData.push([`${g.fecha.split(',')[0]} - ${g.descripcion}`, `- S/ ${Number(g.monto).toFixed(2)}`]));
       bodyData.push([{ content: 'Total Adelantos:', styles: { fontStyle: 'bold', textColor: [220, 38, 38] } }, { content: `- S/ ${this.totalAdelantosEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', textColor: [220, 38, 38] } }]);
     }
 
-    // Sección: Total Final
+    // 5. Sección: Total Final
     bodyData.push([{ content: 'TOTAL NETO A PAGAR:', styles: { fontStyle: 'bold', fillColor: [209, 250, 229], textColor: [6, 78, 59] } }, { content: `S/ ${this.pagoFinalEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', fillColor: [209, 250, 229], textColor: [6, 78, 59] } }]);
 
     autoTable(doc, {

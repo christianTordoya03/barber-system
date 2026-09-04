@@ -37,18 +37,16 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
   clientesDb = signal<any[]>([]);
   clienteSearchTerm = signal<string>('');
   showClientDropdown = signal<boolean>(false);
-
   clientesFiltrados = computed(() => {
     const query = this.clienteSearchTerm().toLowerCase().trim();
-    if (query.length < 2) return []; // Solo busca si hay al menos 2 caracteres
+    if (query.length < 2) return []; 
     
     return this.clientesDb().filter(c =>
       (c.nombre || '').toLowerCase().includes(query) ||
       (c.telefono || '').includes(query)
-    ).slice(0, 5); // Máximo 5 sugerencias para no ensuciar la UI
+    ).slice(0, 5); 
   });
 
-  // Fechas y horas por defecto
   hoyStrHtml = (() => {
     const d = new Date();
     return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
@@ -66,7 +64,6 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
 
   barberoSeleccionadoId = signal<string>('');
   fechaSeleccionada = signal<string>(this.hoyStrHtml);
-
   now = signal(Date.now());
   intervalId: any;
 
@@ -76,7 +73,6 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     this.servicioForm.get('barberoId')?.valueChanges.subscribe(v => this.barberoSeleccionadoId.set(v));
     this.servicioForm.get('fecha')?.valueChanges.subscribe(v => this.fechaSeleccionada.set(v));
     
-    // Escuchar el input del cliente para el autocompletado
     this.servicioForm.get('clienteNombre')?.valueChanges.subscribe(v => {
       this.clienteSearchTerm.set(v || '');
       this.showClientDropdown.set(true);
@@ -98,14 +94,12 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Selección del autocompletado
   seleccionarCliente(cliente: any) {
     this.servicioForm.patchValue({ clienteNombre: cliente.nombre });
     this.showClientDropdown.set(false);
   }
 
   onBlurCliente() {
-    // Timeout breve para permitir que el clic en la lista se registre antes de ocultarla
     setTimeout(() => this.showClientDropdown.set(false), 200);
   }
 
@@ -122,7 +116,6 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     
     const match = timePart.match(/(\d{1,2}):(\d{2})/);
     if (!match) return '--:--';
-
     let hours = parseInt(match[1], 10);
     const minutes = match[2];
 
@@ -132,7 +125,6 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     const ampm = hours >= 12 ? 'PM' : 'AM';
     let h12 = hours % 12;
     h12 = h12 ? h12 : 12;
-
     return `${h12}:${minutes} ${ampm}`;
   }
 
@@ -194,7 +186,7 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     return Math.min(Math.max(prog, 0), 100);
   }
 
-  // --- ACCIÓN PRINCIPAL ---
+  // --- ACCIÓN PRINCIPAL (CORREGIDA A MODO PESIMISTA) ---
   onSubmit(event?: Event) {
     if (event) event.preventDefault();
     if (this.servicioForm.invalid) {
@@ -215,12 +207,12 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
     
     const iniciarYa = formValues.iniciarInmediatamente;
 
-    const ejecutarGuardado = () => {
+    // Función Pesimista (Espera confirmación de base de datos)
+    const ejecutarGuardado = async () => {
       const nuevoTurno: Turno = {
         id: Date.now(),
         servicio: servicio?.nombre || 'Servicio Estándar',
         barbero: barbero?.nombre || 'Barbero',
-        // Respetamos el default si viene vacío
         cliente: formValues.clienteNombre?.trim() || 'Cliente EL SERBIO',
         monto: servicio?.precio || 0,
         estado: iniciarYa ? 'in_progress' : 'pending',
@@ -229,20 +221,26 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
         metodoPago: 'Pendiente'
       };
 
-      this.turnosService.agregarTurno(nuevoTurno);
+      try {
+        const guardado = await this.turnosService.agregarTurno(nuevoTurno);
+        if (!guardado) throw new Error("Error al guardar en base de datos");
 
-      if (iniciarYa && barbero) {
-        this.staffService.actualizarEmpleado(barbero.id, { estado_asistencia: 'ocupado' });
-      }
-      
-      setTimeout(() => {
-        this.isLoading.set(false);
-        this.toastService.show(iniciarYa ? '¡Turno iniciado con éxito!' : '¡Turno agendado con éxito!');
+        if (iniciarYa && barbero) {
+          await this.staffService.actualizarEmpleado(barbero.id, { estado_asistencia: 'ocupado' });
+        }
+        
+        this.toastService.show(iniciarYa ? '¡Turno iniciado con éxito!' : '¡Turno agendado con éxito!', 'success');
         this.servicioForm.patchValue({ clienteNombre: '', servicioId: '', barberoId: '', iniciarInmediatamente: false });
         this.barberoSeleccionadoId.set(''); 
         this.cerrarConfirmacion();
         this.router.navigate(['/admin/dashboard']);
-      }, 800);
+        
+      } catch (error) {
+        console.error(error);
+        this.toastService.show('Error de red. El turno NO se guardó.', 'error');
+      } finally {
+        this.isLoading.set(false);
+      }
     };
 
     if (iniciarYa && barbero) {

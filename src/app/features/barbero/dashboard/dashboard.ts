@@ -31,8 +31,9 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
   nombreCorto = signal<string>('Barbero');
   empleadoId = signal<number | null>(null);
   comisionPorcentaje = signal<number>(50);
+
   serviciosDisponibles = this.catalogoService.servicios;
-  
+
   isComisionModalOpen = signal<boolean>(false);
   nuevaComision = {
     tipo: 'propina' as 'propina' | 'producto' | 'servicio_extra',
@@ -43,12 +44,11 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
   listaComisiones = computed(() => {
     const idActual = this.empleadoId();
     if (idActual === null) return [];
-    const fechaHoyStr = this.hoyStr(); 
-    
+    const fechaHoyStr = this.hoyStr();      
     return this.comisionesService.comisiones().filter(c => 
-      Number(c.empleado_id) === Number(idActual) && 
-      c.estado !== 'anulado' && 
-      c.fecha === fechaHoyStr
+       Number(c.empleado_id) === Number(idActual) &&
+       c.estado !== 'anulado' &&
+       c.fecha === fechaHoyStr
     );
   });
 
@@ -101,8 +101,7 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     this.cargarDatosBarbero();
 
     this.intervalId = setInterval(() => {
-      this.now.set(Date.now()); 
-      
+      this.now.set(Date.now());        
       const fechaActualReal = this.formatDateToDDMMYYYY(new Date());
       if (this.hoyStr() !== fechaActualReal) {
         this.hoyStr.set(fechaActualReal);
@@ -118,14 +117,10 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() { if (this.intervalId) clearInterval(this.intervalId); }
 
-  // =========================================
-  // CORRECCIÓN APLICADA: Consulta directa a BD
-  // =========================================
   async cargarDatosBarbero() {
     const { data: { session } } = await this.supabase.client.auth.getSession();
     
     if (!session?.user?.email) return;
-
     const { data: emp } = await this.supabase.client
       .from('empleados')
       .select('*')
@@ -144,13 +139,20 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  cambiarMiEstado(nuevoEstado: 'disponible' | 'pausa') {
+  // --- MODO PESIMISTA PARA ESTADO ---
+  async cambiarMiEstado(nuevoEstado: 'disponible' | 'pausa') {
     const idActual = this.empleadoId();
     if (idActual === null) return;
+    
     const payload: any = { estado_asistencia: nuevoEstado };
     if (nuevoEstado === 'disponible') payload.ultima_vez_disponible = new Date().toISOString();
-    this.staffService.actualizarEmpleado(idActual, payload);
-    this.toast.show(`Estado cambiado a: ${nuevoEstado}`);
+    
+    try {
+      await this.staffService.actualizarEmpleado(idActual, payload);
+      this.toast.show(`Estado cambiado a: ${nuevoEstado}`, 'success');
+    } catch (error) {
+      this.toast.show(`Error de conexión. No se cambió el estado.`, 'error');
+    }
   }
 
   abrirModalComision() {
@@ -164,7 +166,6 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
       this.toast.show('Ingresa un monto válido', 'error');
       return;
     }
-
     const idActual = this.empleadoId();
     if (idActual !== null) {
       const res = await this.comisionesService.agregarComision({
@@ -174,10 +175,11 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
         descripcion: com.descripcion || (com.tipo === 'propina' ? 'Propina de cliente' : 'Ingreso extra'),
         fecha: this.hoyStr()
       });
-
       if (res) {
-        this.toast.show('¡Ingreso extra registrado!');
+        this.toast.show('¡Ingreso extra registrado!', 'success');
         this.isComisionModalOpen.set(false);
+      } else {
+        this.toast.show('Error al registrar ingreso extra', 'error');
       }
     }
   }
@@ -186,9 +188,14 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     this.confirmConfig.set({
       isOpen: true, title: 'Anular Registro', message: '¿Deseas anular este ingreso extra?', type: 'danger', confirmText: 'Sí, Anular',
       action: async () => {
-        await this.comisionesService.anularComision(id);
-        this.toast.show('Ingreso extra anulado');
-        this.cerrarConfirmacion();
+        try {
+          await this.comisionesService.anularComision(id);
+          this.toast.show('Ingreso extra anulado', 'success');
+        } catch (error) {
+          this.toast.show('Error al anular ingreso', 'error');
+        } finally {
+          this.cerrarConfirmacion();
+        }
       }
     });
   }
@@ -295,24 +302,19 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
       const pB = prioridad(b.estado);
       if (pA !== pB) return pA - pB;
 
-      // CORRECCIÓN: Ordenar por tiempo numérico, no por texto
       const parsearFecha = (fechaStr: string) => {
         if (!fechaStr) return 0;
         const [fecha, hora] = fechaStr.split(', ');
         const [dia, mes, anio] = fecha.split('/');
         return new Date(`${anio}-${mes}-${dia}T${hora || '00:00:00'}`).getTime();
       };
-
       const tiempoA = parsearFecha(a.fecha);
       const tiempoB = parsearFecha(b.fecha);
 
-      // Desempate por ID si ocurre exactamente en el mismo segundo
       if (tiempoA === tiempoB) return a.id - b.id;
-      
-      // Orden ascendente (las citas más tempranas del día arriba)
       return tiempoA - tiempoB; 
     });
-});
+  });
 
   dineroGeneradoHoy = computed(() => {
     const terminados = this.turnosDeHoy().filter(t => t.estado === 'finished' || t.estado === 'completed');
@@ -366,6 +368,7 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
 
     const semana = [];
     const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
     for (let i = 0; i < 7; i++) {
       const fecha = new Date(primerDia);
       fecha.setDate(primerDia.getDate() + i);
@@ -386,22 +389,36 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     return this.misTurnosTotales().some(t => this.esFechaIgual(t.fecha, fechaStr));
   }
 
-  iniciarCorte(turno: Turno) {
-    this.turnosService.actualizarTurno(turno.id, { estado: 'in_progress', horaInicio: new Date().toISOString() });
-    const idActual = this.empleadoId();
-    if (idActual !== null) this.staffService.actualizarEmpleado(idActual, { estado_asistencia: 'ocupado' });
+  // --- MODO PESIMISTA PARA TURNOS ---
+  async iniciarCorte(turno: Turno) {
+    try {
+      await this.turnosService.actualizarTurno(turno.id, { estado: 'in_progress', horaInicio: new Date().toISOString() });
+      const idActual = this.empleadoId();
+      if (idActual !== null) {
+        await this.staffService.actualizarEmpleado(idActual, { estado_asistencia: 'ocupado' });
+      }
+      this.toast.show('Servicio Iniciado', 'success');
+    } catch (error) {
+      this.toast.show('Error al iniciar el corte. Verifica tu conexión.', 'error');
+    }
   }
 
   confirmarTerminar(turno: Turno) {
     this.confirmConfig.set({
       isOpen: true, title: 'Terminar Servicio', message: `¿Terminar el corte de ${turno.cliente || 'este cliente'}?`, type: 'info', confirmText: 'Sí, Terminar',
-      action: () => {
-        this.turnosService.actualizarTurno(turno.id, { estado: 'finished' });
-        const idActual = this.empleadoId();
-        if (idActual !== null) {
-          this.staffService.actualizarEmpleado(idActual, { estado_asistencia: 'disponible', ultima_vez_disponible: new Date().toISOString() });
+      action: async () => {
+        try {
+          await this.turnosService.actualizarTurno(turno.id, { estado: 'finished' });
+          const idActual = this.empleadoId();
+          if (idActual !== null) {
+            await this.staffService.actualizarEmpleado(idActual, { estado_asistencia: 'disponible', ultima_vez_disponible: new Date().toISOString() });
+          }
+          this.toast.show('Servicio finalizado exitosamente', 'success');
+        } catch (error) {
+          this.toast.show('Error de red al terminar el corte', 'error');
+        } finally {
+          this.cerrarConfirmacion();
         }
-        this.cerrarConfirmacion();
       }
     });
   }
@@ -415,49 +432,67 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
 
   async guardarReserva() {
     if (this.reservaForm.invalid) return;
+    
     const val = this.reservaForm.getRawValue();
     const [year, month, day] = val.fecha.split('-');
     const [hour, minute] = val.hora.split(':');
     const fechaLlegada = `${day}/${month}/${year}, ${hour}:${minute}:00`;
+    
     const srv = this.serviciosDisponibles().find(s => s.nombre === val.servicio);
-
-    this.turnosService.agregarTurno({ 
-      id: Date.now(), servicio: val.servicio, barbero: this.nombreCompleto(), cliente: val.cliente?.trim() || 'De paso',
-      monto: srv?.precio || 0, estado: 'pending', fecha: fechaLlegada, metodoPago: 'Pendiente'
-    }); 
-    this.toast.show('¡Reserva agendada!');
-    this.isReservaModalOpen.set(false);
+    
+    try {
+      await this.turnosService.agregarTurno({ 
+        id: Date.now(), servicio: val.servicio, barbero: this.nombreCompleto(), cliente: val.cliente?.trim() || 'De paso',
+        monto: srv?.precio || 0, estado: 'pending', fecha: fechaLlegada, metodoPago: 'Pendiente'
+      });
+      this.toast.show('¡Reserva agendada!', 'success');
+      this.isReservaModalOpen.set(false);
+    } catch (error) {
+      this.toast.show('No se pudo guardar la reserva por error de conexión', 'error');
+    }
   }
 
   abrirModalEditar(turno: Turno) {
     let fInput = this.getFechaActualLocal();
     let hInput = this.getHoraActualLocal();
+    
     if (turno.fecha && turno.fecha.includes(',')) {
       const [fPart, hPart] = turno.fecha.split(',');
       const [d, m, y] = fPart.trim().split('/');
       if (d && m && y) fInput = `${y}-${m}-${d}`;
       if (hPart) hInput = hPart.trim().substring(0, 5);
     }
+    
     this.editForm.patchValue({ id: turno.id, cliente: turno.cliente || '', servicio: turno.servicio, fecha: fInput, hora: hInput, monto: turno.monto });
     this.isEditModalOpen.set(true);
   }
 
-  guardarEdicion() {
+  async guardarEdicion() {
     if (this.editForm.invalid) return;
     const val = this.editForm.getRawValue();
     const [y, m, d] = val.fecha.split('-');
-    this.turnosService.actualizarTurno(val.id, { cliente: val.cliente, servicio: val.servicio, fecha: `${d}/${m}/${y}, ${val.hora}:00`, monto: val.monto });
-    this.toast.show('Cita actualizada');
-    this.isEditModalOpen.set(false);
+    
+    try {
+      await this.turnosService.actualizarTurno(val.id, { cliente: val.cliente, servicio: val.servicio, fecha: `${d}/${m}/${y}, ${val.hora}:00`, monto: val.monto });
+      this.toast.show('Cita actualizada', 'success');
+      this.isEditModalOpen.set(false);
+    } catch (error) {
+      this.toast.show('Error al actualizar la cita', 'error');
+    }
   }
 
   anularTurno(id: number) {
     this.confirmConfig.set({
       isOpen: true, title: '¿Anular cita?', message: 'Se cancelará el turno.', type: 'danger', confirmText: 'Sí, Anular',
-      action: () => {
-        this.turnosService.actualizarTurno(id, { estado: 'annulled' });
-        this.toast.show('Turno anulado');
-        this.cerrarConfirmacion();
+      action: async () => {
+        try {
+          await this.turnosService.actualizarTurno(id, { estado: 'annulled' });
+          this.toast.show('Turno anulado', 'success');
+        } catch (error) {
+          this.toast.show('Error de conexión al anular', 'error');
+        } finally {
+          this.cerrarConfirmacion();
+        }
       }
     });
   }

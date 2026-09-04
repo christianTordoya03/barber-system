@@ -169,8 +169,7 @@ export class ReportesComponent implements OnInit {
 
   // --- SUMATORIAS GLOBALES ---
   totalYape = computed(() => this.sumarMetodo('Yape'));
-  totalYapeJk = computed(() => this.sumarMetodo('Yape JK'));
-  totalTarjeta = computed(() => this.sumarMetodo('Tarjeta'));
+  // totalTarjeta = computed(() => this.sumarMetodo('Tarjeta'));
   totalTransferencia = computed(() => this.sumarMetodo('Transferencia'));
   totalEfectivo = computed(() => this.sumarMetodo('Efectivo'));
 
@@ -278,9 +277,8 @@ export class ReportesComponent implements OnInit {
       startY: 45,
       head: [['Descripción', 'Monto']],
       body: [
-        ['Total Tarjeta', `S/ ${this.totalTarjeta().toFixed(2)}`],
+        // ['Total Tarjeta', `S/ ${this.totalTarjeta().toFixed(2)}`],
         ['Total Yape', `S/ ${this.totalYape().toFixed(2)}`],
-        ['Total Yape JK', `S/ ${this.totalYapeJk().toFixed(2)}`],
         ['Total Efectivo', `S/ ${this.totalEfectivo().toFixed(2)}`],
         ['Total Transferencia', `S/ ${this.totalTransferencia().toFixed(2)}`],
         

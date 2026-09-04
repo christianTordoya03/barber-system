@@ -49,17 +49,16 @@ export class ModalCobroComponent {
   }
 
   confirmar() {
-    this.isProcessing.set(true);
+    this.isProcessing.set(true); // Bloquea el botón visualmente
     let metodoFinal = this.metodoPagoSeleccionado();
-
+    
     if (this.esPagoMixto()) {
       const monto2 = this.getMontoRestante();
       metodoFinal = `${this.formaPago1()} (S/ ${this.montoPago1()}) + ${this.formaPago2()} (S/ ${monto2})`;
     }
 
-    setTimeout(() => {
-      this.isProcessing.set(false);
-      this.onConfirm.emit(metodoFinal);
-    }, 800);
+    // Emitimos la confirmación de inmediato. 
+    // El componente padre hará el await a Supabase y se encargará de cerrar este modal.
+    this.onConfirm.emit(metodoFinal);
   }
 }

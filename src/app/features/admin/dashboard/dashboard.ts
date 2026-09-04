@@ -13,7 +13,6 @@ import { CatalogoService } from '../../../core/services/catalogo';
 import { OrdenAtencionComponent } from '../../../shared/ui/orden-atencion/orden-atencion';
 import { SupabaseService } from '../../../core/supabase/supabase';
 import { ClientesService } from '../../../core/services/clientes';
-// import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,7 +35,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   barberos = computed(() => this.staffService.empleados().filter(e => e.rol === 'barbero' && e.activo));
   servicios = this.catalogoService.servicios;
   esAdmin = signal<boolean>(false);
-  // public qrUrl: string = 'https://sistema.marina305.net/instalar';
 
   hoyStr = signal<string>(this.formatDateToDDMMYYYY(new Date()));
 
@@ -71,32 +69,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return srv?.duracion || 30;
   }
 
-  // descargarQR() {
-  //   //   // Buscamos el elemento canvas que genera la librería
-  //   const canvas = document.querySelector('qrcode canvas') as HTMLCanvasElement;
-  //   if (canvas) {
-  //     //     // Convertimos el canvas a una URL de imagen
-  //     const imagenUrl = canvas.toDataURL('image/png');
-
-  //     //     // Creamos un enlace invisible para forzar la descarga
-  //     const enlaceDescarga = document.createElement('a');
-  //     enlaceDescarga.href = imagenUrl;
-  //     enlaceDescarga.download = 'QR-Marina305-Instalacion.png';
-
-  //     //     // Simulamos el clic y lo eliminamos
-  //     document.body.appendChild(enlaceDescarga);
-  //     enlaceDescarga.click();
-  //     document.body.removeChild(enlaceDescarga);
-  //   } else {
-  //     console.error('No se pudo encontrar el canvas del código QR');
-  //   }
-  // }
-
   calcularProgreso(turno: any): number {
     if (turno.estado !== 'in_progress' || !turno.horaInicio) return 0;
     const duracionMinutos = this.getDuracionServicio(turno.servicio);
     const inicioMs = new Date(turno.horaInicio).getTime();
-    if (isNaN(inicioMs)) return 0; // <- Agrega esta línea salvavidas
+    if (isNaN(inicioMs)) return 0; 
 
     const transcurridoMin = (this.now() - inicioMs) / 60000;
     let prog = (transcurridoMin / duracionMinutos) * 100;
@@ -153,7 +130,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const timePart = fechaStr.includes(',') ? fechaStr.split(',')[1].trim() : fechaStr.split(' ')[1]?.trim() || '';
     const match = timePart.match(/(\d{1,2}):(\d{2})/);
 
-    if (!d || !match) return fechaStr; // Si algo falla, devuelve el original
+    if (!d || !match) return fechaStr; 
 
     let hours = parseInt(match[1], 10);
     const minutes = match[2];
@@ -169,49 +146,45 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ultimosMovimientos = computed(() => {
-  const hoyVal = this.getValorFecha(this.hoyStr());
-  const filtrados = this.turnosService.turnos().filter(t => {
-    const turnoVal = this.getValorFecha(t.fecha);
-    if (turnoVal > hoyVal) return false;
-    if (turnoVal === hoyVal) return true;
-    return (t.estado === 'pending' || t.estado === 'in_progress' || t.estado === 'finished');
+    const hoyVal = this.getValorFecha(this.hoyStr());
+    const filtrados = this.turnosService.turnos().filter(t => {
+      const turnoVal = this.getValorFecha(t.fecha);
+      if (turnoVal > hoyVal) return false;
+      if (turnoVal === hoyVal) return true;
+      return (t.estado === 'pending' || t.estado === 'in_progress' || t.estado === 'finished');
+    });
+
+    return filtrados.sort((a, b) => {
+      const getPriority = (estado: string) => {
+        if (estado === 'finished') return 1;
+        if (estado === 'in_progress') return 2;
+        if (estado === 'pending') return 3;
+        if (estado === 'completed') return 4;
+        if (estado === 'annulled') return 5;
+        return 5;
+      };
+
+      const pA = getPriority(a.estado);
+      const pB = getPriority(b.estado);
+
+      if (pA !== pB) return pA - pB;
+
+      const valDiaA = this.getValorFecha(a.fecha);
+      const valDiaB = this.getValorFecha(b.fecha);
+      const minA = this.obtenerMinutosDesdeFecha(a.fecha);
+      const minB = this.obtenerMinutosDesdeFecha(b.fecha);
+
+      if (a.estado === 'completed' || a.estado === 'annulled') {
+        if (valDiaA !== valDiaB) return valDiaB - valDiaA;
+        if (minA !== minB) return minB - minA;
+        return b.id - a.id;
+      } else {
+        if (valDiaA !== valDiaB) return valDiaA - valDiaB;
+        if (minA !== minB) return minA - minB;
+        return a.id - b.id; 
+      }
+    });
   });
-
-  return filtrados.sort((a, b) => {
-    const getPriority = (estado: string) => {
-      if (estado === 'finished') return 1;
-      if (estado === 'in_progress') return 2;
-      if (estado === 'pending') return 3;
-      if (estado === 'completed') return 4;
-      if (estado === 'annulled') return 5; // <-- Anulados se quedan al fondo
-      return 5;
-    };
-
-    const pA = getPriority(a.estado);
-    const pB = getPriority(b.estado);
-
-    // 1. Respetar la prioridad primero
-    if (pA !== pB) return pA - pB;
-
-    // 2. Si son del mismo estado, usamos el orden cronológico REAL
-    const valDiaA = this.getValorFecha(a.fecha);
-    const valDiaB = this.getValorFecha(b.fecha);
-    const minA = this.obtenerMinutosDesdeFecha(a.fecha);
-    const minB = this.obtenerMinutosDesdeFecha(b.fecha);
-
-    if (a.estado === 'completed' || a.estado === 'annulled') {
-      // Orden Descendente (El más reciente arriba, dentro de su propio grupo)
-      if (valDiaA !== valDiaB) return valDiaB - valDiaA;
-      if (minA !== minB) return minB - minA;
-      return b.id - a.id; // Desempate por ID si ocurre en el mismo minuto exacto
-    } else {
-      // Orden Ascendente (El más antiguo arriba para los pendientes)
-      if (valDiaA !== valDiaB) return valDiaA - valDiaB;
-      if (minA !== minB) return minA - minB;
-      return a.id - b.id; 
-    }
-  });
-});
 
   onSearchChange(event: Event) {
     const target = event.target as HTMLInputElement;
@@ -298,35 +271,38 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- NUEVA FUNCIÓN PARA INICIAR DESDE LA TABLA ---
+  // --- MODO PESIMISTA: INICIAR TURNO MANUAL ---
   iniciarTurnoManual(id: number) {
     const turno = this.turnosService.turnos().find(t => t.id === id);
     if (!turno) return;
 
-    // 1. Verificamos si el barbero ya tiene otro turno en estado "in_progress"
     const tieneEnCurso = this.turnosService.turnos().some(t =>
       t.barbero === turno.barbero &&
       t.estado === 'in_progress' &&
       t.id !== id
     );
 
-    // 2. Separamos la lógica de guardado en una función para llamarla después (o de inmediato)
-    const ejecutarInicio = () => {
-      this.turnosService.actualizarTurno(id, {
-        estado: 'in_progress',
-        horaInicio: new Date().toISOString()
-      });
+    const ejecutarInicio = async () => {
+      try {
+        // 1. ESPERAMOS RESPUESTA DE SUPABASE
+        await this.turnosService.actualizarTurno(id, {
+          estado: 'in_progress',
+          horaInicio: new Date().toISOString()
+        });
 
-      const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
-      if (barberoObj) {
-        this.staffService.actualizarEmpleado(barberoObj.id, { estado_asistencia: 'ocupado' });
+        const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
+        if (barberoObj) {
+          await this.staffService.actualizarEmpleado(barberoObj.id, { estado_asistencia: 'ocupado' });
+        }
+
+        this.toastService.show(`Servicio de ${turno.barbero} iniciado.`, 'success');
+      } catch (error) {
+        this.toastService.show('Error de conexión al iniciar el turno.', 'error');
+      } finally {
+        this.cerrarConfirmacion();
       }
-
-      this.toastService.show(`Servicio de ${turno.barbero} iniciado.`);
-      this.cerrarConfirmacion(); // Por si venimos del modal
     };
 
-    // 3. Evaluamos: ¿Lanzar alerta o iniciar de una vez?
     if (tieneEnCurso) {
       this.confirmConfig.set({
         isOpen: true,
@@ -337,7 +313,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         action: ejecutarInicio
       });
     } else {
-      ejecutarInicio(); // Si está libre, iniciamos sin preguntar
+      ejecutarInicio();
     }
   }
 
@@ -351,89 +327,88 @@ export class DashboardComponent implements OnInit, OnDestroy {
     setTimeout(() => this.cobroSeleccionado.set(null), 300);
   }
 
+  // --- MODO PESIMISTA: COBRAR TICKET ---
   async confirmarCobro(metodo: string) {
     const id = this.cobroSeleccionado()?.id;
-    if (id) {
-      const turno = this.ultimosMovimientos().find(t => t.id === id);
+    if (!id) return;
+    
+    const turno = this.ultimosMovimientos().find(t => t.id === id);
+    const montoFinal = metodo === 'Canje' ? 0 : (turno?.monto || 0);
 
-      // 1. LÓGICA DE CANJE: Si elije cobrar con Canje, el monto ingresado a caja es S/ 0.00
-      const montoFinal = metodo === 'Canje' ? 0 : (turno?.monto || 0);
-
-      // 2. Cobrar el turno
-      this.turnosService.actualizarTurno(id, { 
+    try {
+      // 1. ACTUALIZAR TURNO ESPERANDO RESPUESTA DE LA BASE DE DATOS
+      await this.turnosService.actualizarTurno(id, { 
         estado: 'completed', 
         fecha: new Date().toLocaleString('es-PE'), 
         metodoPago: metodo,
         monto: montoFinal 
       });
 
-      // 3. EL CEREBRO DE LA FIDELIZACIÓN (Conexión Directa a BD)
-      if (turno && turno.cliente && turno.cliente.trim() !== 'Cliente EL SERBIO') {
-        try {
-          // Búsqueda directa a Supabase para evitar fallos de memoria local
-          const { data: clienteDB } = await this.supabase.client
-            .from('clientes')
-            .select('*')
-            .eq('nombre', turno.cliente.trim())
-            .maybeSingle();
+      // // 2. FIDELIZACIÓN (Ya es asíncrono)
+      // if (turno && turno.cliente && turno.cliente.trim() !== 'Cliente EL SERBIO') {
+      //   try {
+      //     const { data: clienteDB } = await this.supabase.client
+      //       .from('clientes')
+      //       .select('*')
+      //       .eq('nombre', turno.cliente.trim())
+      //       .maybeSingle();
 
-          if (clienteDB) {
-            const puntosActuales = clienteDB.puntos_acumulados || 0;
-            const visitasActuales = clienteDB.visitas_totales || 0;
+      //     if (clienteDB) {
+      //       const puntosActuales = clienteDB.puntos_acumulados || 0;
+      //       const visitasActuales = clienteDB.visitas_totales || 0;
             
-            let nuevosPuntos = puntosActuales;
-            let mensajeToast = '';
+      //       let nuevosPuntos = puntosActuales;
+      //       let mensajeToast = '';
 
-            if (metodo === 'Canje') {
-              // Cobra su premio: reiniciamos su tarjeta a 0
-              nuevosPuntos = 0;
-              mensajeToast = `¡🎁 Corte gratis canjeado para ${clienteDB.nombre}! Tarjeta reiniciada.`;
-            } else {
-              // Pago normal: suma 1 punto
-              nuevosPuntos = puntosActuales + 1;
-              if (nuevosPuntos >= 5) {
-                 mensajeToast = `¡Atención! ${clienteDB.nombre} llegó a 5 sellos. Su próximo corte es GRATIS 🎁.`;
-              } else {
-                 mensajeToast = `Genial, ${clienteDB.nombre} ahora tiene ${nuevosPuntos} sello(s).`;
-              }
-            }
+      //       if (metodo === 'Canje') {
+      //         nuevosPuntos = 0;
+      //         mensajeToast = `¡🎁 Corte gratis canjeado para ${clienteDB.nombre}! Tarjeta reiniciada.`;
+      //       } else {
+      //         nuevosPuntos = puntosActuales + 1;
+      //         if (nuevosPuntos >= 5) {
+      //            mensajeToast = `¡Atención! ${clienteDB.nombre} llegó a 5 sellos. Su próximo corte es GRATIS 🎁.`;
+      //         } else {
+      //            mensajeToast = `Genial, ${clienteDB.nombre} ahora tiene ${nuevosPuntos} sello(s).`;
+      //         }
+      //       }
 
-            // Disparamos la actualización real a la tabla clientes
-            await this.supabase.client.from('clientes')
-              .update({
-                visitas_totales: visitasActuales + 1,
-                puntos_acumulados: nuevosPuntos,
-                ultima_visita: new Date().toISOString() // Actualiza su última visita a HOY
-              })
-              .eq('id', clienteDB.id);
+      //       await this.supabase.client.from('clientes')
+      //         .update({
+      //           visitas_totales: visitasActuales + 1,
+      //           puntos_acumulados: nuevosPuntos,
+      //           ultima_visita: new Date().toISOString()
+      //         })
+      //         .eq('id', clienteDB.id);
 
-            // Mostramos la alerta de éxito en pantalla
-            setTimeout(() => this.toastService.show(mensajeToast, 'success'), 500);
+      //       setTimeout(() => this.toastService.show(mensajeToast, 'success'), 500);
             
-            // Si el servicio tiene la función, refrescamos el CRM en segundo plano
-            if (this.clientesService.cargarClientes) {
-              this.clientesService.cargarClientes();
-            }
-          }
-        } catch (error) {
-          console.error('Error al actualizar fidelización:', error);
-        }
-      }
+      //       if (this.clientesService.cargarClientes) {
+      //         this.clientesService.cargarClientes();
+      //       }
+      //     }
+      //   } catch (error) {
+      //     console.error('Error al actualizar fidelización:', error);
+      //   }
+      // }
 
-      // 4. Liberar Barbero
+      // 3. LIBERAR BARBERO
       if (turno && turno.barbero) {
         const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
         if (barberoObj) {
-          this.staffService.actualizarEmpleado(barberoObj.id, {
+          await this.staffService.actualizarEmpleado(barberoObj.id, {
             estado_asistencia: 'disponible',
             ultima_vez_disponible: new Date().toISOString()
           });
         }
       }
 
-      this.toastService.show(`Turno cobrado con ${metodo}`);
+      this.toastService.show(`Turno cobrado con ${metodo}`, 'success');
+    } catch (error) {
+      console.error(error);
+      this.toastService.show('Error de red. El cobro no se guardó.', 'error');
+    } finally {
+      this.cerrarModalCobro(); // Cerramos siempre al final para desbloquear la pantalla
     }
-    this.cerrarModalCobro();
   }
 
   verDetalle(id: number) {
@@ -446,10 +421,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   abrirModalEditar(id: number) {
     const mov = this.ultimosMovimientos().find(m => m.id === id);
     const turno = this.turnosService.turnos().find(t => t.id === id);
+    
     if (turno && turno.estado === 'completed' && !this.esAdmin()) {
       this.toastService.show('Seguridad: Acción denegada. El ticket ya fue cobrado y está cerrado.', 'error');
       return;
     }
+    
     if (mov) {
       if (mov.estado === 'pending' || mov.estado === 'in_progress' || mov.estado === 'finished') {
         this.editPendienteForm.patchValue({ id: mov.id, cliente: mov.cliente, servicio: mov.servicio, barbero: mov.barbero, monto: mov.monto }, { emitEvent: false });
@@ -461,26 +438,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  guardarEdicion() {
+  // --- MODO PESIMISTA: GUARDAR EDICIÓN ---
+  async guardarEdicion() {
     if (this.editForm.invalid) return;
     const val = this.editForm.getRawValue();
-    this.turnosService.actualizarTurno(val.id, { cliente: val.cliente, servicio: val.servicio, barbero: val.barbero, monto: val.monto, metodoPago: val.metodoPago });
-    this.toastService.show('Cobro editado correctamente');
-    this.isEditModalOpen.set(false);
+    try {
+      await this.turnosService.actualizarTurno(val.id, { cliente: val.cliente, servicio: val.servicio, barbero: val.barbero, monto: val.monto, metodoPago: val.metodoPago });
+      this.toastService.show('Cobro editado correctamente', 'success');
+      this.isEditModalOpen.set(false);
+    } catch(error) {
+      this.toastService.show('Error al guardar edición. Verifica tu internet.', 'error');
+    }
   }
 
-  guardarEdicionPendiente() {
+  async guardarEdicionPendiente() {
     if (this.editPendienteForm.invalid) return;
     const val = this.editPendienteForm.getRawValue();
-    this.turnosService.actualizarTurno(val.id, { cliente: val.cliente, servicio: val.servicio, barbero: val.barbero, monto: val.monto });
-    this.toastService.show('Turno actualizado correctamente');
-    this.isEditPendienteModalOpen.set(false);
+    try {
+      await this.turnosService.actualizarTurno(val.id, { cliente: val.cliente, servicio: val.servicio, barbero: val.barbero, monto: val.monto });
+      this.toastService.show('Turno actualizado correctamente', 'success');
+      this.isEditPendienteModalOpen.set(false);
+    } catch(error) {
+      this.toastService.show('Error al guardar actualización. Verifica tu internet.', 'error');
+    }
   }
 
+  // --- MODO PESIMISTA: ANULAR COBRO ---
   anularCobro(id: number) {
     const turno = this.turnosService.turnos().find(t => t.id === id);
 
-    // 1. EL CANDADO PERFECTO: Cubre En Curso, Por Cobrar y COMPLETADO (Pagado)
     if (turno && (turno.estado === 'in_progress' || turno.estado === 'finished' || turno.estado === 'completed') && !this.esAdmin()) {
       this.toastService.show('Seguridad: Acción denegada. Solo el Administrador puede anular operaciones iniciadas o cobradas.', 'error');
       return;
@@ -494,38 +480,51 @@ export class DashboardComponent implements OnInit, OnDestroy {
       message: esPendiente ? '¿Es seguro de cancelar este servicio?' : '¿Es seguro de anular este ingreso de caja?',
       type: 'danger',
       confirmText: esPendiente ? 'Sí, Cancelar' : 'Sí, Anular',
-      action: () => {
-        // Cancelamos el turno en la base de datos
-        this.turnosService.actualizarTurno(id, { estado: 'annulled' });
+      action: async () => {
+        try {
+          await this.turnosService.actualizarTurno(id, { estado: 'annulled' });
 
-        // 2. LIBERAR BARBERO Y ACTUALIZAR RELOJ (Si estaba en curso o por cobrar)
-        if (turno && turno.barbero && (turno.estado === 'in_progress' || turno.estado === 'finished')) {
-          const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
-          if (barberoObj) {
-            this.staffService.actualizarEmpleado(barberoObj.id, {
-              estado_asistencia: 'disponible',
-              ultima_vez_disponible: new Date().toISOString()
-            });
+          if (turno && turno.barbero && (turno.estado === 'in_progress' || turno.estado === 'finished')) {
+            const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
+            if (barberoObj) {
+              await this.staffService.actualizarEmpleado(barberoObj.id, {
+                estado_asistencia: 'disponible',
+                ultima_vez_disponible: new Date().toISOString()
+              });
+            }
           }
-        }
 
-        this.toastService.show('Acción completada correctamente');
-        this.cerrarConfirmacion();
+          this.toastService.show('Acción completada correctamente', 'success');
+        } catch (error) {
+          this.toastService.show('Error al anular. Verifica tu conexión.', 'error');
+        } finally {
+          this.cerrarConfirmacion();
+        }
       }
     });
   }
 
+  // --- MODO PESIMISTA: RESTAURAR COBRO ---
   restaurarCobro(id: number) {
     if (!this.esAdmin()) {
       this.toastService.show('Seguridad: Solo el administrador puede restaurar registros anulados.', 'error');
       return;
     }
     this.confirmConfig.set({
-      isOpen: true, title: 'Restaurar Cobro', message: '¿Deseas deshacer la anulación y devolver el registro a la caja?', type: 'info', confirmText: 'Sí, Restaurar',
-      action: () => {
-        this.turnosService.actualizarTurno(id, { estado: 'completed' });
-        this.toastService.show('Cobro restaurado exitosamente');
-        this.cerrarConfirmacion();
+      isOpen: true, 
+      title: 'Restaurar Cobro', 
+      message: '¿Deseas deshacer la anulación y devolver el registro a la caja?', 
+      type: 'info', 
+      confirmText: 'Sí, Restaurar',
+      action: async () => {
+        try {
+          await this.turnosService.actualizarTurno(id, { estado: 'completed' });
+          this.toastService.show('Cobro restaurado exitosamente', 'success');
+        } catch (error) {
+          this.toastService.show('Error al restaurar. Verifica tu conexión.', 'error');
+        } finally {
+          this.cerrarConfirmacion();
+        }
       }
     });
   }

@@ -86,31 +86,47 @@ export class OrdenAtencionComponent {
     this.ejecutarCambio(id, nuevoEstado);
   }
 
-  ejecutarCambio(id: number, nuevoEstado: string) {
+  async ejecutarCambio(id: number, nuevoEstado: string) {
     const barbero = this.staffService.empleados().find(e => e.id === id);
     const nombreBarbero = barbero?.nombre;
+    const estadoAnterior = barbero?.estado_asistencia || 'descanso';
 
-    // 1. Si lo ponemos disponible, buscamos si dejó un corte "En curso"
-    if (nuevoEstado === 'disponible' && nombreBarbero) {
-      const corteActivo = this.turnosService.turnos().find(t => 
-        t.barbero === nombreBarbero && t.estado === 'in_progress'
-      );
-
-      // 2. Si existe, lo cerramos automáticamente como "Terminado" (finished)
-      if (corteActivo) {
-        this.turnosService.actualizarTurno(corteActivo.id, { estado: 'finished' });
-        this.toastService.show(`Corte de ${corteActivo.cliente} movido a 'Terminado'`);
+    try {
+      // 1. Si lo ponemos disponible, buscamos si dejó un corte "En curso"
+      if (nuevoEstado === 'disponible' && nombreBarbero) {
+        const corteActivo = this.turnosService.turnos().find(t =>
+           t.barbero === nombreBarbero && t.estado === 'in_progress'
+        );
+        // 2. Cerramos el corte ESPERANDO a Supabase
+        if (corteActivo) {
+          await this.turnosService.actualizarTurno(corteActivo.id, { estado: 'finished' });
+          this.toastService.show(`Corte de ${corteActivo.cliente} movido a 'Terminado'`);
+        }
       }
-    }
 
-    // 3. Actualizamos el estado del empleado como siempre
-    const payload: any = { estado_asistencia: nuevoEstado };
-    if (nuevoEstado === 'disponible') {
-      payload.ultima_vez_disponible = new Date().toISOString();
-    }
+      // 3. Preparamos el payload y ACTUALIZAMOS ESPERANDO A LA BD
+      const payload: any = { estado_asistencia: nuevoEstado };
+      if (nuevoEstado === 'disponible') {
+        payload.ultima_vez_disponible = new Date().toISOString();
+      }
 
-    this.staffService.actualizarEmpleado(id, payload);
-    this.toastService.show(`Estado de ${nombreBarbero?.split(' ')[0]} cambiado a ${nuevoEstado}`);
+      await this.staffService.actualizarEmpleado(id, payload);
+      this.toastService.show(`Estado de ${nombreBarbero?.split(' ')[0]} cambiado a ${nuevoEstado}`, 'success');
+
+    } catch (error) {
+      // SI FALLA LA RED, REVERTIMOS EL CAMBIO VISUALMENTE
+      console.error("Fallo al cambiar estado:", error);
+      this.toastService.show('Error de red. No se guardó el cambio.', 'error');
+      
+      // Revertimos el select HTML a su estado original
+      if (this.selectElementAManejar) {
+         this.selectElementAManejar.value = estadoAnterior;
+      } else {
+         this.staffService.cargarEmpleados(); // Fuerza recarga si no hay ref
+      }
+    } finally {
+      this.selectElementAManejar = null;
+    }
   }
 
   cancelarCambio() {

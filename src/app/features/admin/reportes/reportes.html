@@ -59,17 +59,13 @@
       </thead>
       <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
         @if (hasSearched()) {
-        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300">
+        <!-- <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300">
           <td class="px-6 py-2.5 font-medium">Total Tarjeta:</td>
           <td class="px-6 py-2.5 text-right">S/ {{ totalTarjeta() | number:'1.2-2' }}</td>
-        </tr>
+        </tr> -->
         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300">
           <td class="px-6 py-2.5 font-medium">Total Yape:</td>
           <td class="px-6 py-2.5 text-right">S/ {{ totalYape() | number:'1.2-2' }}</td>
-        </tr>
-        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300">
-          <td class="px-6 py-2.5 font-medium">Total Yape JK:</td>
-          <td class="px-6 py-2.5 text-right">S/ {{ totalYapeJk() | number:'1.2-2' }}</td>
         </tr>
         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300">
           <td class="px-6 py-2.5 font-medium">Total Efectivo:</td>

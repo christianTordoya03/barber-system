@@ -9,7 +9,7 @@ export class CatalogoService {
   servicios = signal<Servicio[]>([]);
   categorias = signal<Categoria[]>([]);
 
-  constructor() { this.cargarDatos(); }
+  constructor() { this.cargarDatos(); this.escucharCambiosCatalogo();}
 
   async cargarDatos() {
     const bsId = await this.supabase.obtenerBarbershopId();
@@ -19,6 +19,22 @@ export class CatalogoService {
     ]);
     if (resServicios.data) this.servicios.set(resServicios.data as Servicio[]);
     if (resCategorias.data) this.categorias.set(resCategorias.data as Categoria[]);
+  }
+
+  private escucharCambiosCatalogo() {
+    this.supabase.client
+      .channel('cambios-catalogo-general')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'servicios' },
+        () => { this.cargarDatos(); }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'categorias' },
+        () => { this.cargarDatos(); }
+      )
+      .subscribe();
   }
 
   // --- SERVICIOS ---

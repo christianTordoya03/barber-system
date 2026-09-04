@@ -253,7 +253,7 @@ export class ReportesComponent implements OnInit {
 
   generarPDF() {
     const doc = new jsPDF();
-    doc.setProperties({ title: 'Reporte General', subject: 'Marina 305' });
+    doc.setProperties({ title: 'Reporte General', subject: 'EL SERBIO' });
     let subtitulo = '';
     const filtro = this.filtroAplicado();
 

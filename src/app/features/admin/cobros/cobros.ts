@@ -336,8 +336,11 @@ export class CobrosComponent implements OnInit, OnDestroy {
     }
   }
 
-  realizarCobro() {
-    if (this.cobroForm.invalid) { this.cobroForm.markAllAsTouched(); return; }
+  async realizarCobro() {
+    if (this.cobroForm.invalid) { 
+      this.cobroForm.markAllAsTouched(); 
+      return; 
+    }
     
     const formVals = this.cobroForm.getRawValue();
     let formaPagoFinal = formVals.formaPago;
@@ -351,40 +354,69 @@ export class CobrosComponent implements OnInit, OnDestroy {
       formaPagoFinal = `${formVals.formaPago} (S/ ${formVals.montoPago1}) + ${formVals.formaPago2} (S/ ${monto2})`;
     }
 
-    // ¡CAMBIO CLAVE AQUÍ! Buscar el turno en la lista TOTAL antes de que desaparezca de las listas filtradas
-    const turno = this.turnosService.turnos().find(t => t.id === Number(formVals.turnoId));
+    const turnoId = Number(formVals.turnoId);
+    const turno = this.turnosService.turnos().find(t => t.id === turnoId);
 
-    // Ahora sí, actualizamos el turno
-    this.turnosService.actualizarTurno(Number(formVals.turnoId), { estado: 'completed', fecha: new Date().toLocaleString('es-PE'), metodoPago: formaPagoFinal });
-    const clienteAsoc = this.clienteAsociado();
-    if (clienteAsoc && clienteAsoc.id) {
-      const puntos = clienteAsoc.puntos_acumulados || 0;
-      const visitas = clienteAsoc.visitas_totales || 0;
+    try {
+      // --- 1. EL ESCUDO: GUARDADO SEGURO (Primero en la nube) ---
+      const fechaActual = new Date().toLocaleString('es-PE');
       
-      if (puntos >= 5) {
-        this.toastService.show(`¡Corte gratis canjeado para ${clienteAsoc.nombre}! Sellos reiniciados.`, 'success');
-      } else {
-        this.toastService.show(`Genial, ${clienteAsoc.nombre} ahora tiene ${puntos + 1} sello(s).`, 'success');
-      }
-      // Sumamos en la base de datos de fondo
-      this.clientesService.registrarVisitaYSumarPuntos(clienteAsoc.id, puntos, visitas);
-    }
-    // Liberar al barbero
-    if (turno && turno.barbero) {
-      const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
-      if (barberoObj) {
-        this.staffService.actualizarEmpleado(barberoObj.id, { 
-          estado_asistencia: 'disponible',
-          ultima_vez_disponible: new Date().toISOString() 
-        });
-      }
-    }
+      const { error } = await this.supabase.client
+        .from('turnos')
+        .update({ 
+          estado: 'completed', 
+          fecha: fechaActual, 
+          metodoPago: formaPagoFinal 
+        })
+        .eq('id', turnoId);
 
-    this.toastService.show(`Servicio cobrado correctamente`);
-    this.cobroForm.reset({ barberoFiltro: '', turnoId: '', formaPago: '', esPagoMixto: false, formaPago2: '', montoPago1: 0 });
-    this.servicioSeleccionado.set(''); 
-    this.precioSeleccionado.set(null);
-    this.clienteAsociado.set(null);
+      // Si falla el internet o la sesión, lanzará el error y saltará al 'catch'
+      if (error) throw error; 
+
+      // --- 2. SI LLEGA AQUÍ: TODO SALIÓ BIEN. ACTUALIZAMOS LA PANTALLA LOCAL ---
+      this.turnosService.actualizarTurno(turnoId, { 
+        estado: 'completed', 
+        fecha: fechaActual, 
+        metodoPago: formaPagoFinal 
+      });
+
+      // 3. Fidelización de clientes
+      const clienteAsoc = this.clienteAsociado();
+      if (clienteAsoc && clienteAsoc.id) {
+        const puntos = clienteAsoc.puntos_acumulados || 0;
+        const visitas = clienteAsoc.visitas_totales || 0;
+        
+        if (puntos >= 5) {
+          this.toastService.show(`¡Corte gratis canjeado para ${clienteAsoc.nombre}! Sellos reiniciados.`, 'success');
+        } else {
+          this.toastService.show(`Genial, ${clienteAsoc.nombre} ahora tiene ${puntos + 1} sello(s).`, 'success');
+        }
+        // Sumamos en la base de datos de fondo
+        this.clientesService.registrarVisitaYSumarPuntos(clienteAsoc.id, puntos, visitas);
+      }
+
+      // 4. Liberar al barbero
+      if (turno && turno.barbero) {
+        const barberoObj = this.staffService.empleados().find(e => e.nombre === turno.barbero);
+        if (barberoObj) {
+          this.staffService.actualizarEmpleado(barberoObj.id, { 
+            estado_asistencia: 'disponible',
+            ultima_vez_disponible: new Date().toISOString() 
+          });
+        }
+      }
+
+      this.toastService.show(`Servicio cobrado y guardado en la nube correctamente`, 'success');
+      this.cobroForm.reset({ barberoFiltro: '', turnoId: '', formaPago: '', esPagoMixto: false, formaPago2: '', montoPago1: 0 });
+      this.servicioSeleccionado.set(''); 
+      this.precioSeleccionado.set(null);
+      this.clienteAsociado.set(null);
+
+    } catch (error: any) {
+      // --- 3. ALERTA SALVAVIDAS ---
+      console.error('Error de red al cobrar:', error);
+      this.toastService.show('Error de conexión: El cobro no se pudo guardar en la nube. Verifica tu internet e intenta de nuevo.', 'error');
+    }
   }
   
 

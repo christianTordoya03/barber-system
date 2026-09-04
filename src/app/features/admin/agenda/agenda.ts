@@ -176,7 +176,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
     // 3. Obtenemos la plantilla y reemplazamos los datos
     // Si no hay plantilla en BD, usamos un texto por defecto elegante
     const plantilla = this.whatsappService.obtenerPlantilla('confirmacion') || 
-      'Hola {nombre} ✂️ Tu cita en Marina 305 para tu {servicio} el {fecha} a las {hora} con {barbero} ha sido confirmada. ¡Te esperamos!';
+      'Hola {nombre} ✂️ Tu cita en EL SERBIO para tu {servicio} el {fecha} a las {hora} con {barbero} ha sido confirmada. ¡Te esperamos!';
     
     const mensaje = this.whatsappService.generarMensaje(plantilla, {
       clienteNombre: turno.cliente || 'amigo',

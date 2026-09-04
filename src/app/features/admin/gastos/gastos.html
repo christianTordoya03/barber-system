@@ -121,6 +121,21 @@
 
   <div class="space-y-10">
     
+    <!-- CONTROLES GLOBALES DE FILTRO DE HISTORIAL -->
+    <div class="flex flex-col sm:flex-row items-end justify-between border-b border-zinc-200 dark:border-zinc-800 pb-4 gap-4">
+      <h3 class="text-xl font-black text-zinc-900 dark:text-white">Historiales de Movimientos</h3>
+      <div class="w-full sm:w-64">
+        <select [(ngModel)]="filtroBarberoId" (change)="cambiarFiltro()"
+          class="block w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-2.5 px-4 text-zinc-900 dark:text-white sm:text-sm cursor-pointer focus:ring-2 focus:ring-blue-500 shadow-sm appearance-none transition-colors">
+          <option value="todos">Todos los registros</option>
+          @for (emp of empleadosActivos(); track emp.id) {
+            <option [value]="emp.id">{{ emp.nombre }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <!-- TABLA DE GASTOS -->
     <div>
       <h3 class="text-lg font-bold text-zinc-900 dark:text-white mb-4">Historial de Gastos</h3>
       <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm transition-colors duration-300">
@@ -136,7 +151,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
-              @for (gasto of gastos(); track gasto.id) {
+              @for (gasto of gastosPaginados(); track gasto.id) {
               <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors" [ngClass]="{
                 'opacity-50 grayscale bg-zinc-50/50 dark:bg-zinc-900/20': gasto.estado === 'anulado' || gasto.estado === 'liquidado'
               }">
@@ -151,6 +166,8 @@
                 }">
                   - S/ {{ gasto.monto | number:'1.2-2' }}
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400">{{ gasto.metodoPago }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400">{{ gasto.fecha }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right">
                   @if (gasto.estado === 'activo') {
                   <div class="flex items-center justify-end gap-2">
@@ -196,15 +213,34 @@
               </tr>
               } @empty {
               <tr>
-                <td colspan="5" class="px-6 py-12 text-center text-zinc-500">No hay gastos registrados.</td>
+                <td colspan="5" class="px-6 py-12 text-center text-zinc-500">No hay gastos registrados para este filtro.</td>
               </tr>
               }
             </tbody>
           </table>
         </div>
+        <!-- PAGINADOR GASTOS -->
+        <div class="flex items-center justify-between px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+          <span class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+            Página <span class="font-bold text-zinc-900 dark:text-white">{{ paginaActualGastos() }}</span> de <span class="font-bold text-zinc-900 dark:text-white">{{ totalPaginasGastos() }}</span>
+          </span>
+          <div class="flex space-x-2">
+            <button (click)="cambiarPaginaGastos(paginaActualGastos() - 1)" [disabled]="paginaActualGastos() === 1"
+              class="px-4 py-2 text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngClass]="paginaActualGastos() === 1 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-white hover:bg-zinc-300 dark:hover:bg-zinc-700 cursor-pointer'">
+              Anterior
+            </button>
+            <button (click)="cambiarPaginaGastos(paginaActualGastos() + 1)" [disabled]="paginaActualGastos() === totalPaginasGastos()"
+              class="px-4 py-2 text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngClass]="paginaActualGastos() === totalPaginasGastos() ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-white hover:bg-zinc-300 dark:hover:bg-zinc-700 cursor-pointer'">
+              Siguiente
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- TABLA DE COMISIONES -->
     <div>
       <h3 class="text-lg font-bold text-zinc-900 dark:text-white mb-4">Historial de Propinas y Comisiones</h3>
       <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm transition-colors duration-300">
@@ -221,7 +257,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
-              @for (com of comisiones(); track com.id) {
+              @for (com of comisionesPaginadas(); track com.id) {
               <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors"
                 [ngClass]="{'opacity-50 grayscale bg-zinc-50/50 dark:bg-zinc-900/20': com.estado === 'anulado'}">
                 
@@ -278,11 +314,29 @@
               </tr>
               } @empty {
               <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-zinc-500">No hay propinas o comisiones registradas.</td>
+                <td colspan="6" class="px-6 py-12 text-center text-zinc-500">No hay propinas o comisiones para este filtro.</td>
               </tr>
               }
             </tbody>
           </table>
+        </div>
+        <!-- PAGINADOR COMISIONES -->
+        <div class="flex items-center justify-between px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+          <span class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+            Página <span class="font-bold text-zinc-900 dark:text-white">{{ paginaActualComisiones() }}</span> de <span class="font-bold text-zinc-900 dark:text-white">{{ totalPaginasComisiones() }}</span>
+          </span>
+          <div class="flex space-x-2">
+            <button (click)="cambiarPaginaComisiones(paginaActualComisiones() - 1)" [disabled]="paginaActualComisiones() === 1"
+              class="px-4 py-2 text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngClass]="paginaActualComisiones() === 1 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-white hover:bg-zinc-300 dark:hover:bg-zinc-700 cursor-pointer'">
+              Anterior
+            </button>
+            <button (click)="cambiarPaginaComisiones(paginaActualComisiones() + 1)" [disabled]="paginaActualComisiones() === totalPaginasComisiones()"
+              class="px-4 py-2 text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngClass]="paginaActualComisiones() === totalPaginasComisiones() ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-white hover:bg-zinc-300 dark:hover:bg-zinc-700 cursor-pointer'">
+              Siguiente
+            </button>
+          </div>
         </div>
       </div>
     </div>

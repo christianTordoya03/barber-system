@@ -35,7 +35,7 @@ export class ClienteLayoutComponent implements OnInit {
     this.confirmConfig.set({
       isOpen: true,
       title: 'Cerrar Sesión',
-      message: '¿Estás seguro de que deseas salir de tu cuenta Marina 305?',
+      message: '¿Estás seguro de que deseas salir de tu cuenta EL SERBIO?',
       type: 'danger',
       confirmText: 'Sí, Salir',
       action: async () => {

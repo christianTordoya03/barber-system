@@ -10,17 +10,17 @@ import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-co
   imports: [CommonModule, RouterModule, ModalConfirmComponent],
   templateUrl: './admin-layout.html',
 })
-export class AdminLayoutComponent implements OnInit{
+export class AdminLayoutComponent implements OnInit {
   public supabase = inject(SupabaseService);
   private router = inject(Router);
-  
   
   isMobileMenuOpen = signal<boolean>(false);
   confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });
   esAdmin = signal<boolean>(false);
 
   async ngOnInit() {
-    this.supabase.obtenerBarbershopId();
+    await this.supabase.obtenerBarbershopId();
+    
     const { data: { user } } = await this.supabase.client.auth.getUser();
     if (user) {
       const { data } = await this.supabase.client
@@ -30,7 +30,59 @@ export class AdminLayoutComponent implements OnInit{
         .maybeSingle();
       this.esAdmin.set(data?.rol?.toLowerCase() === 'admin');
     }
+
+    // Ejecutamos la limpieza automática al iniciar el layout
+    await this.limpiarCitasFantasmas();
   }
+
+  // --- NUEVA FUNCIÓN: CAZAFANTASMAS ---
+  async limpiarCitasFantasmas() {
+    try {
+      const bsId = this.supabase.tenant()?.id;
+      if (!bsId) return;
+
+      // 1. Obtenemos la fecha de hoy en formato YYYY-MM-DD
+      const hoy = new Date();
+      const hoyStr = `${hoy.getFullYear()}-${(hoy.getMonth() + 1).toString().padStart(2, '0')}-${hoy.getDate().toString().padStart(2, '0')}`;
+
+      // 2. Buscamos todas las citas "pendientes" o "en curso" de la barbería
+      const { data: turnosAtrasados, error: fetchError } = await this.supabase.client
+        .from('turnos')
+        .select('id, fecha, estado')
+        .eq('barbershop_id', bsId)
+        .in('estado', ['pending', 'pending_confirmation', 'in_progress']);
+
+      if (fetchError || !turnosAtrasados) return;
+
+      // 3. Filtramos SOLO las que son de días anteriores
+      const turnosParaAnular = turnosAtrasados.filter(turno => {
+        if (!turno.fecha) return false;
+        
+        // La fecha viene en formato "DD/MM/YYYY, HH:mm:ss"
+        const fechaCita = turno.fecha.split(',')[0].trim();
+        const [dia, mes, anio] = fechaCita.split('/');
+        const fechaCitaFormatoIso = `${anio}-${mes}-${dia}`;
+        
+        // Comparamos: si la fecha de la cita es MENOR a hoy, es un fantasma
+        return fechaCitaFormatoIso < hoyStr;
+      });
+
+      // 4. Si hay fantasmas, los anula silenciosamente en bloque
+      if (turnosParaAnular.length > 0) {
+        const idsParaAnular = turnosParaAnular.map(t => t.id);
+        
+        await this.supabase.client
+          .from('turnos')
+          .update({ estado: 'annulled', notas: 'Anulado automáticamente por el sistema (No Show)' })
+          .in('id', idsParaAnular);
+          
+        console.log(`🧹 Limpieza automática: Se anularon ${idsParaAnular.length} citas de días anteriores.`);
+      }
+    } catch (error) {
+      console.error('Error en el limpiador automático:', error);
+    }
+  }
+  // --- FIN CAZAFANTASMAS ---
 
   confirmarLogout() {
     this.isMobileMenuOpen.set(false); // Cerramos el menú móvil si está abierto

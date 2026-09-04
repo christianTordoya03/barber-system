@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { GastosService } from '../../../core/services/gastos';
 import { StaffService } from '../../../core/services/staff';
 import { ToastService } from '../../../core/services/toast';
@@ -11,7 +11,7 @@ import { Gasto, Comision } from '../../../core/models/marina';
 @Component({
   selector: 'app-gastos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalConfirmComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, ModalConfirmComponent],
   templateUrl: './gastos.html',
 })
 export class GastosComponent {
@@ -25,6 +25,65 @@ export class GastosComponent {
   comisiones = this.comisionesService.comisiones;
   empleadosActivos = computed(() => this.staffService.empleados().filter(e => e.activo));
 
+  // --- FILTRO Y PAGINACIÓN ---
+  filtroBarberoId = signal<string>('todos');
+  itemsPorPagina = signal<number>(10);
+  
+  paginaActualGastos = signal<number>(1);
+  paginaActualComisiones = signal<number>(1);
+
+  // Computed para Gastos
+  gastosFiltrados = computed(() => {
+    let lista = this.gastos();
+    if (this.filtroBarberoId() !== 'todos') {
+      lista = lista.filter(g => String(g.empleado_id) === this.filtroBarberoId());
+    }
+    // Ordenamos del más reciente al más antiguo
+    return lista.sort((a, b) => (b.id || 0) - (a.id || 0));
+  });
+
+  totalPaginasGastos = computed(() => Math.ceil(this.gastosFiltrados().length / this.itemsPorPagina()) || 1);
+
+  gastosPaginados = computed(() => {
+    const inicio = (this.paginaActualGastos() - 1) * this.itemsPorPagina();
+    return this.gastosFiltrados().slice(inicio, inicio + this.itemsPorPagina());
+  });
+
+  // Computed para Comisiones/Propinas
+  comisionesFiltradas = computed(() => {
+    let lista = this.comisiones();
+    if (this.filtroBarberoId() !== 'todos') {
+      lista = lista.filter(c => String(c.empleado_id) === this.filtroBarberoId());
+    }
+    // Ordenamos del más reciente al más antiguo
+    return lista.sort((a, b) => (b.id || 0) - (a.id || 0));
+  });
+
+  totalPaginasComisiones = computed(() => Math.ceil(this.comisionesFiltradas().length / this.itemsPorPagina()) || 1);
+
+  comisionesPaginadas = computed(() => {
+    const inicio = (this.paginaActualComisiones() - 1) * this.itemsPorPagina();
+    return this.comisionesFiltradas().slice(inicio, inicio + this.itemsPorPagina());
+  });
+
+  cambiarFiltro() {
+    this.paginaActualGastos.set(1);
+    this.paginaActualComisiones.set(1);
+  }
+
+  cambiarPaginaGastos(nuevaPagina: number) {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginasGastos()) {
+      this.paginaActualGastos.set(nuevaPagina);
+    }
+  }
+
+  cambiarPaginaComisiones(nuevaPagina: number) {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginasComisiones()) {
+      this.paginaActualComisiones.set(nuevaPagina);
+    }
+  }
+  // --- FIN LÓGICA DE FILTROS ---
+
   // Formulario de Creación de Gasto General
   gastoForm = this.fb.nonNullable.group({
     descripcion: ['', Validators.required],
@@ -33,11 +92,11 @@ export class GastosComponent {
     empleado_id: ['']
   });
 
-  // Formulario de Creación de Propina o Comisión Extra ajustado
+  // Formulario de Creación de Propina o Comisión Extra
   comisionForm = this.fb.nonNullable.group({
     empleado_id: ['', Validators.required],
     tipo: ['propina' as const, Validators.required],
-    monto: [0, [Validators.required, Validators.min(0.1)]], // Permite decimales válidos
+    monto: [0, [Validators.required, Validators.min(0.1)]], 
     descripcion: ['']
   });
 
@@ -73,7 +132,6 @@ export class GastosComponent {
   }
 
   async registrarComision() {
-    // Alerta visual instantánea si falta el barbero o el monto es inválido
     if (this.comisionForm.invalid) {
       this.comisionForm.markAllAsTouched();
       this.toastService.show('Por favor, selecciona un barbero e ingresa un monto válido mayor a 0.', 'error');
@@ -95,8 +153,6 @@ export class GastosComponent {
     const res = await this.comisionesService.agregarComision(nuevaComision);
     if (res) {
       this.toastService.show('Propina/Comisión registrada correctamente');
-      
-      // Reseteamos valores y limpiamos explícitamente las banderas de error en la UI
       this.comisionForm.reset({ empleado_id: '', tipo: 'propina', monto: 0, descripcion: '' });
       this.comisionForm.markAsPristine();
       this.comisionForm.markAsUntouched();

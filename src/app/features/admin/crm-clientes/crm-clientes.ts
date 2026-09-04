@@ -44,11 +44,11 @@ export class CrmClientesComponent implements OnInit {
   isSavingConfig = signal<boolean>(false);
 
   mensajeBienvenidaTemplate = signal<string>(
-    `*¡Hola {{nombre}}!* Bienvenido a *Marina 305*.\n\nTu tarjeta de fidelización ya está activa: cada 5 cortes, el 6to es *GRATIS*.\n\nPara tu próxima cita, agéndala aquí:\nhttps://sistema.marina305.net/reserva/marina305`
+    `*¡Hola {{nombre}}!* Bienvenido a *EL SERBIO*.\n\nTu tarjeta de fidelización ya está activa: cada 5 cortes, el 6to es *GRATIS*.\n\nPara tu próxima cita, agéndala aquí:\nhttps://sistema.marina305.net/reserva/marina305`
   );
 
   mensajeRecuperacionTemplate = signal<string>(
-    `*¡Hola {{nombre}}!* Te extrañamos por *Marina 305*.\n\nHan pasado algunas semanas desde tu último corte y queríamos invitarte a refrescar tu estilo.\n\n¿Te gustaría agendar una cita para estos días?\nPuedes ver nuestros horarios aquí:\nhttps://sistema.marina305.net/reserva/marina305`
+    `*¡Hola {{nombre}}!* Te extrañamos por *EL SERBIO*.\n\nHan pasado algunas semanas desde tu último corte y queríamos invitarte a refrescar tu estilo.\n\n¿Te gustaría agendar una cita para estos días?\nPuedes ver nuestros horarios aquí:\nhttps://sistema.marina305.net/reserva/marina305`
   );
 
   // --- MODO RÁFAGA ---

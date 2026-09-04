@@ -36,13 +36,13 @@ export class LoginComponent implements OnInit {
 
       // 🔥 EL ESCUDO PROTECTOR 🔥
       if (hostActual === 'localhost' || hostActual === '127.0.0.1') {
-        // ID por defecto para pruebas locales (Marina 305)
+        // ID por defecto para pruebas locales (EL SERBIO)
         query = query.eq('id', '7d790667-8d0b-4c1d-835f-3fd39abc20bd'); 
       } else if (hostActual === 'aureum.localhost') {
         // Búsqueda dinámica para la demo local
         query = query.eq('dominio', hostActual); 
       } else {
-        // PRODUCCIÓN (Fallback seguro a Marina 305)
+        // PRODUCCIÓN (Fallback seguro a EL SERBIO)
         query = query.eq('id', '7d790667-8d0b-4c1d-835f-3fd39abc20bd'); 
       }
         

@@ -10,6 +10,14 @@ export class TurnosService {
   constructor() {
     this.cargarTurnos();
     this.escucharTurnosRealTime();
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          // Cuando el barbero vuelve a mirar la app, refrescamos silenciosamente
+          this.cargarTurnos();
+        }
+      });
+    }
   }
 
   async cargarTurnos() {
@@ -88,13 +96,7 @@ export class TurnosService {
   }
 
   async actualizarTurno(id: number, cambios: Partial<Turno>) {
-    // 1. ACTUALIZACIÓN OPTIMISTA (La clave de la reactividad)
-    // Esto cambia la información localmente al instante para que la pantalla no se quede congelada.
-    this.turnos.update(turnosActuales => 
-      turnosActuales.map(t => t.id === id ? { ...t, ...cambios } : t)
-    );
-
-    // 2. Ejecutar la actualización real en la base de datos de Supabase
+    // 1. MODO SEGURO: Primero intentamos guardar en la nube de Supabase
     const { error } = await this.supabase.client
       .from('turnos')
       .update(cambios)
@@ -102,9 +104,14 @@ export class TurnosService {
 
     if (error) {
       console.error('Error actualizando turno en Supabase:', error);
-      // Si llega a fallar la red, recargamos los datos para evitar datos falsos en pantalla
-      this.cargarTurnos(); 
+      // ¡CLAVE!: Lanzamos el error para que el componente que llamó a esta función (el catch) se entere y muestre la alerta roja
+      throw error; 
     }
+
+    // 2. SOLO SI HUBO ÉXITO: Actualizamos la pantalla (Local) al instante
+    this.turnos.update(turnosActuales => 
+      turnosActuales.map(t => t.id === id ? { ...t, ...cambios } : t)
+    );
   }
 
   private escucharTurnosRealTime() {

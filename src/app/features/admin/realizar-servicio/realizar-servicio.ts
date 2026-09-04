@@ -9,6 +9,7 @@ import { Turno } from '../../../core/models/marina';
 import { OrdenAtencionComponent } from '../../../shared/ui/orden-atencion/orden-atencion';
 import { ModalConfirmComponent } from '../../../shared/ui/modal-confirm/modal-confirm';
 import { SupabaseService } from '../../../core/supabase/supabase';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-realizar-servicio',
@@ -23,6 +24,7 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
   private catalogoService = inject(CatalogoService);
   private staffService = inject(StaffService);
   public supabase = inject(SupabaseService);
+  private router = inject(Router);
 
   isLoading = signal<boolean>(false);
   confirmConfig = signal({ isOpen: false, title: '', message: '', type: 'danger' as 'danger' | 'info', confirmText: '', action: () => {} });
@@ -219,7 +221,7 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
         servicio: servicio?.nombre || 'Servicio Estándar',
         barbero: barbero?.nombre || 'Barbero',
         // Respetamos el default si viene vacío
-        cliente: formValues.clienteNombre?.trim() || 'Cliente marina 305',
+        cliente: formValues.clienteNombre?.trim() || 'Cliente EL SERBIO',
         monto: servicio?.precio || 0,
         estado: iniciarYa ? 'in_progress' : 'pending',
         horaInicio: iniciarYa ? new Date().toISOString() : undefined,
@@ -239,6 +241,7 @@ export class RealizarServicioComponent implements OnInit, OnDestroy {
         this.servicioForm.patchValue({ clienteNombre: '', servicioId: '', barberoId: '', iniciarInmediatamente: false });
         this.barberoSeleccionadoId.set(''); 
         this.cerrarConfirmacion();
+        this.router.navigate(['/admin/dashboard']);
       }, 800);
     };
 

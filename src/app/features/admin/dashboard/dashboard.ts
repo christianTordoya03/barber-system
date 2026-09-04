@@ -368,7 +368,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
 
       // 3. EL CEREBRO DE LA FIDELIZACIÓN (Conexión Directa a BD)
-      if (turno && turno.cliente && turno.cliente.trim() !== 'Cliente marina 305') {
+      if (turno && turno.cliente && turno.cliente.trim() !== 'Cliente EL SERBIO') {
         try {
           // Búsqueda directa a Supabase para evitar fallos de memoria local
           const { data: clienteDB } = await this.supabase.client

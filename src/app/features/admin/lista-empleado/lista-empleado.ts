@@ -188,8 +188,8 @@ export class ListaEmpleadoComponent implements OnInit {
     const filtro = this.filtroAplicado();
     doc.setProperties({
       title: `Reporte de Comisiones - ${filtro.empleado}`,
-      subject: 'Marina 305 Barber Shop',
-      author: 'Marina 305'
+      subject: 'EL SERBIO Barber Shop',
+      author: 'EL SERBIO'
     });
     const [y1, m1, d1] = filtro.inicio.split('-');
     const [y2, m2, d2] = filtro.fin.split('-');

@@ -442,13 +442,21 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
     
     try {
       await this.turnosService.agregarTurno({ 
-        id: Date.now(), servicio: val.servicio, barbero: this.nombreCompleto(), cliente: val.cliente?.trim() || 'De paso',
+         id: Date.now(), servicio: val.servicio, barbero: this.nombreCompleto(), cliente: val.cliente?.trim() || 'De paso',
         monto: srv?.precio || 0, estado: 'pending', fecha: fechaLlegada, metodoPago: 'Pendiente'
       });
       this.toast.show('¡Reserva agendada!', 'success');
       this.isReservaModalOpen.set(false);
-    } catch (error) {
-      this.toast.show('No se pudo guardar la reserva por error de conexión', 'error');
+    } catch (error: any) {
+      console.error('Error al iniciar turno:', error);
+      
+      if (error?.message === 'FUERA_DE_HORARIO') {
+        this.toast.show('El horario ha finalizado. No se pueden crear turnos para hoy después de las 10:00 PM.', 'warning');
+      } else if (error?.message === 'OFFLINE' || error?.message === 'TIMEOUT') {
+        this.toast.show('Micro corte de internet. Por favor, presiona F5.', 'error');
+      } else {
+        this.toast.show('Error al iniciar el turno.', 'error');
+      }
     }
   }
 

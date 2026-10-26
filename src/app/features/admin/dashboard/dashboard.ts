@@ -336,7 +336,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const montoFinal = metodo === 'Canje' ? 0 : (turno?.monto || 0);
 
     try {
-      // 1. ACTUALIZAR TURNO ESPERANDO RESPUESTA DE LA BASE DE DATOS
+      // 1. ACTUALIZAR TURNO ESPERANDO RESPUESTA DE LA BASE DE DATOS (Con límite de 8 seg)
       await this.turnosService.actualizarTurno(id, { 
         estado: 'completed', 
         fecha: new Date().toLocaleString('es-PE'), 
@@ -344,7 +344,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         monto: montoFinal 
       });
 
-      // // 2. FIDELIZACIÓN (Ya es asíncrono)
+      // // 2. FIDELIZACIÓN (Ya es asíncrono - SUSPENDIDO TEMPORALMENTE)
       // if (turno && turno.cliente && turno.cliente.trim() !== 'Cliente EL SERBIO') {
       //   try {
       //     const { data: clienteDB } = await this.supabase.client
@@ -402,12 +402,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
       }
 
+      // Si llegó hasta aquí, todo fue un éxito
       this.toastService.show(`Turno cobrado con ${metodo}`, 'success');
-    } catch (error) {
-      console.error(error);
-      this.toastService.show('Error de red. El cobro no se guardó.', 'error');
+
+    } catch (error: any) {
+      console.error('Fallo capturado al cobrar:', error);
+      
+      // ALERTA INTELIGENTE DE MICRO CORTE
+      if (error?.message === 'OFFLINE' || error?.message === 'TIMEOUT') {
+        this.toastService.show('Micro corte de internet. Por favor, presiona F5 para recargar el sistema.', 'error');
+      } else {
+        this.toastService.show('Error de red. El cobro no se guardó.', 'error');
+      }
+
     } finally {
-      this.cerrarModalCobro(); // Cerramos siempre al final para desbloquear la pantalla
+      // Cerramos siempre al final para desbloquear la pantalla y destruir el botón de "Procesando..."
+      this.cerrarModalCobro(); 
     }
   }
 

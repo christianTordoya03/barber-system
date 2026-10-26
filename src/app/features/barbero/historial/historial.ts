@@ -48,8 +48,50 @@ export class BarberoHistorialComponent implements OnInit {
       
       this.comisionesService.cargarTodas();
     }
+
+    // Filtra la semana actual automáticamente al cargar la pantalla
+    this.setSemanaActual();
   }
 
+  // =========================================
+  // LÓGICA DE FECHAS SEMANALES
+  // =========================================
+  private obtenerRangoSemana(fechaRef: Date) {
+    const d = new Date(fechaRef);
+    const dia = d.getDay() === 0 ? 7 : d.getDay(); // Hacemos que el Domingo sea 7
+    
+    const lunes = new Date(d);
+    lunes.setDate(d.getDate() - dia + 1);
+    
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+
+    const formatear = (fecha: Date) => {
+      return `${fecha.getFullYear()}-${(fecha.getMonth() + 1).toString().padStart(2, '0')}-${fecha.getDate().toString().padStart(2, '0')}`;
+    };
+
+    return { inicio: formatear(lunes), fin: formatear(domingo) };
+  }
+
+  setSemanaActual() {
+    const { inicio, fin } = this.obtenerRangoSemana(new Date());
+    this.fechaInicio.set(inicio);
+    this.fechaFin.set(fin);
+    this.buscar();
+  }
+
+  setSemanaPasada() {
+    const fechaPasada = new Date();
+    fechaPasada.setDate(fechaPasada.getDate() - 7);
+    const { inicio, fin } = this.obtenerRangoSemana(fechaPasada);
+    this.fechaInicio.set(inicio);
+    this.fechaFin.set(fin);
+    this.buscar();
+  }
+
+  // =========================================
+  // LÓGICA ORIGINAL DE FILTROS Y CÁLCULOS
+  // =========================================
   private parseDateStr(fechaStr: string) {
     if (!fechaStr) return null;
     const match = fechaStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
@@ -58,32 +100,29 @@ export class BarberoHistorialComponent implements OnInit {
   }
 
   turnosFiltrados = computed(() => {
-  if (!this.hasSearched()) return [];
-  const filtro = this.filtroAplicado();
-  const inicioStr = filtro.inicio.replace(/-/g, '');
-  const finStr = filtro.fin.replace(/-/g, '');
+    if (!this.hasSearched()) return [];
+    const filtro = this.filtroAplicado();
+    const inicioStr = filtro.inicio.replace(/-/g, '');
+    const finStr = filtro.fin.replace(/-/g, '');
 
-  return this.turnosService.turnos().filter(t => {
-    if (t.barbero !== this.nombreCompleto() || (t.estado !== 'completed' && t.estado !== 'finished')) return false;
-    const d = this.parseDateStr(t.fecha);
-    if (d) {
-      const itemStr = `${d.year}${d.month}${d.day}`;
-      return itemStr >= inicioStr && itemStr <= finStr;
-    }
-    return false;
-  }).sort((a, b) => {
-    // NUEVO: Convertir la fecha real de la BD a un valor de tiempo
-    const parsearFecha = (fechaStr: string) => {
-      if (!fechaStr) return 0;
-      const [fecha, hora] = fechaStr.split(', ');
-      const [dia, mes, anio] = fecha.split('/');
-      return new Date(`${anio}-${mes}-${dia}T${hora || '00:00:00'}`).getTime();
-    };
-    
-    // Orden descendente real (más recientes primero)
-    return parsearFecha(b.fecha) - parsearFecha(a.fecha);
+    return this.turnosService.turnos().filter(t => {
+      if (t.barbero !== this.nombreCompleto() || (t.estado !== 'completed' && t.estado !== 'finished')) return false;
+      const d = this.parseDateStr(t.fecha);
+      if (d) {
+        const itemStr = `${d.year}${d.month}${d.day}`;
+        return itemStr >= inicioStr && itemStr <= finStr;
+      }
+      return false;
+    }).sort((a, b) => {
+      const parsearFecha = (fechaStr: string) => {
+        if (!fechaStr) return 0;
+        const [fecha, hora] = fechaStr.split(', ');
+        const [dia, mes, anio] = fecha.split('/');
+        return new Date(`${anio}-${mes}-${dia}T${hora || '00:00:00'}`).getTime();
+      };
+      return parsearFecha(b.fecha) - parsearFecha(a.fecha);
+    });
   });
-});
 
   comisionesFiltradas = computed(() => {
     if (!this.hasSearched()) return [];

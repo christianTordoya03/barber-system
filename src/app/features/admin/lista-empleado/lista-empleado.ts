@@ -6,8 +6,8 @@ import { StaffService } from '../../../core/services/staff';
 import { GastosService } from '../../../core/services/gastos';
 import { ComisionesService } from '../../../core/services/comisiones';
 import { SupabaseService } from '../../../core/supabase/supabase';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// IMPORTANTE: Cambiamos a la versión que soporta estilos
+import * as XLSX from 'xlsx-js-style'; 
 
 @Component({
   selector: 'app-lista-empleado',
@@ -20,7 +20,7 @@ export class ListaEmpleadoComponent implements OnInit {
   private staffService = inject(StaffService);
   private gastosService = inject(GastosService);
   private comisionesService = inject(ComisionesService);
-  private supabase = inject(SupabaseService); // <-- Inyectado
+  private supabase = inject(SupabaseService);
 
   hoyStrHtml = (() => {
     const d = new Date();
@@ -39,7 +39,6 @@ export class ListaEmpleadoComponent implements OnInit {
     fin: this.hoyStrHtml
   });
 
-  // Nueva variable para almacenar ventas
   ventasTotales = signal<any[]>([]);
 
   async ngOnInit() {
@@ -53,45 +52,64 @@ export class ListaEmpleadoComponent implements OnInit {
     }
   }
 
-  // 1. CÁLCULO DE SERVICIOS
+  // --- MOTOR DE METAS DEL EQUIPO ---
+  resumenMetasEquipo = computed(() => {
+    const inicioStr = this.filtroAplicado().inicio.replace(/-/g, '');
+    const finStr = this.filtroAplicado().fin.replace(/-/g, '');
+    
+    return this.barberos().map(barbero => {
+      const totalGenerado = this.turnosService.turnos().filter(t => {
+        if (t.estado !== 'completed' || t.barbero !== barbero.nombre || !t.fecha) return false;
+        const match = t.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        let itemStr = '';
+        if (match) itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
+        else {
+          const matchISO = t.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+          if (matchISO) itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
+        }
+        return itemStr >= inicioStr && itemStr <= finStr;
+      }).reduce((acc, t) => acc + Number(t.monto), 0);
+
+      return {
+        nombre: barbero.nombre,
+        generado: totalGenerado,
+        metaAlcanzada: totalGenerado >= 1200,
+        porcentaje: totalGenerado >= 1200 ? 50 : 45
+      };
+    }).sort((a, b) => b.generado - a.generado);
+  });
+
+  // --- MOTORES INDIVIDUALES ---
   turnosEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
     if (!filtro.empleado) return [];
     const inicioStr = filtro.inicio.replace(/-/g, '');
     const finStr = filtro.fin.replace(/-/g, '');
     return this.turnosService.turnos().filter(t => {
-      if (t.estado !== 'completed' || t.barbero !== filtro.empleado) return false;
-      if (!t.fecha) return false;
+      if (t.estado !== 'completed' || t.barbero !== filtro.empleado || !t.fecha) return false;
       let itemStr = '';
       const match = t.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (match) {
-        itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
-      } else {
+      if (match) itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
+      else {
         const matchISO = t.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
-        if (matchISO) {
-          itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
-        }
+        if (matchISO) itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
       }
       return itemStr >= inicioStr && itemStr <= finStr;
     });
   });
 
-  // 2. CÁLCULO DE PROPINAS Y EXTRAS
   comisionesEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
-    if (!filtro.empleado) return [];
     const empObj = this.barberos().find(e => e.nombre === filtro.empleado);
     if (!empObj) return [];
     const inicioStr = filtro.inicio.replace(/-/g, '');
     const finStr = filtro.fin.replace(/-/g, '');
     return this.comisionesService.comisiones().filter(c => {
-      if (c.estado === 'anulado' || Number(c.empleado_id) !== empObj.id) return false;
-      if (!c.fecha) return false;
+      if (c.estado === 'anulado' || Number(c.empleado_id) !== empObj.id || !c.fecha) return false;
       let itemStr = '';
       const match = c.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (match) {
-        itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
-      } else {
+      if (match) itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
+      else {
         const matchISO = c.fecha.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
         if (matchISO) itemStr = `${matchISO[1]}${matchISO[2].padStart(2, '0')}${matchISO[3].padStart(2, '0')}`;
       }
@@ -99,10 +117,8 @@ export class ListaEmpleadoComponent implements OnInit {
     });
   });
 
-  // 3. NUEVO: CÁLCULO DE VENTAS DE PRODUCTOS
   ventasEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
-    if (!filtro.empleado) return [];
     const empObj = this.barberos().find(e => e.nombre === filtro.empleado);
     if (!empObj) return [];
     const inicioStr = filtro.inicio.replace(/-/g, '');
@@ -111,25 +127,19 @@ export class ListaEmpleadoComponent implements OnInit {
     return this.ventasTotales().filter(v => {
       if (v.empleado_id !== empObj.id || v.estado === 'anulado') return false;
       const dateObj = new Date(v.fecha_venta);
-      const day = dateObj.getDate().toString().padStart(2, '0');
-      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-      const year = dateObj.getFullYear().toString();
-      const itemStr = `${year}${month}${day}`;
+      const itemStr = `${dateObj.getFullYear()}${(dateObj.getMonth() + 1).toString().padStart(2, '0')}${dateObj.getDate().toString().padStart(2, '0')}`;
       return itemStr >= inicioStr && itemStr <= finStr;
     });
   });
 
-  // 4. CÁLCULO DE ADELANTOS
   adelantosEmpleado = computed(() => {
     const filtro = this.filtroAplicado();
-    if (!filtro.empleado) return [];
     const empObj = this.barberos().find(e => e.nombre === filtro.empleado);
     if (!empObj) return [];
     const inicioStr = filtro.inicio.replace(/-/g, '');
     const finStr = filtro.fin.replace(/-/g, '');
     return this.gastosService.gastos().filter(g => {
-      if (g.estado === 'anulado' || g.empleado_id !== empObj.id) return false;
-      if (!g.fecha) return false;
+      if (g.estado === 'anulado' || g.empleado_id !== empObj.id || !g.fecha) return false;
       let itemStr = '';
       const match = g.fecha.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (match) itemStr = `${match[3]}${match[2].padStart(2, '0')}${match[1].padStart(2, '0')}`;
@@ -141,116 +151,110 @@ export class ListaEmpleadoComponent implements OnInit {
     });
   });
 
-  // MATEMÁTICA FINAL
+  // --- MATEMÁTICA FINAL (CÁLCULO AUTOMÁTICO DE META) ---
   totalGeneradoEmpleado = computed(() => this.turnosEmpleado().reduce((acc, t) => acc + Number(t.monto), 0));
+  // porcentajeComisionEmpleado = computed(() => this.totalGeneradoEmpleado() >= 1200 ? 50 : 45);
   porcentajeComisionEmpleado = computed(() => {
     const emp = this.barberos().find(e => e.nombre === this.filtroAplicado().empleado);
-    return emp?.comision || 0;
+    return emp?.comision || 50; 
   });
   comisionNetaEmpleado = computed(() => (this.totalGeneradoEmpleado() * this.porcentajeComisionEmpleado()) / 100);
 
-  // Incluimos las comisiones del inventario nuevo
   totalComisionesProductos = computed(() => this.ventasEmpleado().reduce((acc, v) => acc + Number(v.monto_comision), 0));
   totalComisionesExtraEmpleado = computed(() => this.comisionesEmpleado().reduce((acc, c) => acc + Number(c.monto), 0) + this.totalComisionesProductos());
-
   totalAdelantosEmpleado = computed(() => this.adelantosEmpleado().reduce((acc, g) => acc + Number(g.monto), 0));
-
   pagoFinalEmpleado = computed(() => (this.comisionNetaEmpleado() + this.totalComisionesExtraEmpleado()) - this.totalAdelantosEmpleado());
 
   buscar() {
-    this.filtroAplicado.set({
-      empleado: this.nombreEmpleadoReporte(),
-      inicio: this.fechaInicio(),
-      fin: this.fechaFin()
-    });
+    this.filtroAplicado.set({ empleado: this.nombreEmpleadoReporte(), inicio: this.fechaInicio(), fin: this.fechaFin() });
   }
 
-  getResumenFinanciero(emp: any) {
-    const hoy = new Date().toLocaleDateString('es-PE');
-    const turnosHoy = this.turnosService.turnos().filter(t =>
-      t.barbero === emp.nombre &&
-      (t.estado === 'completed' || t.estado === 'finished') &&
-      t.fecha.includes(hoy)
-    );
-    const comisionCortes = turnosHoy.reduce((acc, t) => acc + (Number(t.monto) * (emp.comision || 50) / 100), 0);
-    const extras = this.comisionesService.comisiones().filter(c =>
-      Number(c.empleado_id) === emp.id && c.estado !== 'anulado' && c.fecha === hoy
-    ).reduce((acc, c) => acc + Number(c.monto), 0);
-    const deuda = this.gastosService.gastos().filter(g =>
-      g.empleado_id === emp.id && g.estado === 'activo'
-    ).reduce((acc, g) => acc + Number(g.monto), 0);
-
-    return { comisionCortes, extras, deuda };
+  seleccionarDesdeMeta(nombre: string) {
+    this.nombreEmpleadoReporte.set(nombre);
+    this.buscar();
   }
 
-  generarPDF() {
-    const doc = new jsPDF();
+  // ===============================================
+  // EXPORTACIÓN A EXCEL HERMOSO (ESTILO CONTABLE)
+  // ===============================================
+  generarExcelEstilizado() {
     const filtro = this.filtroAplicado();
-    doc.setProperties({
-      title: `Reporte de Comisiones - ${filtro.empleado}`,
-      subject: 'EL SERBIO Barber Shop',
-      author: 'EL SERBIO'
-    });
-    const [y1, m1, d1] = filtro.inicio.split('-');
-    const [y2, m2, d2] = filtro.fin.split('-');
-    const subtitulo = `Barbero: ${filtro.empleado} | Del ${d1}/${m1}/${y1} al ${d2}/${m2}/${y2}`;
+    const wsData: any[][] = [];
 
-    doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.setTextColor(89, 93, 100);
-    doc.text("REPORTE DE COMISIONES Y ADELANTOS", 105, 20, { align: "center" });
-    doc.setLineWidth(0.5); doc.setDrawColor(150, 150, 150); doc.line(14, 26, 196, 26);
-    doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.setTextColor(50, 50, 50);
-    doc.text(subtitulo, 14, 38);
+    // Formatos y Estilos de xlsx-js-style
+    const formatoMoneda = '"S/" #,##0.00';
+    const tituloEstilo = { font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 }, fill: { fgColor: { rgb: "1F2937" } }, alignment: { horizontal: "center", vertical: "center" } };
+    const subtituloEstilo = { font: { italic: true, sz: 11 }, alignment: { horizontal: "center" } };
+    const cabeceraAzul = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "3B82F6" } } };
+    const cabeceraEsmeralda = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "10B981" } } };
+    const cabeceraRoja = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "EF4444" } } };
+    const negrita = { font: { bold: true } };
+    const negritaVerde = { font: { bold: true, color: { rgb: "059669" } } };
+    const negritaRoja = { font: { bold: true, color: { rgb: "DC2626" } } };
+    const totalEstilo = { font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 }, fill: { fgColor: { rgb: "059669" } } };
 
-    const bodyData: any[] = [];
+    // Construcción de filas
+    wsData.push([{ v: "LIQUIDACIÓN DE BARBERO - EL SERBIO", t: "s", s: tituloEstilo }, { v: "", t: "s", s: tituloEstilo }]);
+    wsData.push([{ v: `Barbero: ${filtro.empleado}  |  Del ${filtro.inicio} al ${filtro.fin}`, t: "s", s: subtituloEstilo }, ""]);
+    wsData.push([]);
 
-    // 1. Sección: Servicios
+    // 1. CORTES
     if (this.turnosEmpleado().length > 0) {
-      this.turnosEmpleado().forEach(t => bodyData.push([`${t.fecha.split(',')[0]} - ${t.servicio}`, `S/ ${Number(t.monto).toFixed(2)}`]));
-      bodyData.push([{ content: 'Total Generado por el Barbero:', styles: { fontStyle: 'bold', fillColor: [240, 240, 240] } }, { content: `S/ ${this.totalGeneradoEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', fillColor: [240, 240, 240] } }]);
-      bodyData.push([{ content: `Comisión a Pagar (${this.porcentajeComisionEmpleado()}%):`, styles: { fontStyle: 'bold', fillColor: [254, 243, 199] } }, { content: `S/ ${this.comisionNetaEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', fillColor: [254, 243, 199] } }]);
+      wsData.push([{ v: "1. SERVICIOS REALIZADOS", s: cabeceraAzul }, { v: "MONTO", s: cabeceraAzul }]);
+      this.turnosEmpleado().forEach(t => {
+        wsData.push([`${t.fecha.split(',')[0]} - ${t.servicio}`, { v: Number(t.monto), t: "n", z: formatoMoneda }]);
+      });
+      wsData.push([{ v: "TOTAL GENERADO POR SERVICIOS:", s: negrita }, { v: this.totalGeneradoEmpleado(), t: "n", z: formatoMoneda, s: negrita }]);
+      wsData.push([{ v: `COMISIÓN A PAGAR (${this.porcentajeComisionEmpleado()}%):`, s: negritaVerde }, { v: this.comisionNetaEmpleado(), t: "n", z: formatoMoneda, s: negritaVerde }]);
+      wsData.push([]);
     }
 
-    // 2. NUEVO: Sección Ventas de Inventario
+    // 2. PRODUCTOS
     if (this.ventasEmpleado().length > 0) {
-      bodyData.push([{ content: '--- COMISIONES POR VENTA DE INVENTARIO ---', colSpan: 2, styles: { halign: 'center', fillColor: [219, 234, 254], textColor: [30, 64, 175], fontStyle: 'bold' } }]);
+      wsData.push([{ v: "2. COMISIONES POR PRODUCTOS", s: cabeceraEsmeralda }, { v: "MONTO", s: cabeceraEsmeralda }]);
       this.ventasEmpleado().forEach(v => {
-        // Aseguramos el formato de fecha para evitar desfases
-        const dateObj = new Date(v.fecha_venta);
-        const fechaFmt = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
-        bodyData.push([`${fechaFmt} - ${v.productos?.nombre} (Cant: ${v.cantidad})`, `+ S/ ${Number(v.monto_comision).toFixed(2)}`]);
+        wsData.push([`${v.fecha_venta.split('T')[0]} - ${v.productos?.nombre} (Cant: ${v.cantidad})`, { v: Number(v.monto_comision), t: "n", z: formatoMoneda }]);
       });
-      bodyData.push([{ content: 'Total Comisiones por Ventas:', styles: { fontStyle: 'bold', textColor: [30, 64, 175] } }, { content: `+ S/ ${this.totalComisionesProductos().toFixed(2)}`, styles: { fontStyle: 'bold', textColor: [30, 64, 175] } }]);
+      wsData.push([{ v: "TOTAL COMISIONES POR VENTAS:", s: negrita }, { v: this.totalComisionesProductos(), t: "n", z: formatoMoneda, s: negrita }]);
+      wsData.push([]);
     }
 
-    // 3. CORREGIDO: Sección Propinas / Extras
+    // 3. PROPINAS
     if (this.comisionesEmpleado().length > 0) {
-      bodyData.push([{ content: '--- PROPINAS Y COMISIONES EXTRAS ---', colSpan: 2, styles: { halign: 'center', fillColor: [209, 250, 229], textColor: [6, 95, 70], fontStyle: 'bold' } }]);
+      wsData.push([{ v: "3. PROPINAS Y EXTRAS", s: cabeceraEsmeralda }, { v: "MONTO", s: cabeceraEsmeralda }]);
       this.comisionesEmpleado().forEach(c => {
-        const desc = c.descripcion ? `(${c.descripcion})` : '';
-        bodyData.push([`${c.fecha} - [${c.tipo.toUpperCase()}] ${desc}`, `+ S/ ${Number(c.monto).toFixed(2)}`]);
+        wsData.push([`${c.fecha} - ${c.tipo.toUpperCase()} (${c.descripcion || ''})`, { v: Number(c.monto), t: "n", z: formatoMoneda }]);
       });
-      
-      // Sumamos estrictamente solo las propinas aquí, para no amontonar las ventas
       const soloPropinas = this.comisionesEmpleado().reduce((acc, c) => acc + Number(c.monto), 0);
-      bodyData.push([{ content: 'Total Propinas Extras:', styles: { fontStyle: 'bold', textColor: [6, 95, 70] } }, { content: `+ S/ ${soloPropinas.toFixed(2)}`, styles: { fontStyle: 'bold', textColor: [6, 95, 70] } }]);
+      wsData.push([{ v: "TOTAL PROPINAS / EXTRAS:", s: negrita }, { v: soloPropinas, t: "n", z: formatoMoneda, s: negrita }]);
+      wsData.push([]);
     }
 
-    // 4. Sección: Adelantos
+    // 4. ADELANTOS
     if (this.adelantosEmpleado().length > 0) {
-      bodyData.push([{ content: '--- ADELANTOS / GASTOS ---', colSpan: 2, styles: { halign: 'center', fillColor: [254, 226, 226], textColor: [220, 38, 38], fontStyle: 'bold' } }]);
-      this.adelantosEmpleado().forEach(g => bodyData.push([`${g.fecha.split(',')[0]} - ${g.descripcion}`, `- S/ ${Number(g.monto).toFixed(2)}`]));
-      bodyData.push([{ content: 'Total Adelantos:', styles: { fontStyle: 'bold', textColor: [220, 38, 38] } }, { content: `- S/ ${this.totalAdelantosEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', textColor: [220, 38, 38] } }]);
+      wsData.push([{ v: "4. ADELANTOS Y DESCUENTOS", s: cabeceraRoja }, { v: "MONTO DESC.", s: cabeceraRoja }]);
+      this.adelantosEmpleado().forEach(g => {
+        wsData.push([`${g.fecha.split(',')[0]} - ${g.descripcion}`, { v: Number(g.monto), t: "n", z: formatoMoneda }]);
+      });
+      wsData.push([{ v: "TOTAL ADELANTOS RESTADOS:", s: negritaRoja }, { v: this.totalAdelantosEmpleado(), t: "n", z: formatoMoneda, s: negritaRoja }]);
+      wsData.push([]);
     }
 
-    // 5. Sección: Total Final
-    bodyData.push([{ content: 'TOTAL NETO A PAGAR:', styles: { fontStyle: 'bold', fillColor: [209, 250, 229], textColor: [6, 78, 59] } }, { content: `S/ ${this.pagoFinalEmpleado().toFixed(2)}`, styles: { fontStyle: 'bold', fillColor: [209, 250, 229], textColor: [6, 78, 59] } }]);
+    // 5. TOTAL NETO
+    wsData.push([{ v: "TOTAL NETO A PAGAR:", s: totalEstilo }, { v: this.pagoFinalEmpleado(), t: "n", z: formatoMoneda, s: totalEstilo }]);
 
-    autoTable(doc, {
-      startY: 45, head: [['Detalle', 'Monto']], body: bodyData, theme: 'grid',
-      headStyles: { fillColor: [89, 93, 100], textColor: 255, fontStyle: 'bold' }, columnStyles: { 1: { halign: 'right' } }
-    });
+    // Generar Hoja
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    const blob = doc.output('blob');
-    window.open(URL.createObjectURL(blob), '_blank');
+    // Ajustes visuales de Excel
+    ws["!cols"] = [{ wch: 55 }, { wch: 22 }]; // Ancho de columnas
+    ws["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, // Combina A1:B1
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } }  // Combina A2:B2
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Liquidación");
+    XLSX.writeFile(wb, `Liquidacion_${filtro.empleado.replace(/\s+/g, '_')}_${Date.now()}.xlsx`);
   }
 }

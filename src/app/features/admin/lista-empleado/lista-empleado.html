@@ -1,162 +1,148 @@
-<div class="max-w-4xl mx-auto animate-fade-in-up">
-  <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
+<div class="max-w-5xl mx-auto animate-fade-in-up">
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6">
     <div>
-      <h1 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Lista por Empleado</h1>
-      <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Calcula las comisiones y resta los adelantos automáticamente.</p>
+      <h1 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Liquidación por Empleado</h1>
+      <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Control de metas (S/ 1200) y exportación contable.</p>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm mb-8 transition-colors duration-300">
+  <!-- FILTROS Y CONTROLES CON BOTÓN BUSCAR -->
+  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm mb-6 transition-colors duration-300">
     <div class="flex flex-col sm:flex-row gap-4 items-end">
-      <div class="w-full sm:w-1/3">
-        <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Selecciona un empleado</label>
-        <select [(ngModel)]="nombreEmpleadoReporte"
-          (keydown.backspace)="nombreEmpleadoReporte.set(''); $any($event.target).value=''; $event.preventDefault()"
-          (keydown.delete)="nombreEmpleadoReporte.set(''); $any($event.target).value=''; $event.preventDefault()"
-          class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-emerald-500 sm:text-sm cursor-pointer appearance-none">
-          <option value="" disabled selected>Seleccionar Persona</option>
-          @for (emp of barberos(); track emp.id) { <option [value]="emp.nombre">{{ emp.nombre }}</option> }
-        </select>
-      </div>
-      <div class="w-full sm:w-1/3">
+      <div class="w-full sm:w-1/4">
         <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Fecha Inicio</label>
-        <input #fechaIni type="date" [(ngModel)]="fechaInicio" (click)="fechaIni.showPicker()"
+        <input #fechaIni type="date" [(ngModel)]="fechaInicio"
           class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer">
       </div>
-      <div class="w-full sm:w-1/3">
+      <div class="w-full sm:w-1/4">
         <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Fecha Fin</label>
-        <input #fechaFi type="date" [(ngModel)]="fechaFin" (click)="fechaFi.showPicker()"
+        <input #fechaFi type="date" [(ngModel)]="fechaFin"
           class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 sm:text-sm cursor-pointer">
       </div>
-      <div class="flex-1 flex flex-col sm:flex-row justify-end gap-3 mt-4 sm:mt-0">
-        <button (click)="buscar()" [disabled]="!nombreEmpleadoReporte()"
-          class="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-lg shadow-md shadow-blue-500/30 transform active:scale-95 transition-all disabled:opacity-50">
-          <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          Buscar
-        </button>
-        <button (click)="generarPDF()" [disabled]="!filtroAplicado().empleado"
-          class="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm rounded-lg shadow-md shadow-emerald-500/30 transform active:scale-95 transition-all disabled:opacity-50">
-          <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Generar PDF
-        </button>
+      <div class="w-full sm:w-2/4">
+        <label class="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Barbero a Liquidar</label>
+        <div class="flex gap-3">
+          <select [(ngModel)]="nombreEmpleadoReporte"
+            class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-emerald-500 sm:text-sm cursor-pointer appearance-none">
+            <option value="" disabled selected>Seleccionar Barbero</option>
+            @for (emp of barberos(); track emp.id) { <option [value]="emp.nombre">{{ emp.nombre }}</option> }
+          </select>
+          <button (click)="buscar()" class="flex items-center justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-lg shadow-md cursor-pointer transition-all active:scale-95 whitespace-nowrap">
+            <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> Buscar
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm relative transition-colors duration-300">
-    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-left text-sm">
-      <thead class="bg-zinc-50 dark:bg-zinc-900/50">
-        <tr>
-          <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400">Detalle</th>
-          <th scope="col" class="px-6 py-4 font-bold text-zinc-500 dark:text-zinc-400 text-right">Monto</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+  <!-- PANEL DE CONTROL DE METAS -->
+  <!-- <div class="mb-8">
+    <h3 class="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Monitor de Metas (S/ 1200) - Rango Seleccionado</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      @for (meta of resumenMetasEquipo(); track meta.nombre) {
+        <button (click)="seleccionarDesdeMeta(meta.nombre)" 
+          class="p-3 rounded-xl border text-left cursor-pointer transition-all active:scale-95"
+          [ngClass]="meta.metaAlcanzada 
+            ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800/50 hover:bg-emerald-100' 
+            : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/50 hover:bg-red-100'">
+          <p class="font-bold text-sm text-zinc-900 dark:text-white truncate">{{ meta.nombre }}</p>
+          <p class="text-lg font-black mt-1" [ngClass]="meta.metaAlcanzada ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
+            S/ {{ meta.generado | number:'1.0-0' }}
+          </p>
+          <span class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+            [ngClass]="meta.metaAlcanzada ? 'bg-emerald-200 text-emerald-800' : 'bg-red-200 text-red-800'">
+            {{ meta.metaAlcanzada ? '¡Meta! Pago 50%' : 'Bajo meta: 45%' }}
+          </span>
+        </button>
+      }
+    </div>
+  </div> -->
 
-        <!-- 1. CORTES DE CABELLO -->
+  <!-- TABLA DE LIQUIDACIÓN DETALLADA -->
+  <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm relative transition-colors duration-300">
+    <!-- BOTÓN EXPORTAR EXCEL -->
+    <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/50">
+      <h3 class="font-bold text-zinc-700 dark:text-zinc-300">Detalle Contable</h3>
+      <button (click)="generarExcelEstilizado()" [disabled]="!filtroAplicado().empleado"
+        class="flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg shadow-md transform active:scale-95 transition-all disabled:opacity-50 cursor-pointer">
+        <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Descargar Excel
+      </button>
+    </div>
+
+    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-left text-sm">
+      <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+        <!-- 1. CORTES -->
         @for (turno of turnosEmpleado(); track turno.id) {
-          <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300 transition-colors">
+          <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300">
             <td class="px-6 py-3"><span class="text-xs text-zinc-400 mr-2">{{ turno.fecha.split(',')[0] }}</span> {{ turno.servicio }}</td>
             <td class="px-6 py-3 text-right">S/ {{ turno.monto | number:'1.2-2' }}</td>
           </tr>
         }
-
-        <!-- 2. TOTAL GENERADO POR CORTES -->
         @if (turnosEmpleado().length > 0) {
-          <tr class="bg-zinc-100/60 dark:bg-zinc-800/50 text-zinc-800 dark:text-zinc-200 font-bold border-t-2 border-zinc-300 dark:border-zinc-700">
-            <td class="px-6 py-3 text-right text-xs uppercase tracking-wider text-zinc-500">Total Generado por el Barbero:</td>
-            <td class="px-6 py-3 text-right">S/ {{ totalGeneradoEmpleado() | number:'1.2-2' }}</td>
+          <tr class="bg-zinc-100/60 dark:bg-zinc-800/50 font-bold border-t-2">
+            <td class="px-6 py-3 text-right text-xs uppercase text-zinc-500">Total Generado por Servicios:</td>
+            <td class="px-6 py-3 text-right text-zinc-800 dark:text-zinc-200">S/ {{ totalGeneradoEmpleado() | number:'1.2-2' }}</td>
           </tr>
-          <tr class="bg-amber-50/60 dark:bg-amber-900/10 text-amber-900 dark:text-amber-500 font-bold border-b border-amber-200 dark:border-amber-900/30">
-            <td class="px-6 py-3 text-right text-xs uppercase tracking-wider text-amber-600/70">Comisión del Barbero ({{ porcentajeComisionEmpleado() }}%):</td>
-            <td class="px-6 py-3 text-right text-lg font-black">S/ {{ comisionNetaEmpleado() | number:'1.2-2' }}</td>
-          </tr>
+          <!-- <tr class="font-bold border-b" [ngClass]="totalGeneradoEmpleado() >= 1200 ? 'bg-emerald-50/60 dark:bg-emerald-900/10' : 'bg-amber-50/60 dark:bg-amber-900/10'">
+            <td class="px-6 py-3 text-right text-xs uppercase" [ngClass]="totalGeneradoEmpleado() >= 1200 ? 'text-emerald-600' : 'text-amber-600'">
+              Comisión Automática ({{ porcentajeComisionEmpleado() }}%):
+            </td>
+            <td class="px-6 py-3 text-right text-lg font-black" [ngClass]="totalGeneradoEmpleado() >= 1200 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'">
+              S/ {{ comisionNetaEmpleado() | number:'1.2-2' }}
+            </td>
+          </tr> -->
+
+          <!-- DISEÑO CLÁSICO (Hasta el 1 de noviembre) -->
+        <tr class="bg-amber-50/60 dark:bg-amber-900/10 text-amber-900 dark:text-amber-500 font-bold border-b border-amber-200 dark:border-amber-900/30">
+          <td class="px-6 py-3 text-right text-xs uppercase tracking-wider text-amber-600/70">Comisión del Barbero ({{ porcentajeComisionEmpleado() }}%):</td>
+          <td class="px-6 py-3 text-right text-lg font-black">S/ {{ comisionNetaEmpleado() | number:'1.2-2' }}</td>
+        </tr>
         }
 
-        <!-- 3. VENTAS DE INVENTARIO (Ahora independiente) -->
+        <!-- 2. VENTAS -->
         @if (ventasEmpleado().length > 0) {
-          <tr class="bg-blue-50/40 dark:bg-blue-950/10">
-            <td colspan="2" class="px-6 py-2.5 font-bold text-blue-700 dark:text-blue-400 uppercase text-xs tracking-wider border-t border-zinc-200 dark:border-zinc-800">
-              Comisiones por Venta de Inventario
-            </td>
-          </tr>
+          <tr class="bg-blue-50/40 dark:bg-blue-950/10"><td colspan="2" class="px-6 py-2.5 font-bold text-blue-700 uppercase text-xs">Comisiones Venta</td></tr>
           @for (venta of ventasEmpleado(); track venta.id) {
-            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300 transition-colors border-b border-zinc-100 dark:border-zinc-800/50">
-              <td class="px-6 py-3 pl-8 text-sm">
-                <span class="text-xs text-zinc-400 mr-2">{{ venta.fecha_venta | date:'dd/MM/yyyy' }}</span>
-                <span class="font-semibold">{{ venta.productos?.nombre }}</span>
-                <span class="text-zinc-500 text-xs ml-1">(Cant: {{ venta.cantidad }} | Com: {{ venta.porcentaje_comision }}%)</span>
-              </td>
-              <td class="px-6 py-3 text-right text-blue-600 font-bold">+ S/ {{ venta.monto_comision | number:'1.2-2' }}</td>
+            <tr class="text-zinc-700 dark:text-zinc-300">
+              <td class="px-6 py-3 pl-8"><span class="text-xs text-zinc-400 mr-2">{{ venta.fecha_venta | date:'dd/MM' }}</span>{{ venta.productos?.nombre }}</td>
+              <td class="px-6 py-3 text-right font-bold text-blue-600">+ S/ {{ venta.monto_comision | number:'1.2-2' }}</td>
             </tr>
           }
         }
 
-        <!-- 4. PROPINAS Y EXTRAS -->
+        <!-- 3. PROPINAS -->
         @if (comisionesEmpleado().length > 0) {
-          <tr class="bg-emerald-50/40 dark:bg-emerald-950/10">
-            <td colspan="2" class="px-6 py-2.5 font-bold text-emerald-700 dark:text-emerald-400 uppercase text-xs tracking-wider border-t border-zinc-200 dark:border-zinc-800">
-              Propinas y Comisiones Extras
-            </td>
-          </tr>
+          <tr class="bg-emerald-50/40 dark:bg-emerald-950/10"><td colspan="2" class="px-6 py-2.5 font-bold text-emerald-700 uppercase text-xs">Propinas / Extras</td></tr>
           @for (extra of comisionesEmpleado(); track extra.id) {
-            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300 transition-colors">
-              <td class="px-6 py-3 pl-8 text-sm">
-                <span class="text-xs text-zinc-400 mr-2">{{ extra.fecha }}</span>
-                <span class="font-semibold capitalize">{{ extra.tipo.replace('_', ' ') }}</span>
-                @if (extra.descripcion) { <span class="text-zinc-500 text-xs">({{ extra.descripcion }})</span> }
-              </td>
-              <td class="px-6 py-3 text-right text-emerald-600 font-bold">+ S/ {{ extra.monto | number:'1.2-2' }}</td>
+            <tr class="text-zinc-700 dark:text-zinc-300">
+              <td class="px-6 py-3 pl-8"><span class="text-xs text-zinc-400 mr-2">{{ extra.fecha }}</span> <span class="capitalize">{{ extra.tipo.replace('_', ' ') }}</span></td>
+              <td class="px-6 py-3 text-right font-bold text-emerald-600">+ S/ {{ extra.monto | number:'1.2-2' }}</td>
             </tr>
           }
         }
 
-        <!-- 5. SUBTOTAL DE EXTRAS (Solo si hay propinas o ventas) -->
-        @if (comisionesEmpleado().length > 0 || ventasEmpleado().length > 0) {
-          <tr class="bg-emerald-50/80 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400 font-bold border-b border-emerald-200 dark:border-emerald-900/30">
-            <td class="px-6 py-3 text-right text-xs uppercase tracking-wider text-emerald-600/70">Total Adicionales (Ventas y Extras):</td>
-            <td class="px-6 py-3 text-right text-lg font-black text-emerald-600">+ S/ {{ totalComisionesExtraEmpleado() | number:'1.2-2' }}</td>
-          </tr>
-        }
-
-        <!-- 6. ADELANTOS -->
+        <!-- 4. ADELANTOS -->
         @if (adelantosEmpleado().length > 0) {
-          <tr class="bg-red-50/50 dark:bg-red-900/10">
-            <td colspan="2" class="px-6 py-2.5 font-bold text-red-600 dark:text-red-400 uppercase text-xs tracking-wider border-t border-zinc-200 dark:border-zinc-800">
-              Descuentos (Adelantos, Materiales, etc.)
-            </td>
-          </tr>
+          <tr class="bg-red-50/50 dark:bg-red-900/10"><td colspan="2" class="px-6 py-2.5 font-bold text-red-600 uppercase text-xs">Adelantos / Descuentos</td></tr>
           @for (adelanto of adelantosEmpleado(); track adelanto.id) {
-            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 text-zinc-600 dark:text-zinc-400 transition-colors">
-              <td class="px-6 py-3 pl-8 text-sm"><span class="text-xs text-zinc-400 mr-2">{{ adelanto.fecha.split(',')[0] }}</span> {{ adelanto.descripcion }}</td>
+            <tr class="text-zinc-600 dark:text-zinc-400">
+              <td class="px-6 py-3 pl-8"><span class="text-xs text-zinc-400 mr-2">{{ adelanto.fecha.split(',')[0] }}</span>{{ adelanto.descripcion }}</td>
               <td class="px-6 py-3 text-right text-red-500 font-medium">- S/ {{ adelanto.monto | number:'1.2-2' }}</td>
             </tr>
           }
-          <tr class="bg-red-50/80 dark:bg-red-900/20 text-red-800 dark:text-red-400 font-bold border-b border-red-200 dark:border-red-900/30">
-            <td class="px-6 py-3 text-right text-xs uppercase tracking-wider text-red-600/70">Total Adelantos Restados:</td>
-            <td class="px-6 py-3 text-right">- S/ {{ totalAdelantosEmpleado() | number:'1.2-2' }}</td>
-          </tr>
         }
 
-        <!-- 7. MENSAJE DE VACÍO GLOBAL -->
-        @if (turnosEmpleado().length === 0 && ventasEmpleado().length === 0 && comisionesEmpleado().length === 0 && adelantosEmpleado().length === 0) {
-          <tr>
-            <td colspan="2" class="px-6 py-12 text-center text-zinc-500">No hay registros para este filtro.</td>
-          </tr>
+        @if (!filtroAplicado().empleado) {
+          <tr><td colspan="2" class="px-6 py-12 text-center text-zinc-500">Selecciona un barbero arriba o en las tarjetas de meta para ver su liquidación.</td></tr>
         }
 
-        <!-- 8. TOTAL NETO FINAL -->
-        @if (turnosEmpleado().length > 0 || adelantosEmpleado().length > 0 || comisionesEmpleado().length > 0 || ventasEmpleado().length > 0) {
-          <tr class="bg-emerald-100/60 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-400 font-black border-b-4 border-emerald-200 dark:border-emerald-900/30 text-xl">
+        <!-- TOTAL NETO -->
+        @if (filtroAplicado().empleado) {
+          <tr class="bg-zinc-900 dark:bg-black text-white font-black text-xl">
             <td class="px-6 py-5 text-right uppercase">NETO A PAGAR:</td>
-            <td class="px-6 py-5 text-right">S/ {{ pagoFinalEmpleado() | number:'1.2-2' }}</td>
+            <td class="px-6 py-5 text-right text-emerald-400">S/ {{ pagoFinalEmpleado() | number:'1.2-2' }}</td>
           </tr>
         }
-
       </tbody>
     </table>
   </div>

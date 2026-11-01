@@ -70,11 +70,16 @@ export class ListaEmpleadoComponent implements OnInit {
         return itemStr >= inicioStr && itemStr <= finStr;
       }).reduce((acc, t) => acc + Number(t.monto), 0);
 
+      // EXCEPCIÓN: Buscamos a Cesar (sin importar mayúsculas)
+      const esCesar = barbero.nombre.toLowerCase().includes('cesar');
+      const alcanzoMeta = totalGenerado >= 1200;
+
       return {
         nombre: barbero.nombre,
         generado: totalGenerado,
-        metaAlcanzada: totalGenerado >= 1200,
-        porcentaje: totalGenerado >= 1200 ? 50 : 45
+        metaAlcanzada: esCesar ? true : alcanzoMeta,
+        porcentaje: esCesar ? 50 : (alcanzoMeta ? 50 : 45),
+        esExcepcion: esCesar
       };
     }).sort((a, b) => b.generado - a.generado);
   });
@@ -153,10 +158,11 @@ export class ListaEmpleadoComponent implements OnInit {
 
   // --- MATEMÁTICA FINAL (CÁLCULO AUTOMÁTICO DE META) ---
   totalGeneradoEmpleado = computed(() => this.turnosEmpleado().reduce((acc, t) => acc + Number(t.monto), 0));
-  // porcentajeComisionEmpleado = computed(() => this.totalGeneradoEmpleado() >= 1200 ? 50 : 45);
   porcentajeComisionEmpleado = computed(() => {
-    const emp = this.barberos().find(e => e.nombre === this.filtroAplicado().empleado);
-    return emp?.comision || 50; 
+    const empleado = this.filtroAplicado().empleado.toLowerCase();
+    // Cesar siempre tiene 50%, los demás dependen de la meta de 1200
+    if (empleado.includes('cesar')) return 50; 
+    return this.totalGeneradoEmpleado() >= 1200 ? 50 : 45;
   });
   comisionNetaEmpleado = computed(() => (this.totalGeneradoEmpleado() * this.porcentajeComisionEmpleado()) / 100);
 

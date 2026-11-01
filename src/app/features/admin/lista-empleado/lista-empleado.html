@@ -36,27 +36,27 @@
   </div>
 
   <!-- PANEL DE CONTROL DE METAS -->
-  <!-- <div class="mb-8">
+  <div class="mb-8">
     <h3 class="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Monitor de Metas (S/ 1200) - Rango Seleccionado</h3>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       @for (meta of resumenMetasEquipo(); track meta.nombre) {
         <button (click)="seleccionarDesdeMeta(meta.nombre)" 
           class="p-3 rounded-xl border text-left cursor-pointer transition-all active:scale-95"
           [ngClass]="meta.metaAlcanzada 
-            ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800/50 hover:bg-emerald-100' 
+            ? (meta.esExcepcion ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800/50 hover:bg-blue-100' : 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800/50 hover:bg-emerald-100')
             : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/50 hover:bg-red-100'">
           <p class="font-bold text-sm text-zinc-900 dark:text-white truncate">{{ meta.nombre }}</p>
-          <p class="text-lg font-black mt-1" [ngClass]="meta.metaAlcanzada ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
+          <p class="text-lg font-black mt-1" [ngClass]="meta.metaAlcanzada ? (meta.esExcepcion ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400') : 'text-red-600 dark:text-red-400'">
             S/ {{ meta.generado | number:'1.0-0' }}
           </p>
           <span class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
-            [ngClass]="meta.metaAlcanzada ? 'bg-emerald-200 text-emerald-800' : 'bg-red-200 text-red-800'">
-            {{ meta.metaAlcanzada ? '¡Meta! Pago 50%' : 'Bajo meta: 45%' }}
+            [ngClass]="meta.metaAlcanzada ? (meta.esExcepcion ? 'bg-blue-200 text-blue-800' : 'bg-emerald-200 text-emerald-800') : 'bg-red-200 text-red-800'">
+            {{ meta.esExcepcion ? 'Fijo: Pago 50%' : (meta.metaAlcanzada ? '¡Meta! Pago 50%' : 'Bajo meta: 45%') }}
           </span>
         </button>
       }
     </div>
-  </div> -->
+  </div>
 
   <!-- TABLA DE LIQUIDACIÓN DETALLADA -->
   <div class="bg-white dark:bg-[#111111] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm relative transition-colors duration-300">
@@ -78,25 +78,23 @@
             <td class="px-6 py-3 text-right">S/ {{ turno.monto | number:'1.2-2' }}</td>
           </tr>
         }
+
+        <!-- 2. TOTAL GENERADO POR CORTES -->
         @if (turnosEmpleado().length > 0) {
-          <tr class="bg-zinc-100/60 dark:bg-zinc-800/50 font-bold border-t-2">
-            <td class="px-6 py-3 text-right text-xs uppercase text-zinc-500">Total Generado por Servicios:</td>
-            <td class="px-6 py-3 text-right text-zinc-800 dark:text-zinc-200">S/ {{ totalGeneradoEmpleado() | number:'1.2-2' }}</td>
+          <tr class="bg-zinc-100/60 dark:bg-zinc-800/50 text-zinc-800 dark:text-zinc-200 font-bold border-t-2 border-zinc-300 dark:border-zinc-700">
+            <td class="px-6 py-3 text-right text-xs uppercase tracking-wider text-zinc-500">Total Generado por Servicios:</td>
+            <td class="px-6 py-3 text-right">S/ {{ totalGeneradoEmpleado() | number:'1.2-2' }}</td>
           </tr>
-          <!-- <tr class="font-bold border-b" [ngClass]="totalGeneradoEmpleado() >= 1200 ? 'bg-emerald-50/60 dark:bg-emerald-900/10' : 'bg-amber-50/60 dark:bg-amber-900/10'">
-            <td class="px-6 py-3 text-right text-xs uppercase" [ngClass]="totalGeneradoEmpleado() >= 1200 ? 'text-emerald-600' : 'text-amber-600'">
+          
+          <!-- LÓGICA DE METAS ACTIVA CON EXCEPCIÓN CESAR -->
+          <tr class="font-bold border-b" [ngClass]="porcentajeComisionEmpleado() === 50 ? 'bg-emerald-50/60 dark:bg-emerald-900/10' : 'bg-amber-50/60 dark:bg-amber-900/10'">
+            <td class="px-6 py-3 text-right text-xs uppercase" [ngClass]="porcentajeComisionEmpleado() === 50 ? 'text-emerald-600' : 'text-amber-600'">
               Comisión Automática ({{ porcentajeComisionEmpleado() }}%):
             </td>
-            <td class="px-6 py-3 text-right text-lg font-black" [ngClass]="totalGeneradoEmpleado() >= 1200 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'">
+            <td class="px-6 py-3 text-right text-lg font-black" [ngClass]="porcentajeComisionEmpleado() === 50 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'">
               S/ {{ comisionNetaEmpleado() | number:'1.2-2' }}
             </td>
-          </tr> -->
-
-          <!-- DISEÑO CLÁSICO (Hasta el 1 de noviembre) -->
-        <tr class="bg-amber-50/60 dark:bg-amber-900/10 text-amber-900 dark:text-amber-500 font-bold border-b border-amber-200 dark:border-amber-900/30">
-          <td class="px-6 py-3 text-right text-xs uppercase tracking-wider text-amber-600/70">Comisión del Barbero ({{ porcentajeComisionEmpleado() }}%):</td>
-          <td class="px-6 py-3 text-right text-lg font-black">S/ {{ comisionNetaEmpleado() | number:'1.2-2' }}</td>
-        </tr>
+          </tr>
         }
 
         <!-- 2. VENTAS -->

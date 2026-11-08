@@ -30,7 +30,6 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
   nombreCompleto = signal<string>('');
   nombreCorto = signal<string>('Barbero');
   empleadoId = signal<number | null>(null);
-  comisionPorcentaje = signal<number>(50);
 
   serviciosDisponibles = this.catalogoService.servicios;
 
@@ -131,13 +130,53 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
       this.nombreCompleto.set(emp.nombre);
       this.nombreCorto.set(emp.nombre.split(' ')[0]);
       this.empleadoId.set(emp.id);
-      this.comisionPorcentaje.set(emp.comision ?? 50);
-      
       this.comisionesService.cargarTodas();
     } else {
       this.toast.show('No se pudo cargar tu perfil. Revisa tu conexión.', 'error');
     }
   }
+
+  // --- LÓGICA DE METAS SEMANALES ---
+  private obtenerRangoSemanaActual() {
+    const d = new Date();
+    const dia = d.getDay() === 0 ? 7 : d.getDay();
+    
+    const lunes = new Date(d);
+    lunes.setDate(d.getDate() - dia + 1);
+    
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+
+    const formatear = (fecha: Date) => {
+      return `${fecha.getFullYear()}${(fecha.getMonth() + 1).toString().padStart(2, '0')}${fecha.getDate().toString().padStart(2, '0')}`;
+    };
+
+    return { inicioStr: formatear(lunes), finStr: formatear(domingo) };
+  }
+
+  totalGeneradoSemana = computed(() => {
+    const { inicioStr, finStr } = this.obtenerRangoSemanaActual();
+    
+    return this.misTurnosTotales().filter(t => {
+      if (t.estado !== 'completed' && t.estado !== 'finished') return false;
+      const d = this.parseDateStr(t.fecha);
+      if (d) {
+        const itemStr = `${d.year}${d.month}${d.day}`;
+        return itemStr >= inicioStr && itemStr <= finStr;
+      }
+      return false;
+    }).reduce((acc, t) => acc + Number(t.monto), 0);
+  });
+
+  esExcepcionVIP = computed(() => {
+    const nombreMin = this.nombreCompleto().toLowerCase();
+    return nombreMin.includes('cesar') || nombreMin.includes('isaac');
+  });
+
+  comisionPorcentaje = computed(() => {
+    if (this.esExcepcionVIP()) return 50;
+    return this.totalGeneradoSemana() >= 1200 ? 50 : 45;
+  });
 
   // --- MODO PESIMISTA PARA ESTADO ---
   async cambiarMiEstado(nuevoEstado: 'disponible' | 'pausa') {

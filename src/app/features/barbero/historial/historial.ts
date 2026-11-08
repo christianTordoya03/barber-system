@@ -24,7 +24,6 @@ export class BarberoHistorialComponent implements OnInit {
 
   nombreCompleto = signal<string>('');
   empleadoId = signal<number | null>(null);
-  comisionPorcentaje = signal<number>(50);
 
   hoyStrHtml = (() => {
     const d = new Date();
@@ -44,8 +43,6 @@ export class BarberoHistorialComponent implements OnInit {
     if (emp) {
       this.nombreCompleto.set(emp.nombre);
       this.empleadoId.set(emp.id!);
-      this.comisionPorcentaje.set(emp.comision || 50);
-      
       this.comisionesService.cargarTodas();
     }
 
@@ -58,7 +55,7 @@ export class BarberoHistorialComponent implements OnInit {
   // =========================================
   private obtenerRangoSemana(fechaRef: Date) {
     const d = new Date(fechaRef);
-    const dia = d.getDay() === 0 ? 7 : d.getDay(); // Hacemos que el Domingo sea 7
+    const dia = d.getDay() === 0 ? 7 : d.getDay(); // Domingo es 7
     
     const lunes = new Date(d);
     lunes.setDate(d.getDate() - dia + 1);
@@ -90,7 +87,7 @@ export class BarberoHistorialComponent implements OnInit {
   }
 
   // =========================================
-  // LÓGICA ORIGINAL DE FILTROS Y CÁLCULOS
+  // LÓGICA DE FILTROS
   // =========================================
   private parseDateStr(fechaStr: string) {
     if (!fechaStr) return null;
@@ -163,16 +160,33 @@ export class BarberoHistorialComponent implements OnInit {
     });
   });
 
+  // =========================================
+  // NUEVA LÓGICA DE METAS Y EXCEPCIONES
+  // =========================================
   totalProducido = computed(() => this.turnosFiltrados().reduce((acc, t) => acc + Number(t.monto), 0));
+  
+  esExcepcionVIP = computed(() => {
+    const nombreMin = this.nombreCompleto().toLowerCase();
+    return nombreMin.includes('cesar') || nombreMin.includes('isaac');
+  });
+
+  comisionPorcentaje = computed(() => {
+    if (this.esExcepcionVIP()) return 50;
+    return this.totalProducido() >= 1200 ? 50 : 45;
+  });
+
+  faltaParaMeta = computed(() => {
+    if (this.esExcepcionVIP() || this.totalProducido() >= 1200) return 0;
+    return 1200 - this.totalProducido();
+  });
+
   comisionNeta = computed(() => (this.totalProducido() * this.comisionPorcentaje()) / 100);
+  
   totalComisionesExtras = computed(() => this.comisionesFiltradas().reduce((acc, c) => acc + Number(c.monto), 0));
   totalAdelantos = computed(() => this.adelantosFiltrados().reduce((acc, g) => acc + Number(g.monto), 0));
   
   pagoFinal = computed(() => {
-    const base = (this.totalProducido() * this.comisionPorcentaje()) / 100;
-    const extras = this.comisionesFiltradas().reduce((acc, c) => acc + Number(c.monto), 0);
-    const vales = this.adelantosFiltrados().reduce((acc, g) => acc + Number(g.monto), 0);
-    return (base + extras) - vales;
+    return (this.comisionNeta() + this.totalComisionesExtras()) - this.totalAdelantos();
   });
 
   buscar() {

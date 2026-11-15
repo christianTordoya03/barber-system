@@ -80,9 +80,12 @@ export class TurnosService {
     // 2. VERIFICAR SI EL TURNO ES PARA HOY (Respeta las citas programadas del futuro)
     const esTurnoParaHoy = turno.fecha.startsWith(fechaHoyExacta);
 
-    // 3. CANDADO DE HORARIO (Bloquea de 10:00 PM a 5:59 AM solo si es para hoy)
+    // 3. CANDADO DE HORARIO (Bloquea a partir de las 11:30 PM hasta las 5:59 AM solo si es para hoy)
     const horaActual = hoy.getHours();
-    if (esTurnoParaHoy && (horaActual >= 22 || horaActual < 6)) {
+    const minutosActuales = hoy.getMinutes();
+    
+    // Si es pasadas las 11:30 PM o madrugada antes de las 6:00 AM
+    if (esTurnoParaHoy && ((horaActual === 23 && minutosActuales >= 30) || (horaActual >= 0 && horaActual < 6))) {
       throw new Error('FUERA_DE_HORARIO'); 
     }
 

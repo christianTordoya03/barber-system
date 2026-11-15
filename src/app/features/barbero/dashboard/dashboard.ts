@@ -170,7 +170,8 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
 
   esExcepcionVIP = computed(() => {
     const nombreMin = this.nombreCompleto().toLowerCase();
-    return nombreMin.includes('cesar') || nombreMin.includes('isaac');
+    const vips = ['cesar', 'isaac', 'jefferson', 'jose'];
+    return vips.some(vip => nombreMin.includes(vip));
   });
 
   comisionPorcentaje = computed(() => {
@@ -490,7 +491,8 @@ export class BarberoDashboardComponent implements OnInit, OnDestroy {
       console.error('Error al iniciar turno:', error);
       
       if (error?.message === 'FUERA_DE_HORARIO') {
-        this.toast.show('El horario ha finalizado. No se pueden crear turnos para hoy después de las 10:00 PM.', 'warning');
+        // ACTUALIZADO: Mensaje cambiado a 11:30 PM
+        this.toast.show('El horario ha finalizado. No se pueden crear turnos para hoy después de las 11:30 PM.', 'warning');
       } else if (error?.message === 'OFFLINE' || error?.message === 'TIMEOUT') {
         this.toast.show('Micro corte de internet. Por favor, presiona F5.', 'error');
       } else {

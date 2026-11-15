@@ -70,9 +70,11 @@ export class ListaEmpleadoComponent implements OnInit {
         return itemStr >= inicioStr && itemStr <= finStr;
       }).reduce((acc, t) => acc + Number(t.monto), 0);
 
-      // EXCEPCIÓN VIP: Buscamos a Cesar o a Isaac (sin importar mayúsculas)
+      // EXCEPCIÓN VIP: Lista de barberos con 50% fijo
       const nombreMin = barbero.nombre.toLowerCase();
-      const esVIP = nombreMin.includes('cesar') || nombreMin.includes('isaac');
+      const vips = ['cesar', 'isaac', 'jefferson', 'jose'];
+      const esVIP = vips.some(vip => nombreMin.includes(vip));
+      
       const alcanzoMeta = totalGenerado >= 1200;
 
       return {
@@ -161,8 +163,8 @@ export class ListaEmpleadoComponent implements OnInit {
   totalGeneradoEmpleado = computed(() => this.turnosEmpleado().reduce((acc, t) => acc + Number(t.monto), 0));
   porcentajeComisionEmpleado = computed(() => {
     const empleado = this.filtroAplicado().empleado.toLowerCase();
-    // Cesar siempre tiene 50%, los demás dependen de la meta de 1200
-    if (empleado.includes('cesar') || empleado.includes('isaac')) {
+    const vips = ['cesar', 'isaac', 'jefferson', 'jose'];
+    if (vips.some(vip => empleado.includes(vip))) {
       return 50; 
     }
     return this.totalGeneradoEmpleado() >= 1200 ? 50 : 45;

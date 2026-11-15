@@ -167,7 +167,8 @@ export class BarberoHistorialComponent implements OnInit {
   
   esExcepcionVIP = computed(() => {
     const nombreMin = this.nombreCompleto().toLowerCase();
-    return nombreMin.includes('cesar') || nombreMin.includes('isaac');
+    const vips = ['cesar', 'isaac', 'jefferson', 'jose'];
+    return vips.some(vip => nombreMin.includes(vip));
   });
 
   comisionPorcentaje = computed(() => {

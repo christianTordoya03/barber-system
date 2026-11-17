@@ -72,7 +72,7 @@ export class ListaEmpleadoComponent implements OnInit {
 
       // EXCEPCIÓN VIP: Lista de barberos con 50% fijo
       const nombreMin = barbero.nombre.toLowerCase();
-      const vips = ['cesar', 'isaac', 'jefferson', 'jose'];
+      const vips = ['cesar', 'isaac', 'jefferson', 'jose', 'eduardo', 'axel'];
       const esVIP = vips.some(vip => nombreMin.includes(vip));
       
       const alcanzoMeta = totalGenerado >= 1200;
@@ -163,7 +163,7 @@ export class ListaEmpleadoComponent implements OnInit {
   totalGeneradoEmpleado = computed(() => this.turnosEmpleado().reduce((acc, t) => acc + Number(t.monto), 0));
   porcentajeComisionEmpleado = computed(() => {
     const empleado = this.filtroAplicado().empleado.toLowerCase();
-    const vips = ['cesar', 'isaac', 'jefferson', 'jose'];
+    const vips = ['cesar', 'isaac', 'jefferson', 'jose', 'eduardo', 'axel'];
     if (vips.some(vip => empleado.includes(vip))) {
       return 50; 
     }
